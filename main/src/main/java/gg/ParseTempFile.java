@@ -29,60 +29,69 @@ public class ParseTempFile {
 
     private static final String DATE_FORMAT = "dd-MM-yyyy HH:mm:ss";
     private static SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
-    private static NumberFormat nf = DecimalFormat.getInstance(Locale.ITALY);//.  "##.##");
+    private static NumberFormat nf = DecimalFormat.getInstance(Locale.ITALY);
 
     public static void main(String[] args) throws IOException {
         System.out.println("Start. Parameters: " + Arrays.asList(args));
-        NumberFormat nf = DecimalFormat.getInstance(Locale.ITALY);
-       // nf.setx//.  "##.##");
         DateRange dataRange = buildDataRange(args);
         String filePath = args[0];
 
         List<MyRow> convert = convert(dataRange, filePath);
         GenerateChart.generateChart(convert.toString());
-
-        //  writeXlsxFile(fixedRows);
+        //writeXlsxFile(fixedRows);
     }
 
     private static List<MyRow> convert(DateRange dataRange, String filePath) {
-        System.out.println("startDate " + dataRange.sd + " endDate " + dataRange.ed );
+        System.out.println("startDate " + dataRange.sd + " endDate " + dataRange.ed);
         List<MyRow> rows = extractTemperatureInfoFromSourceFile(filePath);
 
         System.out.println("Processing " + rows.size() + " rows");
 
-        CircularFifoQueue<Double> lastAvg1 = new CircularFifoQueue<>(5);
-        CircularFifoQueue<Double> lastAvg2 = new CircularFifoQueue<>(5);
+        CircularFifoQueue<Double> lastAvgChamber = new CircularFifoQueue<>(5);
+        CircularFifoQueue<Double> lastAvgWort = new CircularFifoQueue<>(5);
 
         List<MyRow> fixedRows = new ArrayList<>();
-        int invalidValuesT1 =0;
-        int invalidValuesT2 =0;
-        int skippeRows =0;
+        int invalidValuesChamber = 0;
+        int invalidValuesWort = 0;
+        int skippedDates = 0;
 
         for (MyRow row : rows) {
             if (dataRange.sd != null && row.date.isBefore(dataRange.sd) || dataRange.ed != null && row.date.isAfter(dataRange.ed)) {
-                skippeRows++;
+                skippedDates++;
                 continue;
             }
-            if (row.t1.doubleValue() < 0 || row.t1.doubleValue() > 50) {
-                row.t1 = avg(lastAvg1);
-                invalidValuesT1++;
-            }else{
-                lastAvg1.add(row.t1.doubleValue());
+            if (row.chamberTemp < 0 || row.chamberTemp > 50) {
+                row.chamberTemp = avg(lastAvgChamber);
+                invalidValuesChamber++;
+            } else {
+                lastAvgChamber.add(row.chamberTemp);
             }
 
-            if (row.t2.doubleValue() < 0 || row.t2.doubleValue() > 50) {
-                row.t2 = avg(lastAvg2);
-                invalidValuesT2++;
-            }else{
-                lastAvg2.add(row.t2.doubleValue());
+            if (row.wortTemp < 0 || row.wortTemp > 50) {
+                row.wortTemp = avg(lastAvgWort);
+                invalidValuesWort++;
+            } else {
+                lastAvgWort.add(row.wortTemp);
             }
 
             fixedRows.add(row);
             //     System.out.println(row);
         }
 
-        System.out.println("Replaced invalid values. T1: " + invalidValuesT1 + " T2: " +invalidValuesT2 + " skipped rows: " +skippeRows);
-        System.out.println("Chart: " + fixedRows);
+
+        DoubleSummaryStatistics chamberStats = fixedRows.stream()
+                .collect(Collectors.summarizingDouble(r-> r.chamberTemp));
+
+        DoubleSummaryStatistics wortStats = fixedRows.stream()
+                .collect(Collectors.summarizingDouble(r-> r.wortTemp));
+
+        System.out.println("" +
+                "\n Replaced invalid values Chamber: " + invalidValuesChamber +
+                "\n Replaced invalid values Wort: " + invalidValuesWort +
+                "\n Skipped rows: " + skippedDates +
+                "\n Statistics chamber: " + chamberStats +
+                "\n Statistics wort: " + wortStats);
+        //System.out.println("Chart: " + fixedRows);
 
         return fixedRows;
     }
@@ -110,8 +119,8 @@ public class ParseTempFile {
         int rowNumber = 0;
         XSSFRow header = dataSheet.createRow(rowNumber++);
         header.createCell(0, CellType.STRING).setCellValue("Date");
-        header.createCell(1, CellType.STRING).setCellValue(fixedRows.get(0).s1);
-        header.createCell(2, CellType.STRING).setCellValue(fixedRows.get(0).s2);
+        header.createCell(1, CellType.STRING).setCellValue(fixedRows.get(0).chamberSensorName);
+        header.createCell(2, CellType.STRING).setCellValue(fixedRows.get(0).wortSensorName);
 
         CellStyle cellStyle = myWorkBook.createCellStyle();
         CreationHelper createHelper = myWorkBook.getCreationHelper();
@@ -124,8 +133,8 @@ public class ParseTempFile {
             Date out = Date.from(r.date.atZone(ZoneId.systemDefault()).toInstant());
             dateCell.setCellValue(out);
             dateCell.setCellStyle(cellStyle);
-            xRow.createCell(1).setCellValue(r.t1.doubleValue());
-            xRow.createCell(2).setCellValue(r.t2.doubleValue());
+            xRow.createCell(1).setCellValue(r.chamberTemp.doubleValue());
+            xRow.createCell(2).setCellValue(r.wortTemp.doubleValue());
         }
 
         writeChart(dataSheet, fixedRows.size());
@@ -187,28 +196,28 @@ public class ParseTempFile {
             int second = date.getSecond();
 
             return
-                    "[ new Date("+year+", "+(month -1) +", "+day+", "+hour+", "+minute+", "+second+", 0)," + t1 + "," +t2+ "]";
-            //  ", t2=" + t2 +
+                    "[ new Date("+year+", "+(month -1) +", "+day+", "+hour+", "+minute+", "+second+", 0)," + chamberTemp + "," + wortTemp + "]";
+            //  ", wortTemp=" + wortTemp +
 
         }
 
         private LocalDateTime date;
-        private Number t1 = 0;
-        private String s1;
-        private Number t2 =0;
-        private String s2;
+        private Double chamberTemp = 0D;
+        private String chamberSensorName;
+        private Double wortTemp =0D;
+        private String wortSensorName;
 
 
-        MyRow(String date, String t1, String s1, String t2, String s2) {
+        MyRow(String date, String chamberTemp, String chamberSensorName, String wortTemp, String wortSensorName) {
             try {
                 Date parse = sdf.parse(date); //TODO remove this when writing file in the ISO DATETIME way
                 this.date = parse.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
 
-                this.t1 = nf.parse(t1);
-                this.s1 = s1;
+                this.chamberTemp = nf.parse(chamberTemp).doubleValue();
+                this.chamberSensorName = chamberSensorName;
 
-                this.t2 = nf.parse(t2);
-                this.s2 = s2;
+                this.wortTemp = nf.parse(wortTemp).doubleValue();
+                this.wortSensorName = wortSensorName;
             } catch (ParseException e) {
                 e.printStackTrace();
             }

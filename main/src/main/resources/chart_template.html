@@ -7,22 +7,97 @@
         function drawChart() {
             var data = new google.visualization.DataTable();
             data.addColumn('date', 'Date');
-            data.addColumn('number', 'Fermentatore');
             data.addColumn('number', 'Camera');
-   
+            data.addColumn('number', 'Fermentatore');
+
+            var d = XXX
             data.addRows(
-                XXX
+                d
             );
 
             var chart = new google.visualization.AnnotatedTimeLine(document.getElementById('chart_div'));
             chart.draw(data, {displayAnnotations: true, dateFormat : 'dd MM yyyy HH:mm:ss'});
+            google.visualization.events.addListener(chart, 'rangechange', selectHandler);
+            function selectHandler(e) {
+                var startDate = e['start'];
+                var endDate = e['end'];
+
+                document.getElementById('start_div').innerText = startDate;
+                document.getElementById('end_div').innerText = endDate;
+
+                var sd = Date.parse(startDate);
+                var ed = Date.parse(endDate);
+
+                var sum = 0;
+                var ele = 0;
+                var min = 100;
+                var max = 0;
+
+                var sumWort = 0;
+                var eleWort = 0;
+                var minWort = 100;
+                var maxWort = 0;
+
+                for( var i = 0; i < d.length; i++ ){
+                    var date = Date.parse(d[i][0]);
+
+                    if(date > sd && date <ed) {
+                        var chamberValue = parseFloat(d[i][1]);
+                        var wortValue = parseFloat(d[i][2]);
+
+                        sum += chamberValue;
+                        ele = ele +1;
+
+                        if(chamberValue < min){
+                            min = chamberValue;
+                        }
+                        if(chamberValue > max){
+                            max = chamberValue;
+                        }
+
+                        //Wort
+                        sumWort += wortValue;
+                        eleWort = eleWort +1;
+
+                        if(wortValue < minWort){
+                            minWort = wortValue;
+                        }
+                        if(wortValue > maxWort){
+                            maxWort = wortValue;
+                        }
+                    }
+                }
+
+                var avg = sum/ele;
+                var avgWort = sumWort/eleWort;
+                document.getElementById('avg_chamber_div').innerText = avg;
+                document.getElementById('min_chamber_div').innerText = min;
+                document.getElementById('max_chamber_div').innerText = max;
+
+                document.getElementById('avg_wort_div').innerText = avgWort;
+                document.getElementById('min_wort_div').innerText = minWort;
+                document.getElementById('max_wort_div').innerText = maxWort;
+            }
         }
     </script>
 </head>
 
 <body>
-// Note how you must specify the size of the container element explicitly!
 <div id='chart_div' style='width: 1200px; height: 500px;'></div>
+<div id='details_div' style='width: 1200px; height: 500px;'>
+
+    <div id='start_lbl_div'>Start Date:</div><div id='start_div'></div>
+    <div id='end_lbl_div'>End Date:</div><div id='end_div'></div>
+
+    <div id='avg_chamber_lbl_div'>AVG chamber:</div><div id='avg_chamber_div'></div>
+    <div id='min_chamber_lbl_div'>MIN chamber:</div><div id='min_chamber_div' ></div>
+    <div id='max_chamber_lbl_div'>MAX chamber:</div><div id='max_chamber_div' ></div>
+
+    <div id='avg_wort_lbl_div'>AVG wort:</div><div id='avg_wort_div'></div>
+    <div id='min_wort_lbl_div'>MIN wort:</div><div id='min_wort_div' ></div>
+    <div id='max_wort_lbl_div'>MAX wort:</div><div id='max_wort_div' ></div>
+</div>
+
 
 </body>
 </html>
