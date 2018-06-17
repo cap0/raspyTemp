@@ -22,8 +22,8 @@
                 var startDate = e['start'];
                 var endDate = e['end'];
 
-                document.getElementById('start_div').innerText = startDate;
-                document.getElementById('end_div').innerText = endDate;
+                document.getElementById('start_div').innerText = startDate.toLocaleString();
+                document.getElementById('end_div').innerText = endDate.toLocaleString();
 
                 var sd = Date.parse(startDate);
                 var ed = Date.parse(endDate);
@@ -70,13 +70,13 @@
 
                 var avg = sum/ele;
                 var avgWort = sumWort/eleWort;
-                document.getElementById('avg_chamber_div').innerText = avg;
-                document.getElementById('min_chamber_div').innerText = min;
-                document.getElementById('max_chamber_div').innerText = max;
+                document.getElementById('avg_chamber_div').innerText = avg.toFixed(2);
+                document.getElementById('min_chamber_div').innerText = min.toFixed(2);
+                document.getElementById('max_chamber_div').innerText = max.toFixed(2);
 
-                document.getElementById('avg_wort_div').innerText = avgWort;
-                document.getElementById('min_wort_div').innerText = minWort;
-                document.getElementById('max_wort_div').innerText = maxWort;
+                document.getElementById('avg_wort_div').innerText = avgWort.toFixed(2);
+                document.getElementById('min_wort_div').innerText = minWort.toFixed(2);
+                document.getElementById('max_wort_div').innerText = maxWort.toFixed(2);
             }
         }
     </script>
@@ -86,16 +86,16 @@
 <div id='chart_div' style='width: 1200px; height: 500px;'></div>
 <div id='details_div' style='width: 1200px; height: 500px;'>
 
-    <div id='start_lbl_div'>Start Date:</div><div id='start_div'></div>
-    <div id='end_lbl_div'>End Date:</div><div id='end_div'></div>
+    <div id='start_lbl_div' style="float:left">Start Date: </div><div id='start_div' style="float:left"></div><div style="clear:both"></div>
+    <div id='end_lbl_div' style="float:left">End Date: </div><div id='end_div' style="float:left"></div><div style="clear:both"></div>
 
-    <div id='avg_chamber_lbl_div'>AVG chamber:</div><div id='avg_chamber_div'></div>
-    <div id='min_chamber_lbl_div'>MIN chamber:</div><div id='min_chamber_div' ></div>
-    <div id='max_chamber_lbl_div'>MAX chamber:</div><div id='max_chamber_div' ></div>
+    <div id='avg_chamber_lbl_div' style="float:left">AVG chamber:</div><div id='avg_chamber_div' style="float:left" >x</div><div style="clear:both"></div>
+    <div id='min_chamber_lbl_div' style="float:left">MIN chamber:</div><div id='min_chamber_div' style="float:left">x</div><div style="clear:both"></div>
+    <div id='max_chamber_lbl_div' style="float:left">MAX chamber:</div><div id='max_chamber_div' style="float:left">x</div><div style="clear:both"></div>
 
-    <div id='avg_wort_lbl_div'>AVG wort:</div><div id='avg_wort_div'></div>
-    <div id='min_wort_lbl_div'>MIN wort:</div><div id='min_wort_div' ></div>
-    <div id='max_wort_lbl_div'>MAX wort:</div><div id='max_wort_div' ></div>
+    <div id='avg_wort_lbl_div' style="float:left">AVG wort:</div><div id='avg_wort_div' style="float:left">x</div><div style="clear:both"></div>
+    <div id='min_wort_lbl_div' style="float:left">MIN wort:</div><div id='min_wort_div'  style="float:left">x</div><div style="clear:both"></div>
+    <div id='max_wort_lbl_div' style="float:left">MAX wort:</div><div id='max_wort_div'  style="float:left">x</div><div style="clear:both"></div>
 </div>
 
 
