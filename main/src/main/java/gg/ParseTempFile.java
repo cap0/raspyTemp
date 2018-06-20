@@ -18,8 +18,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,8 +26,7 @@ import java.util.stream.Stream;
 
 public class ParseTempFile {
 
-    private static final String DATE_FORMAT = "dd-MM-yyyy HH:mm:ss";
-    private static SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
+    private static SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
     private static NumberFormat nf = DecimalFormat.getInstance(Locale.ITALY);
 
     public static void main(String[] args) throws IOException {
@@ -36,73 +34,67 @@ public class ParseTempFile {
         DateRange dataRange = buildDataRange(args);
         String filePath = args[0];
 
-        List<MyRow> convert = convert(dataRange, filePath);
-        GenerateChart.generateChart(convert.toString());
+        LinkedHashMap<LocalDateTime, Double> settingsTemperature = new LinkedHashMap<>();
+        settingsTemperature.put(LocalDateTime.of(LocalDate.of(2018, Month.JUNE, 11), LocalTime.of(20, 0, 0)), 17D);
+        settingsTemperature.put(LocalDateTime.of(LocalDate.of(2018, Month.JUNE, 13), LocalTime.of(13, 45, 0)), 18D);
+        settingsTemperature.put(LocalDateTime.of(LocalDate.of(2018, Month.JUNE, 16), LocalTime.of(10, 0, 0)), 19D);
+        settingsTemperature.put(LocalDateTime.of(LocalDate.of(2018, Month.JUNE, 18), LocalTime.of(22, 0, 0)), 20D);
+        settingsTemperature.put(LocalDateTime.of(LocalDate.of(2019, Month.JUNE, 18), LocalTime.of(22, 0, 0)), 2D);
+        StatisticalInfo statisticalInfo = convert(dataRange, filePath, settingsTemperature);
+        GenerateChart.generateChart(statisticalInfo);
         //writeXlsxFile(fixedRows);
     }
 
-    private static List<MyRow> convert(DateRange dataRange, String filePath) {
+    private static StatisticalInfo convert(DateRange dataRange, String filePath, LinkedHashMap<LocalDateTime, Double> settingsTemperature) {
         System.out.println("startDate " + dataRange.sd + " endDate " + dataRange.ed);
-        List<MyRow> rows = extractTemperatureInfoFromSourceFile(filePath);
+        List<TemperatureRow> rows = extractTemperatureInfoFromSourceFile(filePath, settingsTemperature);
 
         System.out.println("Processing " + rows.size() + " rows");
 
         CircularFifoQueue<Double> lastAvgChamber = new CircularFifoQueue<>(5);
         CircularFifoQueue<Double> lastAvgWort = new CircularFifoQueue<>(5);
 
-        List<MyRow> fixedRows = new ArrayList<>();
-        int invalidValuesChamber = 0;
-        int invalidValuesWort = 0;
-        int skippedDates = 0;
-
-        for (MyRow row : rows) {
+        StatisticalInfo stats = new StatisticalInfo();
+        for (TemperatureRow row : rows) {
             if (dataRange.sd != null && row.date.isBefore(dataRange.sd) || dataRange.ed != null && row.date.isAfter(dataRange.ed)) {
-                skippedDates++;
+                stats.skippedDates++;
                 continue;
             }
             if (row.chamberTemp < 0 || row.chamberTemp > 50) {
                 row.chamberTemp = avg(lastAvgChamber);
-                invalidValuesChamber++;
+                stats.invalidValuesChamber++;
             } else {
                 lastAvgChamber.add(row.chamberTemp);
             }
 
             if (row.wortTemp < 0 || row.wortTemp > 50) {
                 row.wortTemp = avg(lastAvgWort);
-                invalidValuesWort++;
+                stats.invalidValuesWort++;
             } else {
                 lastAvgWort.add(row.wortTemp);
             }
 
-            fixedRows.add(row);
-            //     System.out.println(row);
+            stats.fixedRows.add(row);
         }
 
-
-        DoubleSummaryStatistics chamberStats = fixedRows.stream()
+        stats.chamberStats = stats.fixedRows.stream()
                 .collect(Collectors.summarizingDouble(r-> r.chamberTemp));
 
-        DoubleSummaryStatistics wortStats = fixedRows.stream()
+        stats.wortStats = stats.fixedRows.stream()
                 .collect(Collectors.summarizingDouble(r-> r.wortTemp));
 
-        System.out.println("" +
-                "\n Replaced invalid values Chamber: " + invalidValuesChamber +
-                "\n Replaced invalid values Wort: " + invalidValuesWort +
-                "\n Skipped rows: " + skippedDates +
-                "\n Statistics chamber: " + chamberStats +
-                "\n Statistics wort: " + wortStats);
-        //System.out.println("Chart: " + fixedRows);
+        System.out.println(stats);
 
-        return fixedRows;
+        return stats;
     }
 
-    private static List<MyRow> extractTemperatureInfoFromSourceFile(String filePath) {
-        List<MyRow> rows = null;
+
+    private static List<TemperatureRow> extractTemperatureInfoFromSourceFile(String filePath, LinkedHashMap<LocalDateTime, Double> temperatureSettings) {
+        List<TemperatureRow> rows = null;
         try (Stream<String> stream = Files.lines(Paths.get(filePath))) {
             rows = stream
-                    // .peek(e -> System.out.println(e))
                     .map(l -> l.split("\\|"))
-                    .map(r -> new MyRow(r[0], r[1], r[2], r[3], r[4]))
+                    .map(r -> new TemperatureRow(r[0], r[1], r[2], r[3], r[4], temperatureSettings))
                     .collect(Collectors.toList());
         } catch (IOException e) {
             e.printStackTrace();
@@ -112,7 +104,7 @@ public class ParseTempFile {
         return rows;
     }
 
-    private static void writeXlsxFile(List<MyRow> fixedRows) throws IOException {
+    private static void writeXlsxFile(List<TemperatureRow> fixedRows) throws IOException {
         XSSFWorkbook myWorkBook = new XSSFWorkbook ();
         XSSFSheet dataSheet = myWorkBook.createSheet("data");
 
@@ -127,14 +119,14 @@ public class ParseTempFile {
         cellStyle.setDataFormat(
                 createHelper.createDataFormat().getFormat("dd-MM-yyyy HH:mm:ss"));
 
-        for (MyRow r : fixedRows) {
+        for (TemperatureRow r : fixedRows) {
             XSSFRow xRow = dataSheet.createRow(rowNumber++);
             XSSFCell dateCell = xRow.createCell(0);
             Date out = Date.from(r.date.atZone(ZoneId.systemDefault()).toInstant());
             dateCell.setCellValue(out);
             dateCell.setCellStyle(cellStyle);
-            xRow.createCell(1).setCellValue(r.chamberTemp.doubleValue());
-            xRow.createCell(2).setCellValue(r.wortTemp.doubleValue());
+            xRow.createCell(1).setCellValue(r.chamberTemp);
+            xRow.createCell(2).setCellValue(r.wortTemp);
         }
 
         writeChart(dataSheet, fixedRows.size());
@@ -174,18 +166,53 @@ public class ParseTempFile {
         chart.plot(scatterChartData, bottomAxis, leftAxis);
     }
 
-    private static Double avg(CircularFifoQueue<Double> lastAvg1) {
+    private static Double avg(CircularFifoQueue<Double> lastValues) {
         double sum  = 0;
         int i=0;
 
-        for (Double d : lastAvg1) {
+        for (Double d : lastValues) {
             sum+=d;
             i++;
         }
         return sum/i;
     }
 
-    private static class MyRow {
+    public static class TemperatureRow {
+        private LocalDateTime date;
+        private Double chamberTemp = 0D;
+        private String chamberSensorName;
+        private Double wortTemp =0D;
+        private String wortSensorName;
+        private Double settingTemperature =0D;
+
+
+        TemperatureRow(String date, String chamberTemp, String chamberSensorName, String wortTemp, String wortSensorName, LinkedHashMap<LocalDateTime, Double> temperatureSettings) {
+            try {
+                Date parse = sdf.parse(date); //TODO remove this when writing file in the ISO DATETIME way
+                this.date = parse.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+
+                this.chamberTemp = nf.parse(chamberTemp).doubleValue();
+                this.chamberSensorName = chamberSensorName;
+
+                this.wortTemp = nf.parse(wortTemp).doubleValue();
+                this.wortSensorName = wortSensorName;
+
+                this.settingTemperature = getSettingTemperature(this.date, temperatureSettings);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private Double getSettingTemperature(LocalDateTime date, LinkedHashMap<LocalDateTime, Double> temperatureSettings) {
+            for (Map.Entry<LocalDateTime, Double> set : temperatureSettings.entrySet()) {
+                if (date.isBefore(set.getKey())){
+                    return set.getValue();
+                }
+            }
+
+            return 20D;
+        }
+
         @Override
         public String toString() {
             int year  = date.getYear();
@@ -196,31 +223,8 @@ public class ParseTempFile {
             int second = date.getSecond();
 
             return
-                    "[ new Date("+year+", "+(month -1) +", "+day+", "+hour+", "+minute+", "+second+", 0)," + chamberTemp + "," + wortTemp + "]";
-            //  ", wortTemp=" + wortTemp +
+                    "[ new Date("+year+", "+(month -1) +", "+day+", "+hour+", "+minute+", "+second+", 0)," + chamberTemp + "," + wortTemp + "," + settingTemperature + "]";
 
-        }
-
-        private LocalDateTime date;
-        private Double chamberTemp = 0D;
-        private String chamberSensorName;
-        private Double wortTemp =0D;
-        private String wortSensorName;
-
-
-        MyRow(String date, String chamberTemp, String chamberSensorName, String wortTemp, String wortSensorName) {
-            try {
-                Date parse = sdf.parse(date); //TODO remove this when writing file in the ISO DATETIME way
-                this.date = parse.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-
-                this.chamberTemp = nf.parse(chamberTemp).doubleValue();
-                this.chamberSensorName = chamberSensorName;
-
-                this.wortTemp = nf.parse(wortTemp).doubleValue();
-                this.wortSensorName = wortSensorName;
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
         }
     }
 

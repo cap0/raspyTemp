@@ -4,18 +4,20 @@
     <script type='text/javascript'>
         google.charts.load('current', {'packages':['annotatedtimeline']});
         google.charts.setOnLoadCallback(drawChart);
+        var chart;
         function drawChart() {
             var data = new google.visualization.DataTable();
             data.addColumn('date', 'Date');
-            data.addColumn('number', 'Camera');
-            data.addColumn('number', 'Fermentatore');
+            data.addColumn('number', 'Chamber');
+            data.addColumn('number', 'Fermenter');
+            data.addColumn('number', 'Set Temperature');
 
             var d = XXX
             data.addRows(
                 d
             );
 
-            var chart = new google.visualization.AnnotatedTimeLine(document.getElementById('chart_div'));
+            chart = new google.visualization.AnnotatedTimeLine(document.getElementById('chart_div'));
             chart.draw(data, {displayAnnotations: true, dateFormat : 'dd MM yyyy HH:mm:ss'});
             google.visualization.events.addListener(chart, 'rangechange', selectHandler);
             function selectHandler(e) {
@@ -77,8 +79,30 @@
                 document.getElementById('avg_wort_div').innerText = avgWort.toFixed(2);
                 document.getElementById('min_wort_div').innerText = minWort.toFixed(2);
                 document.getElementById('max_wort_div').innerText = maxWort.toFixed(2);
+
             }
         }
+        function hideChamber() {
+            chart.hideDataColumns(0);
+        }
+        function showChamber() {
+            chart.showDataColumns(0);
+        }
+
+        function hideFermenter() {
+            chart.hideDataColumns(1);
+        }
+        function showFermenter() {
+            chart.showDataColumns(1);
+        }
+
+        function hideSettings() {
+            chart.hideDataColumns(2);
+        }
+        function showSettings() {
+            chart.showDataColumns(2);
+        }
+
     </script>
 </head>
 
@@ -96,6 +120,14 @@
     <div id='avg_wort_lbl_div' style="float:left;color: red;">AVG wort:</div><div id='avg_wort_div' style="float:left">x</div><div style="clear:both"></div>
     <div id='min_wort_lbl_div' style="float:left;color: red;">MIN wort:</div><div id='min_wort_div'  style="float:left">x</div><div style="clear:both"></div>
     <div id='max_wort_lbl_div' style="float:left;color: red;">MAX wort:</div><div id='max_wort_div'  style="float:left">x</div><div style="clear:both"></div>
+
+    <button onclick="hideChamber()">Hide Chamber</button>
+    <button onclick="showChamber()">Show Chamber</button>
+    <button onclick="hideFermenter()">Hide Fermenter</button>
+    <button onclick="showFermenter()">Show Fermenter</button>
+    <button onclick="hideSettings()">Hide Settings</button>
+    <button onclick="showSettings()">Show Settings</button>
+
 </div>
 
 
