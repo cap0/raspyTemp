@@ -35,6 +35,7 @@ public class ParseTempFile {
         String filePath = args[0];
 
         //Properties properties = getProperties(args[0]); //TODO use this approach an version property file
+        //"/Users/gabriele.gattari/raspyTemp/main/src/main/resources/all.bkp" "2018-06-07T20:50:34"
 
         LinkedHashMap<LocalDateTime, Double> settingsTemperature = new LinkedHashMap<>(); //TODO make this configurable
         settingsTemperature.put(LocalDateTime.of(LocalDate.of(2018, Month.JUNE, 11), LocalTime.of(20, 0, 0)), 17D);
