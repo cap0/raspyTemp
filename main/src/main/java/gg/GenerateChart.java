@@ -13,7 +13,7 @@ class GenerateChart {
         Charset charset = StandardCharsets.UTF_8;
 
         String dashboardSource = new String(Files.readAllBytes(dashboardTemplateFile), charset);
-        dashboardSource = dashboardSource.replaceAll("XXX", statisticalInfo.fixedRows.toString());
+        dashboardSource = dashboardSource.replaceAll("XXX", statisticalInfo.temperatures.toString());
         Path outputFile = Paths.get(outputFilePath);
 
         Files.write(outputFile, dashboardSource.getBytes(charset));

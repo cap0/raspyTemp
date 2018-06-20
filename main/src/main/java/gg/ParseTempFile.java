@@ -1,6 +1,7 @@
 package gg;
 
 import org.apache.commons.collections4.queue.CircularFifoQueue;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.charts.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -21,35 +22,53 @@ import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ParseTempFile {
+
+    private static final String START_DATE = "startDate";
+    private static final String END_DATE = "endDate";
+    private static final String SOURCE_FILE = "sourceFile";
+    private static final String OUTPUT_FILE = "outputFile";
+    private static final String TEMPERATURE_SETTINGS = "temperatureSettings";
+    private static final String GENERATE_XLSX_FILE = "generateXlsxFile";
+    private static final String MIN_ALLOWED_TEMP = "minAllowedTemp";
+    private static final String MAX_ALLOWED_TEMP = "maxAllowedTemp";
 
     private static SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"); //TODO use localdatetime
     private static NumberFormat nf = DecimalFormat.getInstance(Locale.ITALY);
 
     public static void main(String[] args) throws Exception {
         System.out.println("Start. Parameters: " + Arrays.asList(args));
-        DateRange dataRange = buildDataRange(args);
-        String filePath = args[0];
+        Properties p = Main.getProperties(args[0]);
 
-        //Properties properties = getProperties(args[0]); //TODO use this approach an version property file
-        //"/Users/gabriele.gattari/raspyTemp/main/src/main/resources/all.bkp" "2018-06-07T20:50:34"
+        String[] temperatureSettings = p.getProperty(TEMPERATURE_SETTINGS).split(";");
+        LinkedHashMap<LocalDateTime, Double> settingsTemperature = getTemperatureSettings(temperatureSettings);
 
-        LinkedHashMap<LocalDateTime, Double> settingsTemperature = new LinkedHashMap<>(); //TODO make this configurable
-        settingsTemperature.put(LocalDateTime.of(LocalDate.of(2018, Month.JUNE, 11), LocalTime.of(20, 0, 0)), 17D);
-        settingsTemperature.put(LocalDateTime.of(LocalDate.of(2018, Month.JUNE, 13), LocalTime.of(13, 45, 0)), 18D);
-        settingsTemperature.put(LocalDateTime.of(LocalDate.of(2018, Month.JUNE, 16), LocalTime.of(10, 0, 0)), 19D);
-        settingsTemperature.put(LocalDateTime.of(LocalDate.of(2018, Month.JUNE, 18), LocalTime.of(22, 0, 0)), 20D);
-        settingsTemperature.put(LocalDateTime.of(LocalDate.of(2019, Month.JUNE, 18), LocalTime.of(22, 0, 0)), 2D);
+        DateRange dataRange = buildDataRange(p.getProperty(START_DATE), p.getProperty(END_DATE));
+        Double minAllowedTemp = Double.valueOf(p.getProperty(MIN_ALLOWED_TEMP));
+        Double maxAllowedTemp = Double.valueOf(p.getProperty(MAX_ALLOWED_TEMP));
 
-        StatisticalInfo statisticalInfo = convert(dataRange, filePath, settingsTemperature);
-        new GenerateChart().generateChart(statisticalInfo, "/Users/gabriele.gattari/raspyTemp/main/src/main/resources/chart_generated.html");
-        //writeXlsxFile(fixedRows); //TODO make this configurable
+        StatisticalInfo statisticalInfo = convert(dataRange, p.getProperty(SOURCE_FILE), settingsTemperature, minAllowedTemp, maxAllowedTemp);
+        new GenerateChart().generateChart(statisticalInfo, p.getProperty(OUTPUT_FILE));
+        if(Boolean.parseBoolean(p.getProperty(GENERATE_XLSX_FILE)))
+            writeXlsxFile(statisticalInfo.temperatures);
     }
 
-    private static StatisticalInfo convert(DateRange dataRange, String filePath, LinkedHashMap<LocalDateTime, Double> settingsTemperature) {
+    private static LinkedHashMap<LocalDateTime, Double> getTemperatureSettings(String[] temperatureSettings) {
+        LinkedHashMap<LocalDateTime, Double> settingsTemperature = new LinkedHashMap<>();
+        for (int i = 0; i < temperatureSettings.length; i=i+2) {
+            LocalDateTime dateTime = LocalDateTime.parse(temperatureSettings[i], DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            double temperature = Double.parseDouble(temperatureSettings[i + 1]);
+            settingsTemperature.put(dateTime, temperature);
+        }
+        return settingsTemperature;
+    }
+
+    private static StatisticalInfo convert(DateRange dataRange, String filePath, LinkedHashMap<LocalDateTime, Double> settingsTemperature,
+                                           Double minAllowedTemp, Double maxAllowedTemp) {
         System.out.println("startDate " + dataRange.sd + " endDate " + dataRange.ed);
         List<TemperatureRow> rows = extractTemperatureInfoFromSourceFile(filePath, settingsTemperature);
 
@@ -64,27 +83,27 @@ public class ParseTempFile {
                 stats.skippedDates++;
                 continue;
             }
-            if (row.chamberTemp < 0 || row.chamberTemp > 50) { //TODO make this configurable
+            if (row.chamberTemp < minAllowedTemp || row.chamberTemp > maxAllowedTemp) {
                 row.chamberTemp = avg(lastAvgChamber);
                 stats.invalidValuesChamber++;
             } else {
                 lastAvgChamber.add(row.chamberTemp);
             }
 
-            if (row.wortTemp < 0 || row.wortTemp > 50) {
+            if (row.wortTemp < minAllowedTemp || row.wortTemp > maxAllowedTemp) {
                 row.wortTemp = avg(lastAvgWort);
                 stats.invalidValuesWort++;
             } else {
                 lastAvgWort.add(row.wortTemp);
             }
 
-            stats.fixedRows.add(row);
+            stats.temperatures.add(row);
         }
 
-        stats.chamberStats = stats.fixedRows.stream()
+        stats.chamberStats = stats.temperatures.stream()
                 .collect(Collectors.summarizingDouble(r-> r.chamberTemp));
 
-        stats.wortStats = stats.fixedRows.stream()
+        stats.wortStats = stats.temperatures.stream()
                 .collect(Collectors.summarizingDouble(r-> r.wortTemp));
 
         System.out.println(stats);
@@ -214,7 +233,7 @@ public class ParseTempFile {
                 }
             }
 
-            return 20D; //TODO remove this
+            return -1D;
         }
 
         @Override
@@ -242,14 +261,14 @@ public class ParseTempFile {
         }
     }
 
-    private static DateRange buildDataRange(String[] args) {
+    private static DateRange buildDataRange(String startDate, String endDate) {
         LocalDateTime sd = null;
         LocalDateTime ed = null;
-        if (args.length > 0) {
-            sd = LocalDateTime.parse(args[1], DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            if (args.length == 3) {
-                ed = LocalDateTime.parse(args[2], DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            }
+        if (StringUtils.isNotBlank(startDate)) {
+            sd = LocalDateTime.parse(startDate, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        }
+        if (StringUtils.isNotBlank(endDate)) {
+            ed = LocalDateTime.parse(endDate, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         }
         return new DateRange(sd, ed);
     }

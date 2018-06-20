@@ -52,7 +52,7 @@ public class Main { //TODO add logging system
         return SENSORS_FOLDER+sensor+TEMPERATURE_FILE;
     }
 
-    private static Properties getProperties(String arg) {
+    public static Properties getProperties(String arg) {
         Properties p = new Properties();
         try {
             p.load(new FileInputStream(arg));
