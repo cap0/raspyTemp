@@ -1,27 +1,21 @@
 package gg;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class GenerateChart {
+class GenerateChart {
 
-    public static void main(String [] args) throws IOException {
-      //  generateChart("[new Date(2008, 1 ,5 ,3, 4, 1,), 11, 4],\n" +
-      //          "                [new Date(2008, 1 ,6, 3 , 6), 2, 1]");
-    }
-
-    public static void generateChart(StatisticalInfo statisticalInfo) throws IOException {
-        Path path = Paths.get("/Users/gabriele.gattari/raspyTemp/main/src/main/resources/chart_template.html");
+    void generateChart(StatisticalInfo statisticalInfo, String outputFilePath) throws Exception {
+        Path dashboardTemplateFile = Paths.get(getClass().getClassLoader().getResource("chart_template.html").toURI());
         Charset charset = StandardCharsets.UTF_8;
 
-        String content = new String(Files.readAllBytes(path), charset);
-        content = content.replaceAll("XXX", statisticalInfo.fixedRows.toString());
-        Path out = Paths.get("/Users/gabriele.gattari/raspyTemp/main/src/main/resources/chart_generated.html");
+        String dashboardSource = new String(Files.readAllBytes(dashboardTemplateFile), charset);
+        dashboardSource = dashboardSource.replaceAll("XXX", statisticalInfo.fixedRows.toString());
+        Path outputFile = Paths.get(outputFilePath);
 
-        Files.write(out, content.getBytes(charset));
+        Files.write(outputFile, dashboardSource.getBytes(charset));
     }
 }

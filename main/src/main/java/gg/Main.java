@@ -12,7 +12,7 @@ import static java.lang.Double.parseDouble;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 
-public class Main {
+public class Main { //TODO add logging system
 
     private static String SENSORS ="sensors";
     private static String WAIT ="wait";
@@ -21,7 +21,7 @@ public class Main {
     private static String SENSORS_FOLDER = "/sys/bus/w1/devices/";
     private static String TEMPERATURE_FILE = "/w1_slave";
 
-    private static SimpleDateFormat df =  new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+    private static SimpleDateFormat df =  new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"); //TODO use localdatetime
     private static NumberFormat nf =  new DecimalFormat("##.##");
 
     public static void main(String[] args) {
@@ -42,7 +42,7 @@ public class Main {
                 writeTemperatureInFile(sensor+".txt", line);
             }
             System.out.println("\n" + allSensorLine.toString().replace("|" , " " ));
-            writeTemperatureInFile("all.txt", allSensorLine.toString() );
+            writeTemperatureInFile("all.txt", allSensorLine.toString() ); //TODO make this configurable
             pause(properties.getProperty(WAIT));
             i++;
         }
@@ -91,9 +91,7 @@ public class Main {
         checkIfFileIsEmpty(content);
         String[] split = content.split("t=");
         checkIfFileContainsTemperature(split);
-        double temp = getTemperature(split[1]);
-        //System.out.print("\ntmp:" + temp);
-        return temp;
+        return getTemperature(split[1]);
     }
 
     private static double getTemperature(String s) {

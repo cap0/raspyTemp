@@ -26,23 +26,26 @@ import java.util.stream.Stream;
 
 public class ParseTempFile {
 
-    private static SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+    private static SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"); //TODO use localdatetime
     private static NumberFormat nf = DecimalFormat.getInstance(Locale.ITALY);
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         System.out.println("Start. Parameters: " + Arrays.asList(args));
         DateRange dataRange = buildDataRange(args);
         String filePath = args[0];
 
-        LinkedHashMap<LocalDateTime, Double> settingsTemperature = new LinkedHashMap<>();
+        //Properties properties = getProperties(args[0]); //TODO use this approach an version property file
+
+        LinkedHashMap<LocalDateTime, Double> settingsTemperature = new LinkedHashMap<>(); //TODO make this configurable
         settingsTemperature.put(LocalDateTime.of(LocalDate.of(2018, Month.JUNE, 11), LocalTime.of(20, 0, 0)), 17D);
         settingsTemperature.put(LocalDateTime.of(LocalDate.of(2018, Month.JUNE, 13), LocalTime.of(13, 45, 0)), 18D);
         settingsTemperature.put(LocalDateTime.of(LocalDate.of(2018, Month.JUNE, 16), LocalTime.of(10, 0, 0)), 19D);
         settingsTemperature.put(LocalDateTime.of(LocalDate.of(2018, Month.JUNE, 18), LocalTime.of(22, 0, 0)), 20D);
         settingsTemperature.put(LocalDateTime.of(LocalDate.of(2019, Month.JUNE, 18), LocalTime.of(22, 0, 0)), 2D);
+
         StatisticalInfo statisticalInfo = convert(dataRange, filePath, settingsTemperature);
-        GenerateChart.generateChart(statisticalInfo);
-        //writeXlsxFile(fixedRows);
+        new GenerateChart().generateChart(statisticalInfo, "/Users/gabriele.gattari/raspyTemp/main/src/main/resources/chart_generated.html");
+        //writeXlsxFile(fixedRows); //TODO make this configurable
     }
 
     private static StatisticalInfo convert(DateRange dataRange, String filePath, LinkedHashMap<LocalDateTime, Double> settingsTemperature) {
@@ -60,7 +63,7 @@ public class ParseTempFile {
                 stats.skippedDates++;
                 continue;
             }
-            if (row.chamberTemp < 0 || row.chamberTemp > 50) {
+            if (row.chamberTemp < 0 || row.chamberTemp > 50) { //TODO make this configurable
                 row.chamberTemp = avg(lastAvgChamber);
                 stats.invalidValuesChamber++;
             } else {
@@ -94,7 +97,7 @@ public class ParseTempFile {
         try (Stream<String> stream = Files.lines(Paths.get(filePath))) {
             rows = stream
                     .map(l -> l.split("\\|"))
-                    .map(r -> new TemperatureRow(r[0], r[1], r[2], r[3], r[4], temperatureSettings))
+                    .map(r -> new TemperatureRow(r[0], r[1], r[2], r[3], r[4], temperatureSettings)) //TODO improve this
                     .collect(Collectors.toList());
         } catch (IOException e) {
             e.printStackTrace();
@@ -210,11 +213,11 @@ public class ParseTempFile {
                 }
             }
 
-            return 20D;
+            return 20D; //TODO remove this
         }
 
         @Override
-        public String toString() {
+        public String toString() { //TODO make another method
             int year  = date.getYear();
             int month = date.getMonthValue();
             int day   = date.getDayOfMonth();
