@@ -107,9 +107,9 @@
 </head>
 
 <body>
-<h1>brewName - brewDayDate</h1>
+<h1>info.brewName - info.brewDayDate</h1>
 <div id='chart_div' style='width: 1200px; height: 500px;'></div>
-<div id='details_div' style='width: 1200px; height: 500px;'>
+<div id='details_div' style='width: 1200px;'>
 
     <div id='start_lbl_div' style="float:left">Start Date: </div><div id='start_div' style="float:left"></div><div style="clear:both"></div>
     <div id='end_lbl_div' style="float:left">End Date: </div><div id='end_div' style="float:left"></div><div style="clear:both"></div>
@@ -130,7 +130,12 @@
     <button onclick="showSettings()">Show Settings</button>
 
 </div>
-
-
+<div id='info_div' style='width: 1200px; height: 500px;'>
+    <div id='chamber_fan_div' style="float:left;">Chamber Fan:info.chamberFan</div><div style="clear:both"></div>
+    <div id='chamber_cold_settings_div' style="float:left;">Chamber Settings:info.chamberColdSettings</div><div style="clear:both"></div>
+    <div id='hot_wire_div' style="float:left;">Hot wire:info.hotWire</div><div style="clear:both"></div>
+    <div id='stc_lag_cold_div' style="float:left;">STC lag cold:info.stcLagCold</div><div style="clear:both"></div>
+    <div id='note_div' style="float:left;">Notes:info.notes</div><div style="clear:both"></div>
+</div>
 </body>
 </html>
