@@ -1,10 +1,14 @@
 package gg;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
 
 public class StatisticalInfo {
+
+    LocalDateTime startDate = null;
+    LocalDateTime endDate = null;
 
     int invalidValuesChamber = 0;
     int invalidValuesWort = 0;
@@ -23,5 +27,14 @@ public class StatisticalInfo {
                 "\n Skipped rows: " + skippedDates +
                 "\n Statistics chamber: " + chamberStats +
                 "\n Statistics wort: " + wortStats;
+    }
+
+    void storeDates(LocalDateTime date) {
+
+        if (startDate==null) {
+            startDate= date;
+        }else{
+            endDate=date;
+        }
     }
 }

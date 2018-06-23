@@ -37,6 +37,7 @@ public class ParseTempFile {
     private static final String MIN_ALLOWED_TEMP = "minAllowedTemp";
     private static final String MAX_ALLOWED_TEMP = "maxAllowedTemp";
     private static final String OUTPUT_XLSX_FILE = "outputXlsxFile";
+    private static final String SERIES_AGGREGATION_FACTOR = "seriesAggregationFactor";
 
     private static SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"); //TODO use localdatetime
     private static NumberFormat nf = DecimalFormat.getInstance(Locale.ITALY);
@@ -55,8 +56,9 @@ public class ParseTempFile {
         DateRange dataRange = buildDataRange(getProperty(p, START_DATE), getProperty(p, END_DATE));
         Double minAllowedTemp = Double.valueOf(getPropertyOrDefault(p, MIN_ALLOWED_TEMP, "0"));
         Double maxAllowedTemp = Double.valueOf(getPropertyOrDefault(p, MAX_ALLOWED_TEMP, "50"));
+        int aggregationFactor = Integer.valueOf(getPropertyOrDefault(p, SERIES_AGGREGATION_FACTOR, "1"));
 
-        StatisticalInfo statisticalInfo = processSourceFile(dataRange, getProperty(p, SOURCE_FILE), settingsTemperature, minAllowedTemp, maxAllowedTemp);
+        StatisticalInfo statisticalInfo = processSourceFile(dataRange, getProperty(p, SOURCE_FILE), settingsTemperature, minAllowedTemp, maxAllowedTemp, aggregationFactor);
         new GenerateChart().generateChart(statisticalInfo, getProperty(p, OUTPUT_FILE), p);
         if(Boolean.parseBoolean(getPropertyOrDefault(p, GENERATE_XLSX_FILE, "false"))) {
             writeXlsxFile(statisticalInfo.temperatures, getProperty(p, OUTPUT_XLSX_FILE));
@@ -84,36 +86,50 @@ public class ParseTempFile {
     }
 
     private static StatisticalInfo processSourceFile(DateRange dataRange, String filePath, LinkedHashMap<LocalDateTime, Double> settingsTemperature,
-                                                     Double minAllowedTemp, Double maxAllowedTemp) {
+                                                     Double minAllowedTemp, Double maxAllowedTemp, int aggregationFactor) {
         System.out.println("startDate " + dataRange.sd + " endDate " + dataRange.ed);
         List<TemperatureRow> rows = extractTemperatureInfoFromSourceFile(filePath, settingsTemperature);
 
         System.out.println("Processing " + rows.size() + " rows");
 
-        CircularFifoQueue<Double> lastAvgChamber = new CircularFifoQueue<>(5);
-        CircularFifoQueue<Double> lastAvgWort = new CircularFifoQueue<>(5);
+        CircularFifoQueue<Double> lastAvgChamber = new CircularFifoQueue<>(aggregationFactor);
+        CircularFifoQueue<Double> lastAvgWort = new CircularFifoQueue<>(aggregationFactor);
 
         StatisticalInfo stats = new StatisticalInfo();
+        int i =0 ;
         for (TemperatureRow row : rows) {
-            if (dataRange.sd != null && row.date.isBefore(dataRange.sd) || dataRange.ed != null && row.date.isAfter(dataRange.ed)) {
+            if (isDateOutsideRange(row.date, dataRange)) {
                 stats.skippedDates++;
                 continue;
             }
-            if (row.chamberTemp < minAllowedTemp || row.chamberTemp > maxAllowedTemp) {
+            stats.storeDates(row.date);
+
+            if (isTemperatureNotValid(minAllowedTemp, maxAllowedTemp, row.chamberTemp)) {
                 row.chamberTemp = avg(lastAvgChamber);
                 stats.invalidValuesChamber++;
             } else {
                 lastAvgChamber.add(row.chamberTemp);
             }
 
-            if (row.wortTemp < minAllowedTemp || row.wortTemp > maxAllowedTemp) {
+            if (isTemperatureNotValid(minAllowedTemp, maxAllowedTemp, row.wortTemp)) {
                 row.wortTemp = avg(lastAvgWort);
                 stats.invalidValuesWort++;
             } else {
                 lastAvgWort.add(row.wortTemp);
             }
 
-            stats.temperatures.add(row);
+            if (aggregationFactor >1) {
+                if( i % aggregationFactor == 0) {
+                    TemperatureRow t = new TemperatureRow(row);
+                    t.chamberTemp = avg(lastAvgChamber);
+                    t.wortTemp = avg(lastAvgWort);
+                    stats.temperatures.add(t);
+                }
+            } else{
+                stats.temperatures.add(row);
+            }
+
+            i++;
         }
 
         stats.chamberStats = stats.temperatures.stream()
@@ -125,6 +141,14 @@ public class ParseTempFile {
         System.out.println(stats);
 
         return stats;
+    }
+
+    private static boolean isDateOutsideRange(LocalDateTime date, DateRange dataRange) {
+        return dataRange.sd != null && date.isBefore(dataRange.sd) || dataRange.ed != null && date.isAfter(dataRange.ed);
+    }
+
+    private static boolean isTemperatureNotValid(Double minAllowedTemp, Double maxAllowedTemp, Double chamberTemp) {
+        return chamberTemp < minAllowedTemp || chamberTemp > maxAllowedTemp;
     }
 
 
@@ -243,6 +267,15 @@ public class ParseTempFile {
             }
         }
 
+        TemperatureRow(TemperatureRow t){
+            this.date = t.date;
+            this.chamberTemp = t.chamberTemp;
+            this.chamberSensorName = t.chamberSensorName;
+            this.wortTemp = t.wortTemp;
+            this.wortSensorName = t.wortSensorName;
+            this.settingTemperature = t.settingTemperature;
+        }
+
         private Double getSettingTemperature(LocalDateTime date, LinkedHashMap<LocalDateTime, Double> temperatureSettings) {
             for (Map.Entry<LocalDateTime, Double> set : temperatureSettings.entrySet()) {
                 if (date.isBefore(set.getKey())){
@@ -255,15 +288,10 @@ public class ParseTempFile {
 
         @Override
         public String toString() { //TODO make another method
-            int year  = date.getYear();
-            int month = date.getMonthValue();
-            int day   = date.getDayOfMonth();
-            int hour = date.getHour();
-            int minute = date.getMinute();
-            int second = date.getSecond();
+
 
             return
-                    "[ new Date("+year+", "+(month -1) +", "+day+", "+hour+", "+minute+", "+second+", 0)," + chamberTemp + "," + wortTemp + "," + settingTemperature + "]";
+                    "[ " + toJsDate(date) + "," + chamberTemp + "," + wortTemp + "," + settingTemperature + "]";
 
         }
     }
@@ -298,6 +326,16 @@ public class ParseTempFile {
     private static String getPropertyOrDefault(Properties p, String key, String def) {
         String value = p.getProperty(key, def);
         return value.trim();
+    }
 
+    static String toJsDate(LocalDateTime date) {
+        int year  = date.getYear();
+        int month = date.getMonthValue();
+        int day   = date.getDayOfMonth();
+        int hour = date.getHour();
+        int minute = date.getMinute();
+        int second = date.getSecond();
+
+        return "new Date(" + year + ", " + (month - 1) + ", " + day + ", " + hour + ", " + minute + ", " + second + ", 0)";
     }
 }

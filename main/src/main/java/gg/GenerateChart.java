@@ -23,6 +23,8 @@ class GenerateChart {
             }
         }
 
+        dashboardSource = dashboardSource.replaceAll("param.startDate", ParseTempFile.toJsDate(statisticalInfo.startDate));
+        dashboardSource = dashboardSource.replaceAll("param.endDate",  ParseTempFile.toJsDate(statisticalInfo.endDate));
         dashboardSource = dashboardSource.replaceAll("XXX", statisticalInfo.temperatures.toString());
 
         Path outputFile = Paths.get(outputFilePath);

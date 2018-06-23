@@ -2,6 +2,8 @@
 <head>
     <script type='text/javascript' src='https://www.gstatic.com/charts/loader.js'></script>
     <script type='text/javascript'>
+   //     window.onload = function () { calculateDetails(param.startDate, param.endDate) }
+
         google.charts.load('current', {'packages':['annotatedtimeline']});
         google.charts.setOnLoadCallback(drawChart);
         var chart;
@@ -23,6 +25,10 @@
             function selectHandler(e) {
                 var startDate = e['start'];
                 var endDate = e['end'];
+
+                calculateDetails(startDate, endDate);
+            }
+            function calculateDetails(startDate, endDate) {
 
                 document.getElementById('start_div').innerText = startDate.toLocaleString();
                 document.getElementById('end_div').innerText = endDate.toLocaleString();
@@ -134,7 +140,8 @@
     <div id='chamber_fan_div' style="float:left;">Chamber Fan:info.chamberFan</div><div style="clear:both"></div>
     <div id='chamber_cold_settings_div' style="float:left;">Chamber Settings:info.chamberColdSettings</div><div style="clear:both"></div>
     <div id='hot_wire_div' style="float:left;">Hot wire:info.hotWire</div><div style="clear:both"></div>
-    <div id='stc_lag_cold_div' style="float:left;">STC lag cold:info.stcLagCold</div><div style="clear:both"></div>
+    <div id='stc_temp_div' style="float:left;">STC temperature tolerance:info.stcTempDiff</div><div style="clear:both"></div>
+    <div id='stc_lag_cold_div' style="float:left;">STC lag cold:info.stcColdLag</div><div style="clear:both"></div>
     <div id='note_div' style="float:left;">Notes:info.notes</div><div style="clear:both"></div>
 </div>
 </body>
