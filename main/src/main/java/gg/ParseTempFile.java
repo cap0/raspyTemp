@@ -20,11 +20,11 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.*;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
 public class ParseTempFile {
 
@@ -36,39 +36,55 @@ public class ParseTempFile {
     private static final String GENERATE_XLSX_FILE = "generateXlsxFile";
     private static final String MIN_ALLOWED_TEMP = "minAllowedTemp";
     private static final String MAX_ALLOWED_TEMP = "maxAllowedTemp";
+    private static final String OUTPUT_XLSX_FILE = "outputXlsxFile";
 
     private static SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"); //TODO use localdatetime
     private static NumberFormat nf = DecimalFormat.getInstance(Locale.ITALY);
 
     public static void main(String[] args) throws Exception {
+        if(args.length!=1){
+            System.err.println("Property file is missing");
+            System.exit(-1);
+        }
+
         System.out.println("Start. Parameters: " + Arrays.asList(args));
         Properties p = Main.getProperties(args[0]);
 
-        String[] temperatureSettings = p.getProperty(TEMPERATURE_SETTINGS).split(";");
-        LinkedHashMap<LocalDateTime, Double> settingsTemperature = getTemperatureSettings(temperatureSettings);
+        LinkedHashMap<LocalDateTime, Double> settingsTemperature = getTemperatureSettings(p);
 
-        DateRange dataRange = buildDataRange(p.getProperty(START_DATE), p.getProperty(END_DATE));
-        Double minAllowedTemp = Double.valueOf(p.getProperty(MIN_ALLOWED_TEMP));
-        Double maxAllowedTemp = Double.valueOf(p.getProperty(MAX_ALLOWED_TEMP));
+        DateRange dataRange = buildDataRange(getProperty(p, START_DATE), getProperty(p, END_DATE));
+        Double minAllowedTemp = Double.valueOf(getPropertyOrDefault(p, MIN_ALLOWED_TEMP, "0"));
+        Double maxAllowedTemp = Double.valueOf(getPropertyOrDefault(p, MAX_ALLOWED_TEMP, "50"));
 
-        StatisticalInfo statisticalInfo = convert(dataRange, p.getProperty(SOURCE_FILE), settingsTemperature, minAllowedTemp, maxAllowedTemp);
-        new GenerateChart().generateChart(statisticalInfo, p.getProperty(OUTPUT_FILE));
-        if(Boolean.parseBoolean(p.getProperty(GENERATE_XLSX_FILE)))
-            writeXlsxFile(statisticalInfo.temperatures);
+        StatisticalInfo statisticalInfo = processSourceFile(dataRange, getProperty(p, SOURCE_FILE), settingsTemperature, minAllowedTemp, maxAllowedTemp);
+        new GenerateChart().generateChart(statisticalInfo, getProperty(p, OUTPUT_FILE), p);
+        if(Boolean.parseBoolean(getPropertyOrDefault(p, GENERATE_XLSX_FILE, "false"))) {
+            writeXlsxFile(statisticalInfo.temperatures, getProperty(p, OUTPUT_XLSX_FILE));
+        }
     }
 
-    private static LinkedHashMap<LocalDateTime, Double> getTemperatureSettings(String[] temperatureSettings) {
+    private static String[] getTemperatureSettingFromProperty(Properties p) {
+        String temperatureSettings = getProperty(p, TEMPERATURE_SETTINGS);
+        if(temperatureSettings!= null && !temperatureSettings.isEmpty()){
+            return temperatureSettings.trim().split(";");
+        }
+        return new String[0];
+    }
+
+    private static LinkedHashMap<LocalDateTime, Double> getTemperatureSettings(Properties p) {
+        String[] temperatureSettings = getTemperatureSettingFromProperty(p);
+
         LinkedHashMap<LocalDateTime, Double> settingsTemperature = new LinkedHashMap<>();
         for (int i = 0; i < temperatureSettings.length; i=i+2) {
-            LocalDateTime dateTime = LocalDateTime.parse(temperatureSettings[i], DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            LocalDateTime dateTime = LocalDateTime.parse(temperatureSettings[i], ISO_LOCAL_DATE_TIME);
             double temperature = Double.parseDouble(temperatureSettings[i + 1]);
             settingsTemperature.put(dateTime, temperature);
         }
         return settingsTemperature;
     }
 
-    private static StatisticalInfo convert(DateRange dataRange, String filePath, LinkedHashMap<LocalDateTime, Double> settingsTemperature,
-                                           Double minAllowedTemp, Double maxAllowedTemp) {
+    private static StatisticalInfo processSourceFile(DateRange dataRange, String filePath, LinkedHashMap<LocalDateTime, Double> settingsTemperature,
+                                                     Double minAllowedTemp, Double maxAllowedTemp) {
         System.out.println("startDate " + dataRange.sd + " endDate " + dataRange.ed);
         List<TemperatureRow> rows = extractTemperatureInfoFromSourceFile(filePath, settingsTemperature);
 
@@ -127,7 +143,7 @@ public class ParseTempFile {
         return rows;
     }
 
-    private static void writeXlsxFile(List<TemperatureRow> fixedRows) throws IOException {
+    private static void writeXlsxFile(List<TemperatureRow> fixedRows, String xlsxPath) {
         XSSFWorkbook myWorkBook = new XSSFWorkbook ();
         XSSFSheet dataSheet = myWorkBook.createSheet("data");
 
@@ -152,18 +168,19 @@ public class ParseTempFile {
             xRow.createCell(2).setCellValue(r.wortTemp);
         }
 
-        writeChart(dataSheet, fixedRows.size());
-        String pathname = "C:\\Users\\gab\\temperature.xlsx";
-        System.out.println("writing xlsx: " + pathname);
-        File myFile = new File(pathname);
-        FileOutputStream fos = new FileOutputStream (myFile);
-        myWorkBook.write(fos);
-
-        // Read more: http://www.java67.com/2014/09/how-to-read-write-xlsx-file-in-java-apache-poi-example.html#ixzz5HwIOZwNL
+        writeXlsxChart(dataSheet, fixedRows.size());
+        System.out.println("writing xlsx: " + xlsxPath);
+        File myFile = new File(xlsxPath);
+        try(FileOutputStream fos = new FileOutputStream (myFile)){
+            myWorkBook.write(fos);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Unable to write xlsx file: " + xlsxPath);
+        }
     }
 
-    private static void writeChart(XSSFSheet dataSheet, int size) {
-        System.out.println("write chart");
+    private static void writeXlsxChart(XSSFSheet dataSheet, int size) {
+        System.out.println("write xlsx chart");
 
         Drawing drawing = dataSheet.createDrawingPatriarch();
         ClientAnchor anchor = drawing.createAnchor(0, 0, 0, 0, 1, 1, 10, 30);
@@ -265,11 +282,22 @@ public class ParseTempFile {
         LocalDateTime sd = null;
         LocalDateTime ed = null;
         if (StringUtils.isNotBlank(startDate)) {
-            sd = LocalDateTime.parse(startDate, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            sd = LocalDateTime.parse(startDate, ISO_LOCAL_DATE_TIME);
         }
         if (StringUtils.isNotBlank(endDate)) {
-            ed = LocalDateTime.parse(endDate, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            ed = LocalDateTime.parse(endDate, ISO_LOCAL_DATE_TIME);
         }
         return new DateRange(sd, ed);
+    }
+
+    private static String getProperty(Properties p, String key) {
+        String value = p.getProperty(key);
+        return value!=null?value.trim():null;
+    }
+
+    private static String getPropertyOrDefault(Properties p, String key, String def) {
+        String value = p.getProperty(key, def);
+        return value.trim();
+
     }
 }
