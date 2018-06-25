@@ -43,13 +43,7 @@ public class ParseTempFile {
     private static NumberFormat nf = DecimalFormat.getInstance(Locale.ITALY);
 
     public static void main(String[] args) throws Exception {
-        if(args.length!=1){
-            System.err.println("Property file is missing");
-            System.exit(-1);
-        }
-
-        System.out.println("Start. Parameters: " + Arrays.asList(args));
-        Properties p = Main.getProperties(args[0]);
+        Properties p = Util.getProperties(args);
 
         LinkedHashMap<LocalDateTime, Double> settingsTemperature = getTemperatureSettings(p);
 
