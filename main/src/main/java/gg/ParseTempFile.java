@@ -2,6 +2,8 @@ package gg;
 
 import org.apache.commons.collections4.queue.CircularFifoQueue;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.charts.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -41,8 +43,13 @@ public class ParseTempFile {
 
     private static SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"); //TODO use localdatetime
     private static NumberFormat nf = DecimalFormat.getInstance(Locale.ITALY);
+    private static final Logger logger = LogManager.getLogger(ParseTempFile.class);
 
     public static void main(String[] args) throws Exception {
+        parseFile(args);
+    }
+
+    private static void parseFile(String[] args) throws Exception {
         Properties p = Util.getProperties(args);
 
         LinkedHashMap<LocalDateTime, Double> settingsTemperature = getTemperatureSettings(p);
@@ -53,7 +60,9 @@ public class ParseTempFile {
         int aggregationFactor = Integer.valueOf(getPropertyOrDefault(p, SERIES_AGGREGATION_FACTOR, "1"));
 
         StatisticalInfo statisticalInfo = processSourceFile(dataRange, getProperty(p, SOURCE_FILE), settingsTemperature, minAllowedTemp, maxAllowedTemp, aggregationFactor);
+
         new GenerateChart().generateChart(statisticalInfo, getProperty(p, OUTPUT_FILE), p);
+
         if(Boolean.parseBoolean(getPropertyOrDefault(p, GENERATE_XLSX_FILE, "false"))) {
             writeXlsxFile(statisticalInfo.temperatures, getProperty(p, OUTPUT_XLSX_FILE));
         }
@@ -81,10 +90,10 @@ public class ParseTempFile {
 
     private static StatisticalInfo processSourceFile(DateRange dataRange, String filePath, LinkedHashMap<LocalDateTime, Double> settingsTemperature,
                                                      Double minAllowedTemp, Double maxAllowedTemp, int aggregationFactor) {
-        System.out.println("startDate " + dataRange.sd + " endDate " + dataRange.ed);
+        logger.info("startDate " + dataRange.sd + " endDate " + dataRange.ed);
         List<TemperatureRow> rows = extractTemperatureInfoFromSourceFile(filePath, settingsTemperature);
 
-        System.out.println("Processing " + rows.size() + " rows");
+        logger.info("Processing " + rows.size() + " rows");
 
         CircularFifoQueue<Double> lastAvgChamber = new CircularFifoQueue<>(aggregationFactor);
         CircularFifoQueue<Double> lastAvgWort = new CircularFifoQueue<>(aggregationFactor);
@@ -132,7 +141,7 @@ public class ParseTempFile {
         stats.wortStats = stats.temperatures.stream()
                 .collect(Collectors.summarizingDouble(r-> r.wortTemp));
 
-        System.out.println(stats);
+        logger.info(stats);
 
         return stats;
     }
@@ -154,8 +163,7 @@ public class ParseTempFile {
                     .map(r -> new TemperatureRow(r[0], r[1], r[2], r[3], r[4], temperatureSettings)) //TODO improve this
                     .collect(Collectors.toList());
         } catch (IOException e) {
-            e.printStackTrace();
-            System.err.println("Cannot read file: " +filePath);
+            logger.error("Cannot read file: " +filePath , e);
             System.exit(-1);
         }
         return rows;
@@ -187,18 +195,17 @@ public class ParseTempFile {
         }
 
         writeXlsxChart(dataSheet, fixedRows.size());
-        System.out.println("writing xlsx: " + xlsxPath);
+        logger.info("writing xlsx: " + xlsxPath);
         File myFile = new File(xlsxPath);
         try(FileOutputStream fos = new FileOutputStream (myFile)){
             myWorkBook.write(fos);
         } catch (IOException e) {
-            e.printStackTrace();
-            System.err.println("Unable to write xlsx file: " + xlsxPath);
+            logger.error("Unable to write xlsx file: " + xlsxPath, e);
         }
     }
 
     private static void writeXlsxChart(XSSFSheet dataSheet, int size) {
-        System.out.println("write xlsx chart");
+        logger.info("write xlsx chart");
 
         Drawing drawing = dataSheet.createDrawingPatriarch();
         ClientAnchor anchor = drawing.createAnchor(0, 0, 0, 0, 1, 1, 10, 30);
@@ -257,7 +264,7 @@ public class ParseTempFile {
 
                 this.settingTemperature = getSettingTemperature(this.date, temperatureSettings);
             } catch (ParseException e) {
-                e.printStackTrace();
+                logger.error(e);
             }
         }
 

@@ -1,18 +1,23 @@
 package gg;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Properties;
 
 class Util {
+    private static final Logger logger = LogManager.getLogger(Util.class);
+
     static Properties getProperties(String[] args) {
         if(args.length!=1){
-            System.err.println("Property file is missing");
+            logger.error("Property file is missing");
             System.exit(-1);
         }
 
-        System.out.println("Start. Parameters: " + Arrays.asList(args));
+        logger.info("Start. Parameters: " + Arrays.asList(args));
         return getProperties(args[0]);
     }
 

@@ -14,6 +14,8 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,12 +33,14 @@ public class GoogleDriveHelper {
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
     private static final String CREDENTIALS_FOLDER = "credentials"; // Directory to store user credentials.
 
+    private static final Logger logger = LogManager.getLogger(GoogleDriveHelper.class);
+
     /**
      * Global instance of the scopes required by this quickstart.
      * If modifying these scopes, delete your previously saved credentials/ folder.
      */
     private static final List<String> SCOPES = Collections.singletonList(DriveScopes.DRIVE_APPDATA);
-    private static final String CLIENT_SECRET_DIR = "client_secret.json";
+    private static final String CLIENT_SECRET_DIR = "client_secret.json"; //TODO handle this
 
     private Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException, URISyntaxException {
         // Load client secrets.
@@ -74,7 +78,7 @@ public class GoogleDriveHelper {
         File file = service.files().create(fileMetadata, mediaContent)
                 .setFields("id")
                 .execute();
-        System.out.println("File ID: " + file.getId());
+        logger.info("File ID: " + file.getId());
     }
 
 }

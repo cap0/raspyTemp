@@ -12,6 +12,9 @@ import static java.lang.Double.parseDouble;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class ReadTemperatureFile {
 
     private static final String OUTPUT_FILE = "outputFile";
@@ -25,7 +28,10 @@ public class ReadTemperatureFile {
     private static SimpleDateFormat df =  new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"); //TODO use localdatetime
     private static NumberFormat nf =  new DecimalFormat("##.##");
 
+    private static final Logger logger = LogManager.getLogger(ReadTemperatureFile.class);
+
     public static void main(String[] args) {
+        logger.info("test");
         Properties properties = Util.getProperties(args);
         String[] sensors = properties.getProperty(SENSORS).split(";");
 

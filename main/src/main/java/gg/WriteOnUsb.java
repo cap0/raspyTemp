@@ -1,5 +1,8 @@
 package gg;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,7 +16,9 @@ public class WriteOnUsb implements Runnable {
 
     private static final String MNT_USB = "/mnt/usb";
     private static final String TEMPERATURE_FILE = "/path/test.txt";
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss",Locale.ITALY);
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss",Locale.ITALY); //TODO handle
+
+    private static final Logger logger = LogManager.getLogger(Util.class);
 
     public static void main(String args[]) {
         WriteOnUsb r = new WriteOnUsb();
@@ -23,7 +28,7 @@ public class WriteOnUsb implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("Start.");
+        logger.info("Start.");
         Path path = Paths.get(MNT_USB);
 
         while (true) {
@@ -34,10 +39,10 @@ public class WriteOnUsb implements Runnable {
 
     private void checkIfExistsAndWrite(Path path) {
         if (exists(path)) {
-            System.out.println("USB is plugged");
+            logger.info("USB is plugged");
             writeFileOnUSB();
         } else {
-            System.out.println("USB is not plugged");
+            logger.debug("USB is not plugged");
         }
     }
 
@@ -46,9 +51,9 @@ public class WriteOnUsb implements Runnable {
         try {
             byte[] temperatureBytes = Files.readAllBytes(Paths.get(TEMPERATURE_FILE));
             Files.write(Paths.get(fileName), temperatureBytes);
-            System.out.println("file " + fileName + " has been written");
+            logger.info("file " + fileName + " has been written");
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(e);
         }
     }
 
@@ -56,7 +61,7 @@ public class WriteOnUsb implements Runnable {
         try {
             Thread.sleep(5000);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(e);
         }
     }
 }

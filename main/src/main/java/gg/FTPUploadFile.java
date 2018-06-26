@@ -8,11 +8,18 @@ import java.util.Properties;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class FTPUploadFile {
 
+    private static final Logger logger = LogManager.getLogger(FTPUploadFile.class);
 
     public static void main(String[] args) {
+        uploadFile(args);
+    }
+
+    private static void uploadFile(String[] args) {
         Properties p = Util.getProperties(args);
 
         FTPClient ftpClient = new FTPClient();
@@ -29,16 +36,15 @@ public class FTPUploadFile {
             String firstRemoteFile = "public_html/index.html";
             InputStream inputStream = new FileInputStream(firstLocalFile);
 
-            System.out.println("Start uploading file");
+            logger.info("Start uploading file");
             boolean done = ftpClient.storeFile(firstRemoteFile, inputStream);
             inputStream.close();
             if (done) {
-                System.out.println("The first file is uploaded successfully.");
+                logger.info("File is uploaded successfully.");
             }
 
         } catch (IOException ex) {
-            System.out.println("Error: " + ex.getMessage());
-            ex.printStackTrace();
+            logger.error("Error: " + ex.getMessage(), ex);
         } finally {
             try {
                 if (ftpClient.isConnected()) {
@@ -46,7 +52,7 @@ public class FTPUploadFile {
                     ftpClient.disconnect();
                 }
             } catch (IOException ex) {
-                ex.printStackTrace();
+                logger.error("Error: " + ex.getMessage(), ex);
             }
         }
     }
