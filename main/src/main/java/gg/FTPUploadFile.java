@@ -24,7 +24,6 @@ public class FTPUploadFile {
 
             ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 
-            // APPROACH #1: uploads first file using an InputStream
             File firstLocalFile = new File(p.getProperty("file"));
 
             String firstRemoteFile = "public_html/index.html";

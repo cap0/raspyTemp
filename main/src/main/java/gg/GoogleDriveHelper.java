@@ -58,7 +58,6 @@ public class GoogleDriveHelper {
 
     public static void main(String... args) throws IOException, GeneralSecurityException, URISyntaxException {
         uploadData();
-
     }
 
     private static void uploadData() throws GeneralSecurityException, IOException, URISyntaxException {

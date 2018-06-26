@@ -12,57 +12,45 @@ import static java.lang.Double.parseDouble;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 
-public class Main { //TODO add logging system
+public class ReadTemperatureFile {
 
-    private static String SENSORS ="sensors";
-    private static String WAIT ="wait";
-    private static String NUMBER_OF_READ ="numberOfRead";
+    private static final String OUTPUT_FILE = "outputFile";
+    private static final String SENSORS ="sensors";
+    private static final String WAIT ="wait";
+    private static final String NUMBER_OF_READ ="numberOfRead";
 
-    private static String SENSORS_FOLDER = "/sys/bus/w1/devices/";
-    private static String TEMPERATURE_FILE = "/w1_slave";
+    private static final String SENSORS_FOLDER = "/sys/bus/w1/devices/";
+    private static final String TEMPERATURE_FILE = "/w1_slave";
 
     private static SimpleDateFormat df =  new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"); //TODO use localdatetime
     private static NumberFormat nf =  new DecimalFormat("##.##");
 
     public static void main(String[] args) {
-        System.out.println("Start: " + args[0]);
-
-        Properties properties = getProperties(args[0]);
+        Properties properties = Util.getProperties(args);
         String[] sensors = properties.getProperty(SENSORS).split(";");
 
-        int i = 1;
-        Integer numberOfRead = Integer.parseInt((String) properties.getOrDefault(NUMBER_OF_READ, "-1"));
-        while(numberOfRead == -1 || i <= numberOfRead ) {
-            String now =df.format(new Date());
-            StringBuilder allSensorLine= new StringBuilder(now);
+        int readsDone = 1;
+        Integer numberOfReadToPerform = getNumberOfReadToPerform(properties);
+        String timeBetweenReads = properties.getProperty(WAIT);
+        String outputFilePath = properties.getProperty(OUTPUT_FILE);
+        while (thereAreReadsToDo(readsDone, numberOfReadToPerform)) {
+            String now = df.format(new Date());
+            StringBuilder allSensorLine = new StringBuilder(now);
             for (String sensor : sensors) {
                 String temperature = nf.format(readTemperatureFromFile(buildSensorPath(sensor)));
                 String line = now + "|" + temperature;
                 allSensorLine.append("|").append(temperature).append("|").append(sensor);
-                writeTemperatureInFile(sensor+".txt", line);
+                writeTemperatureInFile(sensor + ".txt", line);
             }
-            System.out.println("\n" + allSensorLine.toString().replace("|" , " " ));
-            writeTemperatureInFile("all.txt", allSensorLine.toString() ); //TODO make this configurable
-            pause(properties.getProperty(WAIT));
-            i++;
+            System.out.println("\n" + allSensorLine.toString().replace("|", " "));
+            writeTemperatureInFile(outputFilePath, allSensorLine.toString());
+            pause(timeBetweenReads);
+            readsDone++;
         }
     }
 
     private static String buildSensorPath(String sensor) {
         return SENSORS_FOLDER+sensor+TEMPERATURE_FILE;
-    }
-
-    public static Properties getProperties(String arg) {
-        Properties p = new Properties();
-        try {
-            p.load(new FileInputStream(arg));
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(-1);
-        }
-        p.list(System.out);
-
-        return p;
     }
 
     private static void writeTemperatureInFile(String outputFilePath, String line) {
@@ -123,5 +111,13 @@ public class Main { //TODO add logging system
             System.exit(-1);
             return null;
         }
+    }
+
+    private static boolean thereAreReadsToDo(int i, Integer numberOfRead) {
+        return numberOfRead == -1 || i <= numberOfRead;
+    }
+
+    private static int getNumberOfReadToPerform(Properties properties) {
+        return Integer.parseInt((String) properties.getOrDefault(NUMBER_OF_READ, "-1"));
     }
 }
