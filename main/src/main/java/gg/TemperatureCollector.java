@@ -15,48 +15,63 @@ import static java.nio.file.StandardOpenOption.CREATE;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class ReadTemperatureFile {
+import static gg.Constants.*;
 
-    private static final String OUTPUT_FILE = "outputFile";
-    private static final String SENSORS ="sensors";
-    private static final String WAIT ="wait";
-    private static final String NUMBER_OF_READ ="numberOfRead";
-
-    private static final String SENSORS_FOLDER = "/sys/bus/w1/devices/";
-    private static final String TEMPERATURE_FILE = "/w1_slave";
+public class TemperatureCollector extends Thread{
 
     private static SimpleDateFormat df =  new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"); //TODO use localdatetime
     private static NumberFormat nf =  new DecimalFormat("##.##");
 
-    private static final Logger logger = LogManager.getLogger(ReadTemperatureFile.class);
+    private static final Logger logger = LogManager.getLogger(TemperatureCollector.class);
 
-    public static void main(String[] args) {
-        logger.info("test");
-        Properties properties = Util.getProperties(args);
+    private final String[] sensors;
+    private final Integer numberOfReadToPerform;
+    private final String timeBetweenReads;
+    private final String outputFilePath;
+
+    public TemperatureCollector(String[] sensors, Integer numberOfReadToPerform, String timeBetweenReads, String outputFilePath) {
+        this.sensors = sensors;
+        this.numberOfReadToPerform = numberOfReadToPerform;
+        this.timeBetweenReads = timeBetweenReads;
+        this.outputFilePath = outputFilePath;
+    }
+
+    static TemperatureCollector build(String propertyFilePath) {
+        Properties properties = Util.getProperties(propertyFilePath);
         String[] sensors = properties.getProperty(SENSORS).split(";");
 
-        int readsDone = 1;
         Integer numberOfReadToPerform = getNumberOfReadToPerform(properties);
         String timeBetweenReads = properties.getProperty(WAIT);
-        String outputFilePath = properties.getProperty(OUTPUT_FILE);
+        String outputFilePath = properties.getProperty(TEMPERATURE_OUTPUT_FILE);
+
+        return new TemperatureCollector(sensors, numberOfReadToPerform, timeBetweenReads, outputFilePath);
+    }
+
+    @Override
+    public void run() {
+        int readsDone = 1;
         while (thereAreReadsToDo(readsDone, numberOfReadToPerform)) {
-            String now = df.format(new Date());
+            String now = df.format(new Date());// TODO use iso date
             StringBuilder allSensorLine = new StringBuilder(now);
             for (String sensor : sensors) {
-                String temperature = nf.format(readTemperatureFromFile(buildSensorPath(sensor)));
+                String temperature = readTemperatureFromFile(buildSensorPath(sensor));
                 String line = now + "|" + temperature;
                 allSensorLine.append("|").append(temperature).append("|").append(sensor);
                 writeTemperatureInFile(sensor + ".txt", line);
             }
-            System.out.println("\n" + allSensorLine.toString().replace("|", " "));
+            logger.info("\n" + allSensorLine.toString().replace("|", " "));
             writeTemperatureInFile(outputFilePath, allSensorLine.toString());
-            pause(timeBetweenReads);
             readsDone++;
+            pause(timeBetweenReads);
         }
     }
 
+    public static void main(String[] args) {
+        build(args[0]).run();
+    }
+
     private static String buildSensorPath(String sensor) {
-        return SENSORS_FOLDER+sensor+TEMPERATURE_FILE;
+        return SENSORS_FOLDER + sensor + TEMPERATURE_FILE;
     }
 
     private static void writeTemperatureInFile(String outputFilePath, String line) {
@@ -67,8 +82,7 @@ public class ReadTemperatureFile {
         try {
             Files.write(Paths.get(outputFilePath), Collections.singletonList(line), APPEND, CREATE);
         } catch (IOException e) {
-            System.err.println("error writing line " +line+" into file : " + outputFilePath);
-            e.printStackTrace();
+            logger.error("error writing line " +line+" into file : " + outputFilePath, e);
         }
     }
 
@@ -76,16 +90,16 @@ public class ReadTemperatureFile {
         try {
             Thread.sleep(1000 * Integer.parseInt(secondsToWait));
         } catch (InterruptedException e) {
-            e.printStackTrace();
+           logger.error(e);
         }
     }
 
-    private static double readTemperatureFromFile(String completeFilePath) {
+    private static String readTemperatureFromFile(String completeFilePath) {
         String content = getFileContent(completeFilePath);
         checkIfFileIsEmpty(content);
         String[] split = content.split("t=");
         checkIfFileContainsTemperature(split);
-        return getTemperature(split[1]);
+        return nf.format(getTemperature(split[1]));
     }
 
     private static double getTemperature(String s) {
@@ -94,17 +108,15 @@ public class ReadTemperatureFile {
         return temp;
     }
 
-    private static void checkIfFileContainsTemperature(String[] split) {
+    private static void checkIfFileContainsTemperature(String[] split) { //TODO handle with optional temporary failures
         if(split.length !=2){
-            System.err.println("cannot find temperature value");
-            System.exit(-1);
+            logger.error("cannot find temperature value");
         }
     }
 
     private static void checkIfFileIsEmpty(String content) {
         if (content == null || content.isEmpty()) {
-            System.err.println("file is empty");
-            System.exit(-1);
+            logger.error("file is empty");
         }
     }
 
@@ -112,9 +124,7 @@ public class ReadTemperatureFile {
         try {
             return new String(Files.readAllBytes(Paths.get(completeFilePath)));
         } catch (IOException e) {
-            System.err.println("Error accessing file " + completeFilePath);
-            e.printStackTrace();
-            System.exit(-1);
+            logger.error("Error accessing file " + completeFilePath,e);
             return null;
         }
     }
@@ -124,6 +134,6 @@ public class ReadTemperatureFile {
     }
 
     private static int getNumberOfReadToPerform(Properties properties) {
-        return Integer.parseInt((String) properties.getOrDefault(NUMBER_OF_READ, "-1"));
+        return Integer.parseInt((String) properties.getOrDefault(Constants.NUMBER_OF_READ, "-1"));
     }
 }

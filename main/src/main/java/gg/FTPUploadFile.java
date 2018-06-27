@@ -11,50 +11,74 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class FTPUploadFile {
+import static gg.Constants.*;
+
+public class FTPUploadFile implements Runnable{
 
     private static final Logger logger = LogManager.getLogger(FTPUploadFile.class);
 
-    public static void main(String[] args) {
-        uploadFile(args);
+    private final String host;
+    private final int port;
+    private final String user;
+    private final String pass;
+    private final String file;
+
+    public FTPUploadFile(Properties p){
+        host = p.getProperty(FTP_HOST);
+        port = Integer.parseInt(p.getProperty(FTP_PORT));
+        user = p.getProperty(FTP_USER);
+        pass = p.getProperty(FTP_PASS);
+        file = p.getProperty(HTML_OUTPUT_FILE);
     }
 
-    private static void uploadFile(String[] args) {
-        Properties p = Util.getProperties(args);
+    public static void main(String[] args) {
+        new FTPUploadFile(Util.getProperties(args[0])).uploadFile();
+    }
+
+    @Override
+    public void run() {
+        uploadFile();
+    }
+
+    private void uploadFile() {
+        logger.info("start");
 
         FTPClient ftpClient = new FTPClient();
         try {
-
-            ftpClient.connect(p.getProperty("host"), Integer.parseInt(p.getProperty("port")));
-            ftpClient.login(p.getProperty("user"), p.getProperty("pass"));
+            ftpClient.connect(host, port);
+            ftpClient.login(user, pass);
             ftpClient.enterLocalPassiveMode();
 
             ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 
-            File firstLocalFile = new File(p.getProperty("file"));
+            File localFile = new File(file); //TODO missing file
 
-            String firstRemoteFile = "public_html/index.html";
-            InputStream inputStream = new FileInputStream(firstLocalFile);
+            String remoteFilePath = "public_html/index.html";
+            try(InputStream inputStream = new FileInputStream(localFile)) {
 
-            logger.info("Start uploading file");
-            boolean done = ftpClient.storeFile(firstRemoteFile, inputStream);
-            inputStream.close();
-            if (done) {
-                logger.info("File is uploaded successfully.");
+                logger.info("Start uploading file...");
+                boolean done = ftpClient.storeFile(remoteFilePath, inputStream);
+                if (done) {
+                    logger.info("File is uploaded successfully.");
+                } else{
+                    logger.warn("File not uploaded");
+                }
             }
-
         } catch (IOException ex) {
             logger.error("Error: " + ex.getMessage(), ex);
         } finally {
-            try {
-                if (ftpClient.isConnected()) {
-                    ftpClient.logout();
-                    ftpClient.disconnect();
-                }
-            } catch (IOException ex) {
-                logger.error("Error: " + ex.getMessage(), ex);
-            }
+            close(ftpClient);
         }
     }
 
+    private static void close(FTPClient ftpClient) {
+        try {
+            if (ftpClient.isConnected()) {
+                ftpClient.logout();
+                ftpClient.disconnect();
+            }
+        } catch (IOException ex) {
+            logger.error("Error: " + ex.getMessage(), ex);
+        }
+    }
 }

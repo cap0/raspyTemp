@@ -17,7 +17,7 @@ public class StatisticalInfo {
     DoubleSummaryStatistics chamberStats;
     DoubleSummaryStatistics wortStats;
 
-    List<ParseTempFile.TemperatureRow> temperatures = new ArrayList<>();
+    List<TemperatureRow> temperatures = new ArrayList<>();
 
     @Override
     public String toString(){

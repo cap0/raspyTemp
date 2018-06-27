@@ -5,10 +5,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Enumeration;
 import java.util.Properties;
 
-class GenerateChart {
+import static gg.Util.toJsDate;
+
+class GenerateHtmlPage {
     void generateChart(StatisticalInfo statisticalInfo, String outputFilePath, Properties p) throws Exception {
         Path dashboardTemplateFile = Paths.get(getClass().getClassLoader().getResource("chart_template.html").toURI());
         Charset charset = StandardCharsets.UTF_8;
@@ -23,8 +27,9 @@ class GenerateChart {
             }
         }
 
-        dashboardSource = dashboardSource.replaceAll("param.startDate", ParseTempFile.toJsDate(statisticalInfo.startDate));
-        dashboardSource = dashboardSource.replaceAll("param.endDate",  ParseTempFile.toJsDate(statisticalInfo.endDate));
+        dashboardSource = dashboardSource.replaceAll("param.startDate", toJsDate(statisticalInfo.startDate));
+        dashboardSource = dashboardSource.replaceAll("param.endDate",  toJsDate(statisticalInfo.endDate));
+        dashboardSource = dashboardSource.replaceAll("param.now",  LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         dashboardSource = dashboardSource.replaceAll("XXX", statisticalInfo.temperatures.toString());
 
         Path outputFile = Paths.get(outputFilePath);
