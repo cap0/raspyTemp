@@ -23,7 +23,7 @@ public class Orchestrator {
         String propertyFile = args[0];
         String ftpPropertyFile = args[1];
 
-      //  runTemperatureCollector(propertyFile);
+        runTemperatureCollector(propertyFile);
 
         scheduleDataProcess(Util.getProperties(propertyFile));
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="info">
     <Properties>
-        <Property name="log-path">/Users/gabriele.gattari/raspyTemp/main/logs</Property>
+        <Property name="log-path">./logs</Property>
         <Property name="mm-pattern">%K{level}%d{dd-MMM-yyyy - HH:mm:ss,SSS} %-5p [%c{3.}\#%M] %m%n</Property>
     </Properties>
 

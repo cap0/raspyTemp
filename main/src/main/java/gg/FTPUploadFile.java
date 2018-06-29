@@ -23,7 +23,7 @@ public class FTPUploadFile implements Runnable{
     private final String pass;
     private final String file;
 
-    public FTPUploadFile(Properties p){
+    FTPUploadFile(Properties p){
         host = p.getProperty(FTP_HOST);
         port = Integer.parseInt(p.getProperty(FTP_PORT));
         user = p.getProperty(FTP_USER);

@@ -6,14 +6,13 @@ class Constants {
     static final String SENSORS = "sensors";
     static final String WAIT = "wait";
     static final String NUMBER_OF_READ = "numberOfRead";
-    static final String SENSORS_FOLDER = "/sys/bus/w1/devices/";
-    static final String TEMPERATURE_FILE = "/w1_slave";
+    static final String SENSORS_FOLDER = "sensorsFolder";
+    static final String TEMPERATURE_FILE = "w1_slave";
     static final String TEMPERATURE_OUTPUT_FILE = "temperatureOutputFile";
 
     //Used to process data
     static final String START_DATE = "startDate";
     static final String END_DATE = "endDate";
-    static final String SOURCE_FILE = "sourceFile";
     static final String TEMPERATURE_SETTINGS = "temperatureSettings";
     static final String GENERATE_XLSX_FILE = "generateXlsxFile";
     static final String MIN_ALLOWED_TEMP = "minAllowedTemp";

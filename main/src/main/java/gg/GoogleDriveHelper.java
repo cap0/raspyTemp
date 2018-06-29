@@ -82,8 +82,7 @@ public class GoogleDriveHelper implements Runnable{
 
     private Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException, URISyntaxException {
         // Load client secrets.
-        //InputStream in = GoogleDriveHelper.class.getResourceAsStream(CLIENT_SECRET_DIR);
-        Path dashboardTemplateFile = Paths.get(getClass().getClassLoader().getResource(CLIENT_SECRET_DIR).toURI());
+        Path dashboardTemplateFile = Paths.get(CLIENT_SECRET_DIR); //TODO property
 
         InputStream in = Files.newInputStream(dashboardTemplateFile); //TODO try
 

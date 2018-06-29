@@ -59,7 +59,7 @@ public class ProcessTemperatureData implements Runnable{
         minAllowedTemp = Double.valueOf(getPropertyOrDefault(p, MIN_ALLOWED_TEMP, "0"));
         maxAllowedTemp = Double.valueOf(getPropertyOrDefault(p, MAX_ALLOWED_TEMP, "50"));
         aggregationFactor = Integer.valueOf(getPropertyOrDefault(p, SERIES_AGGREGATION_FACTOR, "1"));
-        sourceFilePath = getProperty(p, SOURCE_FILE);
+        sourceFilePath = getProperty(p, TEMPERATURE_OUTPUT_FILE);
         htmlOutputFilePath = getProperty(p, HTML_OUTPUT_FILE);
 
         generateXlsxFile = Boolean.parseBoolean(getPropertyOrDefault(p, GENERATE_XLSX_FILE, "false"));

@@ -25,12 +25,14 @@ public class TemperatureCollector extends Thread{
     private static final Logger logger = LogManager.getLogger(TemperatureCollector.class);
 
     private final String[] sensors;
+    private final String sensorsFolder;
     private final Integer numberOfReadToPerform;
     private final String timeBetweenReads;
     private final String outputFilePath;
 
-    public TemperatureCollector(String[] sensors, Integer numberOfReadToPerform, String timeBetweenReads, String outputFilePath) {
+    public TemperatureCollector(String[] sensors, String sensorsFolder, Integer numberOfReadToPerform, String timeBetweenReads, String outputFilePath) {
         this.sensors = sensors;
+        this.sensorsFolder = sensorsFolder;
         this.numberOfReadToPerform = numberOfReadToPerform;
         this.timeBetweenReads = timeBetweenReads;
         this.outputFilePath = outputFilePath;
@@ -43,8 +45,9 @@ public class TemperatureCollector extends Thread{
         Integer numberOfReadToPerform = getNumberOfReadToPerform(properties);
         String timeBetweenReads = properties.getProperty(WAIT);
         String outputFilePath = properties.getProperty(TEMPERATURE_OUTPUT_FILE);
+        String sensorsFolder = properties.getProperty(SENSORS_FOLDER);
 
-        return new TemperatureCollector(sensors, numberOfReadToPerform, timeBetweenReads, outputFilePath);
+        return new TemperatureCollector(sensors, sensorsFolder, numberOfReadToPerform, timeBetweenReads, outputFilePath);
     }
 
     @Override
@@ -59,7 +62,7 @@ public class TemperatureCollector extends Thread{
                 allSensorLine.append("|").append(temperature).append("|").append(sensor);
                 writeTemperatureInFile(sensor + ".txt", line);
             }
-            logger.info("\n" + allSensorLine.toString().replace("|", " "));
+            logger.debug("\n" + allSensorLine.toString().replace("|", " "));
             writeTemperatureInFile(outputFilePath, allSensorLine.toString());
             readsDone++;
             pause(timeBetweenReads);
@@ -70,8 +73,8 @@ public class TemperatureCollector extends Thread{
         build(args[0]).run();
     }
 
-    private static String buildSensorPath(String sensor) {
-        return SENSORS_FOLDER + sensor + TEMPERATURE_FILE;
+    private String buildSensorPath(String sensor) {
+        return sensorsFolder + File.separator +  sensor + File.separator  + TEMPERATURE_FILE;
     }
 
     private static void writeTemperatureInFile(String outputFilePath, String line) {
@@ -96,7 +99,7 @@ public class TemperatureCollector extends Thread{
 
     private static String readTemperatureFromFile(String completeFilePath) {
         String content = getFileContent(completeFilePath);
-        checkIfFileIsEmpty(content);
+        checkIfFileIsEmpty(content); //TODO fix this
         String[] split = content.split("t=");
         checkIfFileContainsTemperature(split);
         return nf.format(getTemperature(split[1]));
