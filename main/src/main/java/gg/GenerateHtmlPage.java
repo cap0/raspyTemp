@@ -1,5 +1,9 @@
 package gg;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -13,14 +17,21 @@ import java.util.Scanner;
 
 import static gg.Util.toJsDate;
 
+
 class GenerateHtmlPage {
-    void generateChart(StatisticalInfo statisticalInfo, String outputFilePath, Properties p) throws Exception {
+    private static final Logger logger = LogManager.getLogger(Orchestrator.class);
+
+    void generateChart(StatisticalInfo statisticalInfo, String outputFilePath, Properties p) {
         String dashboardSource = getHtmlPageTemplate();
         dashboardSource = addPropertiesInfoToTemplate(p, dashboardSource);
         dashboardSource = addDataToTemplate(statisticalInfo, dashboardSource);
 
         Path outputFile = Paths.get(outputFilePath);
-        Files.write(outputFile, dashboardSource.getBytes(StandardCharsets.UTF_8));
+        try {
+            Files.write(outputFile, dashboardSource.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            logger.error("Cannot write html page file on disk", e);
+        }
     }
 
     private String addDataToTemplate(StatisticalInfo statisticalInfo, String dashboardSource) {

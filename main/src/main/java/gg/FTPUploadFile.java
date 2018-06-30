@@ -21,14 +21,14 @@ public class FTPUploadFile implements Runnable{
     private final int port;
     private final String user;
     private final String pass;
-    private final String file;
+    private final String htmlPageFileToUpload;
 
     FTPUploadFile(Properties p){
         host = p.getProperty(FTP_HOST);
         port = Integer.parseInt(p.getProperty(FTP_PORT));
         user = p.getProperty(FTP_USER);
         pass = p.getProperty(FTP_PASS);
-        file = p.getProperty(HTML_OUTPUT_FILE);
+        htmlPageFileToUpload = p.getProperty(HTML_OUTPUT_FILE);
     }
 
     public static void main(String[] args) {
@@ -41,27 +41,25 @@ public class FTPUploadFile implements Runnable{
     }
 
     private void uploadFile() {
-        logger.info("start");
+        logger.info("Starting FTP Upload");
 
         FTPClient ftpClient = new FTPClient();
         try {
             ftpClient.connect(host, port);
             ftpClient.login(user, pass);
             ftpClient.enterLocalPassiveMode();
-
             ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 
-            File localFile = new File(file); //TODO missing file
+            File localFile = new File(htmlPageFileToUpload);
+            String remoteFilePath = "public_html/index.html"; // TODO change this to allow more page on website
 
-            String remoteFilePath = "public_html/index.html";
             try(InputStream inputStream = new FileInputStream(localFile)) {
-
-                logger.info("Start uploading file...");
+                logger.info("Start uploading html page...");
                 boolean done = ftpClient.storeFile(remoteFilePath, inputStream);
                 if (done) {
-                    logger.info("File is uploaded successfully.");
+                    logger.info("Html page is uploaded successfully.");
                 } else{
-                    logger.warn("File not uploaded");
+                    logger.warn("Html page not uploaded");
                 }
             }
         } catch (IOException ex) {

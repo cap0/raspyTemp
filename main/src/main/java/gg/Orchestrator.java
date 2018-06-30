@@ -9,6 +9,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static gg.Constants.ENABLE_GOOGLE_DRIVE;
+
 public class Orchestrator {
 
     private static final Logger logger = LogManager.getLogger(Orchestrator.class);
@@ -60,13 +62,19 @@ public class Orchestrator {
     }
 
     private static void scheduleGoogleDriveBackup(Properties properties) {
-        logger.info("Schedule Google Drive Backup");
-        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        Runnable googleDriveTask = new GoogleDriveHelper(properties);
-        int initialDelay = 1; //TODO property file
-        int periodicDelay = 5;
+        Boolean enableGoogleDrive = Boolean.valueOf(properties.getProperty(ENABLE_GOOGLE_DRIVE));
+        if (enableGoogleDrive) {
+            logger.info("Schedule Google Drive Backup");
+            ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+            Runnable googleDriveTask = new GoogleDriveHelper(properties);
+            int initialDelay = 1; //TODO property file
+            int periodicDelay = 5;
 
-        scheduler.scheduleAtFixedRate(googleDriveTask, initialDelay, periodicDelay, TimeUnit.HOURS);
+            scheduler.scheduleAtFixedRate(googleDriveTask, initialDelay, periodicDelay, TimeUnit.HOURS);
+        }else{
+            logger.info("Google Drive Backup disabled");
+        }
+
     }
 
 }

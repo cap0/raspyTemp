@@ -42,15 +42,11 @@ public class ProcessTemperatureData implements Runnable{
 
     @Override
     public void run() {
-        try {
-            parseFile();
-        } catch (Exception e) {
-            e.printStackTrace(); //TODO handle this
-        }
+        processRawData();
     }
 
-    public static void main(String[] args) throws Exception {
-        new ProcessTemperatureData(Util.getProperties(args[0])).parseFile();
+    public static void main(String[] args) {
+        new ProcessTemperatureData(Util.getProperties(args[0])).processRawData();
     }
 
     private void getProperties(Properties p){
@@ -68,8 +64,8 @@ public class ProcessTemperatureData implements Runnable{
         this.p = p;
     }
 
-    private void parseFile() throws Exception {
-        logger.info("start");
+    private void processRawData() {
+        logger.info("Start processing data");
         StatisticalInfo statisticalInfo = processSourceFile(dataRange, sourceFilePath, settingsTemperature, minAllowedTemp, maxAllowedTemp, aggregationFactor);
 
         new GenerateHtmlPage().generateChart(statisticalInfo, htmlOutputFilePath, p);
