@@ -25,6 +25,7 @@ class Constants {
     static final String FTP_PORT = "ftpPort";
     static final String FTP_USER = "ftpUser";
     static final String FTP_PASS = "ftpPass";
+    static final String HTML_PAGE_NAME = "htmlPageName";
 
     //Google
     static final String ENABLE_GOOGLE_DRIVE = "enableGoogleDrive";

@@ -19,12 +19,12 @@ public class TemperatureRow {
     String chamberSensorName;
     Double wortTemp =0D;
     String wortSensorName;
-    Double settingTemperature =0D;
+    private Double settingTemperature =0D;
 
     private static SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"); //TODO use localdatetime
     private static NumberFormat nf = DecimalFormat.getInstance(Locale.ITALY);
 
-    //TODO avoid all this logic in the costructor
+    //TODO avoid all this logic in the constructor
     TemperatureRow(String date, String chamberTemp, String chamberSensorName, String wortTemp, String wortSensorName, LinkedHashMap<LocalDateTime, Double> temperatureSettings) {
         try {
             Date parse = sdf.parse(date); //TODO remove this when writing file in the ISO DATETIME way

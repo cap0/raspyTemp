@@ -22,6 +22,7 @@ public class FTPUploadFile implements Runnable{
     private final String user;
     private final String pass;
     private final String htmlPageFileToUpload;
+    private final String htmlPageName;
 
     FTPUploadFile(Properties p){
         host = p.getProperty(FTP_HOST);
@@ -29,6 +30,7 @@ public class FTPUploadFile implements Runnable{
         user = p.getProperty(FTP_USER);
         pass = p.getProperty(FTP_PASS);
         htmlPageFileToUpload = p.getProperty(HTML_OUTPUT_FILE);
+        htmlPageName = p.getProperty(HTML_PAGE_NAME);
     }
 
     public static void main(String[] args) {
@@ -51,13 +53,14 @@ public class FTPUploadFile implements Runnable{
             ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 
             File localFile = new File(htmlPageFileToUpload);
-            String remoteFilePath = "public_html/index.html"; // TODO change this to allow more page on website
+           // String remoteFilePath = "public_html/index.html"; //TODO Rebuild index page
+            String remoteFilePath = "public_html/"+htmlPageName+".html";
 
             try(InputStream inputStream = new FileInputStream(localFile)) {
-                logger.info("Start uploading html page...");
+                logger.info("Start uploading "+htmlPageName+" html page...");
                 boolean done = ftpClient.storeFile(remoteFilePath, inputStream);
                 if (done) {
-                    logger.info("Html page is uploaded successfully.");
+                    logger.info("Html page "+htmlPageName+" is uploaded successfully.");
                 } else{
                     logger.warn("Html page not uploaded");
                 }
