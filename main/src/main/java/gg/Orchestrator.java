@@ -23,18 +23,19 @@ public class Orchestrator {
         String propertyFile = args[0];
         String ftpPropertyFile = args[1];
 
-        runTemperatureCollector(propertyFile);
+        Properties properties = Util.getProperties(propertyFile);
+        runTemperatureCollector(properties);
 
-        scheduleDataProcess(Util.getProperties(propertyFile));
+        scheduleDataProcess(properties);
 
-        scheduleFTPUpload(Util.getProperties(ftpPropertyFile));
+        scheduleFTPUpload(Util.getProperties(ftpPropertyFile)); // todo add catch to avoid break
 
-        scheduleGoogleDriveBackup();
+        scheduleGoogleDriveBackup(properties); // todo add catch to avoid break
     }
 
-    private static void runTemperatureCollector(String propertyFile) {
+    private static void runTemperatureCollector(Properties properties) {
         logger.info("Fire temperature collector");
-        TemperatureCollector temperatureCollector = TemperatureCollector.build(propertyFile);
+        TemperatureCollector temperatureCollector = TemperatureCollector.build(properties);
         temperatureCollector.start();
     }
 
@@ -58,10 +59,10 @@ public class Orchestrator {
         scheduler.scheduleAtFixedRate(ftpUploadTask, initialDelay, periodicDelay, TimeUnit.SECONDS);
     }
 
-    private static void scheduleGoogleDriveBackup() {
+    private static void scheduleGoogleDriveBackup(Properties properties) {
         logger.info("Schedule Google Drive Backup");
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        Runnable googleDriveTask = new GoogleDriveHelper();
+        Runnable googleDriveTask = new GoogleDriveHelper(properties);
         int initialDelay = 1; //TODO property file
         int periodicDelay = 5;
 

@@ -20,13 +20,17 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
+
+import static gg.Constants.FILE_NAME_ON_GOOGLE_DRIVE;
+import static gg.Constants.GOOGLE_DRIVE_FILE_PATH;
+import static gg.Constants.TEMPERATURE_OUTPUT_FILE;
 
 public class GoogleDriveHelper implements Runnable{
     private static final String APPLICATION_NAME = "raspyTemp";
@@ -35,25 +39,20 @@ public class GoogleDriveHelper implements Runnable{
 
     private static final Logger logger = LogManager.getLogger(GoogleDriveHelper.class);
 
-    /**
-     * Global instance of the scopes required by this quickstart.
-     * If modifying these scopes, delete your previously saved credentials/ folder.
-     */
+     //If modifying these scopes, delete your previously saved credentials/ folder.
     private static final List<String> SCOPES = Collections.singletonList(DriveScopes.DRIVE_APPDATA);
-    private static final String CLIENT_SECRET_DIR = "client_secret.json"; //TODO handle this
-    private Drive service;
 
-    public GoogleDriveHelper()  {
-        // Build a new authorized API client service.
-        try {
-            final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-            service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
-                    .setApplicationName(APPLICATION_NAME)
-                    .build();
-        } catch (GeneralSecurityException | IOException | URISyntaxException e) {
-            logger.error("Cannot initialize Google Drive helper", e);
-            throw new RuntimeException("Cannot initialize Google Drive helper");
-        }
+    private Drive service;
+    private String filePathToUpload;
+    private String fileName;
+    private String secretFilePath;
+
+    public GoogleDriveHelper(Properties p) {
+        this.filePathToUpload = p.getProperty(TEMPERATURE_OUTPUT_FILE);
+        this.fileName = p.getProperty(FILE_NAME_ON_GOOGLE_DRIVE);
+        this.secretFilePath = p.getProperty(GOOGLE_DRIVE_FILE_PATH);
+
+        createDriveService();
     }
 
     @Override
@@ -62,13 +61,13 @@ public class GoogleDriveHelper implements Runnable{
     }
 
     public static void main(String... args) {
-       new GoogleDriveHelper().uploadFile();
+        //new GoogleDriveHelper().uploadFile();
     }
 
     private void uploadFile() {
         File fileMetadata = new File();
-        fileMetadata.setName("AmericanWheatJune2018_conditioning.txt"); //TODO property
-        java.io.File filePath = new java.io.File("/Users/gabriele.gattari/raspyTemp/main/src/main/brewDays/201806-AmericanWheat/american_wheat_june_2018_conditioning.txt");
+        fileMetadata.setName(fileName);
+        java.io.File filePath = new java.io.File(filePathToUpload);
         FileContent mediaContent = new FileContent( null, filePath);
         try {
             File file = service.files().create(fileMetadata, mediaContent)
@@ -80,20 +79,32 @@ public class GoogleDriveHelper implements Runnable{
         }
     }
 
-    private Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException, URISyntaxException {
-        // Load client secrets.
-        Path dashboardTemplateFile = Paths.get(CLIENT_SECRET_DIR); //TODO property
+    private void createDriveService() {
+        try {
+            final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+            service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+                    .setApplicationName(APPLICATION_NAME)
+                    .build();
+        } catch (GeneralSecurityException | IOException e) {
+            logger.error("Cannot initialize Google Drive helper", e);
+            throw new RuntimeException("Cannot initialize Google Drive helper");
+        }
+    }
 
-        InputStream in = Files.newInputStream(dashboardTemplateFile); //TODO try
+    private Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
+        Path secretFile = Paths.get(secretFilePath);
 
-        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+        try (InputStream in = Files.newInputStream(secretFile)) {
+            GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
 
-        // Build flow and trigger user authorization request.
-        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
-                .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(CREDENTIALS_FOLDER)))
-                .setAccessType("offline")
-                .build();
-        return new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("user");
+            // Build flow and trigger user authorization request.
+            GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+                    HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
+                    .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(CREDENTIALS_FOLDER)))
+                    .setAccessType("offline")
+                    .build();
+
+            return new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("user");
+        }
     }
 }

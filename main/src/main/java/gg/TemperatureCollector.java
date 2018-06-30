@@ -38,8 +38,7 @@ public class TemperatureCollector extends Thread{
         this.outputFilePath = outputFilePath;
     }
 
-    static TemperatureCollector build(String propertyFilePath) {
-        Properties properties = Util.getProperties(propertyFilePath);
+    static TemperatureCollector build(Properties properties) {
         String[] sensors = properties.getProperty(SENSORS).split(";");
 
         Integer numberOfReadToPerform = getNumberOfReadToPerform(properties);
@@ -70,7 +69,7 @@ public class TemperatureCollector extends Thread{
     }
 
     public static void main(String[] args) {
-        build(args[0]).run();
+        build(Util.getProperties(args[0])).run();
     }
 
     private String buildSensorPath(String sensor) {

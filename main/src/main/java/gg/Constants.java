@@ -25,4 +25,8 @@ class Constants {
     static final String FTP_PORT = "ftpPort";
     static final String FTP_USER = "ftpUser";
     static final String FTP_PASS = "ftpPass";
+
+    //Google
+    static final String FILE_NAME_ON_GOOGLE_DRIVE = "fileNameOnGoogleDrive";
+    static final String GOOGLE_DRIVE_FILE_PATH = "googleCredentialFilePath";
 }
