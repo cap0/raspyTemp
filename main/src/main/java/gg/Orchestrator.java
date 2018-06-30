@@ -7,36 +7,29 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import static gg.Constants.ENABLE_GOOGLE_DRIVE;
+import static gg.Util.getIntegerProperty;
+import static java.util.concurrent.TimeUnit.HOURS;
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class Orchestrator {
 
     private static final Logger logger = LogManager.getLogger(Orchestrator.class);
 
     public static void main(String[] args) {
-        if(args.length != 2){
-            logger.error("mandatory arguments: propertyFile ftpPropertyFile");
-            System.exit(-1);
-        }
+        checkArguments(args);
+        Properties properties = mergePropertiesFile(args);
 
-        logger.info("Arguments: " + Arrays.asList(args));
-        String propertyFile = args[0];
-        String ftpPropertyFile = args[1];
-
-        Properties properties = Util.getProperties(propertyFile);
         runTemperatureCollector(properties);
-
         scheduleDataProcess(properties);
-
-        scheduleFTPUpload(Util.getProperties(ftpPropertyFile)); // todo add catch to avoid break
-
-        scheduleGoogleDriveBackup(properties); // todo add catch to avoid break
+        scheduleFTPUpload(properties);
+        scheduleGoogleDriveBackup(properties);
     }
 
     private static void runTemperatureCollector(Properties properties) {
-        logger.info("Fire temperature collector");
+        logger.info("Starting temperature collector");
         TemperatureCollector temperatureCollector = TemperatureCollector.build(properties);
         temperatureCollector.start();
     }
@@ -45,20 +38,20 @@ public class Orchestrator {
         logger.info("Schedule data Process");
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         Runnable task = new ProcessTemperatureData(properties);
-        int initialDelay = 10; //TODO property file
-        int periodicDelay = 10;
+        int initialDelay = getIntegerProperty(properties, "process.initialDelay");
+        int periodicDelay = getIntegerProperty(properties, "process.periodicDelay");
 
-        scheduler.scheduleAtFixedRate(task, initialDelay, periodicDelay, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(task, initialDelay, periodicDelay, SECONDS);
     }
 
     private static void scheduleFTPUpload(Properties properties) {
         logger.info("Schedule FTP Upload");
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         Runnable ftpUploadTask = new FTPUploadFile(properties);
-        int initialDelay = 10; //TODO property file
-        int periodicDelay = 10;
+        int initialDelay = getIntegerProperty(properties, "ftp.initialDelay");
+        int periodicDelay = getIntegerProperty(properties, "ftp.periodicDelay");
 
-        scheduler.scheduleAtFixedRate(ftpUploadTask, initialDelay, periodicDelay, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(ftpUploadTask, initialDelay, periodicDelay, MINUTES);
     }
 
     private static void scheduleGoogleDriveBackup(Properties properties) {
@@ -67,14 +60,30 @@ public class Orchestrator {
             logger.info("Schedule Google Drive Backup");
             ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
             Runnable googleDriveTask = new GoogleDriveHelper(properties);
-            int initialDelay = 1; //TODO property file
-            int periodicDelay = 5;
+            int initialDelay = getIntegerProperty(properties, "driveBackup.initialDelay");
+            int periodicDelay = getIntegerProperty(properties, "driveBackup.periodicDelay");
 
-            scheduler.scheduleAtFixedRate(googleDriveTask, initialDelay, periodicDelay, TimeUnit.HOURS);
+            scheduler.scheduleAtFixedRate(googleDriveTask, initialDelay, periodicDelay, HOURS);
         }else{
             logger.info("Google Drive Backup disabled");
         }
+    }
 
+    private static void checkArguments(String[] args) {
+        if(args.length != 2){
+            logger.error("mandatory arguments: propertyFile ftpPropertyFile");
+            System.exit(-1);
+        }
+        logger.info("Arguments: " + Arrays.asList(args));
+    }
+
+    private static Properties mergePropertiesFile(String[] args) {
+        String propertyFile = args[0];
+        String ftpPropertyFile = args[1];
+
+        Properties properties = Util.getProperties(propertyFile);
+        properties.putAll(Util.getProperties(ftpPropertyFile));
+        return properties;
     }
 
 }

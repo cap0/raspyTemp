@@ -45,6 +45,9 @@ class Util {
         return value.trim();
     }
 
+    public static int getIntegerProperty(Properties properties, String key) {
+        return Integer.parseInt(properties.getProperty(key));
+    }
     static String toJsDate(LocalDateTime date) {
         int year  = date.getYear();
         int month = date.getMonthValue();
