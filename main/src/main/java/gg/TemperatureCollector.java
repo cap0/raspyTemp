@@ -5,13 +5,16 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static java.lang.Double.parseDouble;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,8 +22,7 @@ import static gg.Constants.*;
 
 public class TemperatureCollector extends Thread{
 
-    private static SimpleDateFormat df =  new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"); //TODO use localdatetime
-    private static NumberFormat nf =  new DecimalFormat("##.##");
+    private static NumberFormat nf =  new DecimalFormat("##.##"); // TODO check locale
 
     private static final Logger logger = LogManager.getLogger(TemperatureCollector.class);
 
@@ -51,21 +53,39 @@ public class TemperatureCollector extends Thread{
 
     @Override
     public void run() {
+        boolean outPutFileExists = Files.exists(Paths.get(outputFilePath));
+        if (!outPutFileExists) {
+            writeHeader();
+        }
+
         int readsDone = 1;
         while (thereAreReadsToDo(readsDone, numberOfReadToPerform)) {
-            String now = df.format(new Date());// TODO use iso date
+            String now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
             StringBuilder allSensorLine = new StringBuilder(now);
             for (String sensor : sensors) {
-                String temperature = readTemperatureFromFile(buildSensorPath(sensor));
-                String line = now + "|" + temperature;
-                allSensorLine.append("|").append(temperature).append("|").append(sensor);
-                writeTemperatureInFile(sensor + ".txt", line);
+                Optional<String> temperature = readTemperatureFromFile(buildSensorPath(sensor));
+                if (temperature.isPresent()) {
+                    String singleSensorLine = now + "|" + temperature.get();
+                    allSensorLine.append("|").append(temperature.get());
+                    writeTemperatureInFile(sensor + ".txt", singleSensorLine);
+                } else {
+                    logger.warn("cannot read temperature file");
+                }
             }
             logger.debug("\n" + allSensorLine.toString().replace("|", " "));
             writeTemperatureInFile(outputFilePath, allSensorLine.toString());
             readsDone++;
             pause(timeBetweenReads);
         }
+    }
+
+    private void writeHeader() {
+        StringBuilder header= new StringBuilder("date|");
+        for (String s : sensors) {
+            header.append(s).append("|");
+        }
+        header = header.deleteCharAt(header.lastIndexOf("|"));
+        writeTemperatureInFile(outputFilePath, header.toString());
     }
 
     public static void main(String[] args) {
@@ -96,30 +116,25 @@ public class TemperatureCollector extends Thread{
         }
     }
 
-    private static String readTemperatureFromFile(String completeFilePath) {
+    private static Optional<String> readTemperatureFromFile(String completeFilePath) {
         String content = getFileContent(completeFilePath);
-        checkIfFileIsEmpty(content); //TODO fix this
+        if (StringUtils.isBlank(content)) {
+            logger.error("file is empty");
+            return Optional.empty();
+        }
+
         String[] split = content.split("t=");
-        checkIfFileContainsTemperature(split);
-        return nf.format(getTemperature(split[1]));
+        if(split.length !=2){
+            logger.error("cannot find temperature value");
+            return Optional.empty();
+        }
+        return Optional.of(nf.format(getTemperature(split[1])));
     }
 
     private static double getTemperature(String s) {
         double temp = parseDouble(s.trim());
         temp /= 1000;
         return temp;
-    }
-
-    private static void checkIfFileContainsTemperature(String[] split) { //TODO handle with optional temporary failures
-        if(split.length !=2){
-            logger.error("cannot find temperature value");
-        }
-    }
-
-    private static void checkIfFileIsEmpty(String content) {
-        if (content == null || content.isEmpty()) {
-            logger.error("file is empty");
-        }
     }
 
     private static String getFileContent(String completeFilePath) {

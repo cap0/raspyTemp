@@ -9,11 +9,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static gg.Constants.*;
 import static gg.Util.getProperty;
@@ -128,14 +125,14 @@ public class ProcessTemperatureData implements Runnable{
                 lastAvgWort.add(row.wortTemp);
             }
 
-            if (aggregationFactor >1) {
-                if( i % aggregationFactor == 0) {
+            if (aggregationFactor > 1) {
+                if (i % aggregationFactor == 0) {
                     TemperatureRow t = new TemperatureRow(row);
                     t.chamberTemp = avg(lastAvgChamber);
                     t.wortTemp = avg(lastAvgWort);
                     stats.temperatures.add(t);
                 }
-            } else{
+            } else {
                 stats.temperatures.add(row);
             }
 
@@ -161,16 +158,31 @@ public class ProcessTemperatureData implements Runnable{
         return chamberTemp < minAllowedTemp || chamberTemp > maxAllowedTemp;
     }
 
-
     private static List<TemperatureRow> extractTemperatureInfoFromSourceFile(String filePath, LinkedHashMap<LocalDateTime, Double> temperatureSettings) {
         List<TemperatureRow> rows = null;
-        try (Stream<String> stream = Files.lines(Paths.get(filePath))) {
-            rows = stream
+        try {
+            List<String> temperatureLines = Files.readAllLines(Paths.get(filePath));
+            String header = temperatureLines.get(0);
+            List<String> headerElements = Arrays.asList(header.split("\\|"));
+            if (headerElements.size() != 3) { // TODO generalize for more sensors
+                logger.error("Invalid header format, expected 3 parts in header");
+                return new ArrayList<>();
+            }
+            temperatureLines.remove(0);
+
+            List<String> sensorsName = headerElements.subList(1, headerElements.size());
+
+            rows = temperatureLines.stream()
                     .map(l -> l.split("\\|"))
-                    .map(r -> new TemperatureRow(r[0], r[1], r[2], r[3], r[4], temperatureSettings)) //TODO improve this
+                    .map(r -> new TemperatureRowBuilder()
+                            .date(r[0])
+                            .chamber( r[1], sensorsName.get(0))
+                            .wort(r[2], sensorsName.get(1))
+                            .settings(temperatureSettings)
+                            .build())
                     .collect(Collectors.toList());
         } catch (IOException e) {
-            logger.error("Cannot read file: " +filePath , e);
+            logger.error("Cannot read file: " + filePath, e);
             System.exit(-1);
         }
         return rows;

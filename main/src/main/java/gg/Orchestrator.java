@@ -63,7 +63,7 @@ public class Orchestrator {
             int initialDelay = getIntegerProperty(properties, "driveBackup.initialDelay");
             int periodicDelay = getIntegerProperty(properties, "driveBackup.periodicDelay");
 
-            scheduler.scheduleAtFixedRate(googleDriveTask, initialDelay, periodicDelay, HOURS);
+            scheduler.scheduleAtFixedRate(googleDriveTask, initialDelay, periodicDelay, MINUTES);
         }else{
             logger.info("Google Drive Backup disabled");
         }

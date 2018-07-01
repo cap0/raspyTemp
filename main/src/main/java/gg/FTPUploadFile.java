@@ -65,7 +65,7 @@ public class FTPUploadFile implements Runnable{
                     logger.warn("Html page not uploaded");
                 }
             }
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             logger.error("Error: " + ex.getMessage(), ex);
         } finally {
             close(ftpClient);
