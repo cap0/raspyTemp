@@ -146,6 +146,7 @@ public class ProcessTemperatureData implements Runnable{
                 .collect(Collectors.summarizingDouble(r-> r.wortTemp));
 
         logger.info(stats);
+        logger.debug(stats.temperatures);
 
         return stats;
     }
@@ -176,8 +177,8 @@ public class ProcessTemperatureData implements Runnable{
                     .map(l -> l.split("\\|"))
                     .map(r -> new TemperatureRowBuilder()
                             .date(r[0])
-                            .chamber( r[1], sensorsName.get(0))
-                            .wort(r[2], sensorsName.get(1))
+                            .chamber(sensorsName.get(0), r[1])
+                            .wort(sensorsName.get(1), r[2])
                             .settings(temperatureSettings)
                             .build())
                     .collect(Collectors.toList());
