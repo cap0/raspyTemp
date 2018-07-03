@@ -74,7 +74,7 @@ public class GoogleDriveHelper implements Runnable{
                     .setFields("id")
                     .execute();
             logger.info("File ID: " + file.getId());
-        } catch (IOException e) {
+        } catch (Throwable e) {
             logger.error("cannot upload file to Google Drive", e);
         }
     }

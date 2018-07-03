@@ -52,7 +52,7 @@ public class FTPUploadFile implements Runnable{
             ftpClient.enterLocalPassiveMode();
             ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 
-            File localFile = new File(htmlPageFileToUpload);
+            File localFile = new File(htmlPageFileToUpload); // TODO explicit error
            // String remoteFilePath = "public_html/index.html"; //TODO Rebuild index page
             String remoteFilePath = "public_html/"+htmlPageName+".html";
 

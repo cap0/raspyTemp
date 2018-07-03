@@ -29,7 +29,7 @@ class GenerateHtmlPage {
         Path outputFile = Paths.get(outputFilePath);
         try {
             Files.write(outputFile, dashboardSource.getBytes(StandardCharsets.UTF_8));
-            logger.debug("chart generated");
+            logger.info("chart generated");
         } catch (IOException e) {
             logger.error("Cannot write html page file on disk", e);
         }
