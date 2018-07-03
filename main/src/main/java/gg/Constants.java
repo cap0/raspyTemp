@@ -9,6 +9,7 @@ class Constants {
     static final String SENSORS_FOLDER = "sensorsFolder";
     static final String TEMPERATURE_FILE = "w1_slave";
     static final String TEMPERATURE_OUTPUT_FILE = "temperatureOutputFile";
+    static final String DATE_PATTERN = "datePattern";
 
     //Used to process data
     static final String START_DATE = "startDate";

@@ -30,6 +30,7 @@ public class ProcessTemperatureData implements Runnable{
     private String htmlOutputFilePath;
     private boolean generateXlsxFile;
     private String xlsxFilePath;
+    private String datePattern;
 
     private Properties p;
 
@@ -54,6 +55,7 @@ public class ProcessTemperatureData implements Runnable{
         aggregationFactor = Integer.valueOf(getPropertyOrDefault(p, SERIES_AGGREGATION_FACTOR, "1"));
         sourceFilePath = getProperty(p, TEMPERATURE_OUTPUT_FILE);
         htmlOutputFilePath = getProperty(p, HTML_OUTPUT_FILE);
+        datePattern = getProperty(p, DATE_PATTERN);
 
         generateXlsxFile = Boolean.parseBoolean(getPropertyOrDefault(p, GENERATE_XLSX_FILE, "false"));
         xlsxFilePath = getProperty(p, XLSX_OUTPUT_FILE);
@@ -92,7 +94,7 @@ public class ProcessTemperatureData implements Runnable{
         return settingsTemperature;
     }
 
-    private static StatisticalInfo processSourceFile(DateRange dataRange, String filePath, LinkedHashMap<LocalDateTime, Double> settingsTemperature,
+    private StatisticalInfo processSourceFile(DateRange dataRange, String filePath, LinkedHashMap<LocalDateTime, Double> settingsTemperature,
                                                      Double minAllowedTemp, Double maxAllowedTemp, int aggregationFactor) {
         logger.info("startDate " + dataRange.sd + " endDate " + dataRange.ed);
         List<TemperatureRow> rows = extractTemperatureInfoFromSourceFile(filePath, settingsTemperature);
@@ -159,7 +161,7 @@ public class ProcessTemperatureData implements Runnable{
         return chamberTemp < minAllowedTemp || chamberTemp > maxAllowedTemp;
     }
 
-    private static List<TemperatureRow> extractTemperatureInfoFromSourceFile(String filePath, LinkedHashMap<LocalDateTime, Double> temperatureSettings) {
+    private List<TemperatureRow> extractTemperatureInfoFromSourceFile(String filePath, LinkedHashMap<LocalDateTime, Double> temperatureSettings) {
         List<TemperatureRow> rows = null;
         try {
             List<String> temperatureLines = Files.readAllLines(Paths.get(filePath));
@@ -176,7 +178,7 @@ public class ProcessTemperatureData implements Runnable{
             rows = temperatureLines.stream()
                     .map(l -> l.split("\\|"))
                     .map(r -> new TemperatureRowBuilder()
-                            .date(r[0])
+                            .date(r[0], datePattern)
                             .chamber(sensorsName.get(0), r[1])
                             .wort(sensorsName.get(1), r[2])
                             .settings(temperatureSettings)

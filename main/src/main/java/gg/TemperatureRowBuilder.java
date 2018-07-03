@@ -1,5 +1,7 @@
 package gg;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -19,9 +21,10 @@ class TemperatureRowBuilder {
     private Double settingTemperature;
 
 
-    TemperatureRowBuilder date(String date){
-         this.date = LocalDateTime.parse(date, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-         return this;
+    TemperatureRowBuilder date(String date, String datePattern){
+        DateTimeFormatter formatter = StringUtils.isBlank(datePattern) ? DateTimeFormatter.ISO_LOCAL_DATE_TIME : DateTimeFormatter.ofPattern(datePattern);
+        this.date = LocalDateTime.parse(date, formatter);
+        return this;
     }
 
     TemperatureRowBuilder chamber(String chamberSensorName, String chamberTemp){

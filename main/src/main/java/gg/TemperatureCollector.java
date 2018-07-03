@@ -51,31 +51,36 @@ public class TemperatureCollector extends Thread{
         return new TemperatureCollector(sensors, sensorsFolder, numberOfReadToPerform, timeBetweenReads, outputFilePath);
     }
 
+    public static void main(String[] args) {
+        build(Util.getProperties(args[0])).run();
+    }
+
     @Override
     public void run() {
-        boolean outPutFileExists = Files.exists(Paths.get(outputFilePath));
-        if (!outPutFileExists) {
+        boolean outputFileExists = Files.exists(Paths.get(outputFilePath));
+        if (!outputFileExists) {
             writeHeader();
         }
 
         int readsDone = 1;
         while (thereAreReadsToDo(readsDone, numberOfReadToPerform)) {
-            String now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            StringBuilder allSensorLine = new StringBuilder(now);
+            StringBuilder allSensorLine = new StringBuilder(now());
             for (String sensor : sensors) {
-                Optional<String> temperature = readTemperatureFromFile(buildSensorPath(sensor));
-                if (temperature.isPresent()) {
-                    String singleSensorLine = now + "|" + temperature.get();
-                    allSensorLine.append("|").append(temperature.get());
-                    writeTemperatureInFile(sensor + ".txt", singleSensorLine);
-                } else {
-                    logger.warn("cannot read temperature file");
-                }
+                addSensorTempToRow(allSensorLine, sensor);
             }
             logger.debug("\n" + allSensorLine.toString().replace("|", " "));
             writeTemperatureInFile(outputFilePath, allSensorLine.toString());
             readsDone++;
             pause(timeBetweenReads);
+        }
+    }
+
+    private void addSensorTempToRow(StringBuilder allSensorLine, String sensor) {
+        Optional<String> temperature = readTemperatureFromFile(buildSensorPath(sensor));
+        if (temperature.isPresent()) {
+            allSensorLine.append("|").append(temperature.get());
+        } else {
+            logger.warn("cannot read temperature file for sensor:" + sensor);
         }
     }
 
@@ -86,10 +91,6 @@ public class TemperatureCollector extends Thread{
         }
         header = header.deleteCharAt(header.lastIndexOf("|"));
         writeTemperatureInFile(outputFilePath, header.toString());
-    }
-
-    public static void main(String[] args) {
-        build(Util.getProperties(args[0])).run();
     }
 
     private String buildSensorPath(String sensor) {
@@ -152,5 +153,9 @@ public class TemperatureCollector extends Thread{
 
     private static int getNumberOfReadToPerform(Properties properties) {
         return Integer.parseInt((String) properties.getOrDefault(Constants.NUMBER_OF_READ, "-1"));
+    }
+
+    private String now() {
+        return LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     }
 }
