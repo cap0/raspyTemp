@@ -17,7 +17,7 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 
-public class WriteXlsx {
+class WriteXlsx {
     private static final Logger logger = LogManager.getLogger(WriteXlsx.class);
 
     static void writeXlsxFile(List<TemperatureRow> fixedRows, String xlsxPath) {
@@ -27,8 +27,8 @@ public class WriteXlsx {
         int rowNumber = 0;
         XSSFRow header = dataSheet.createRow(rowNumber++);
         header.createCell(0, CellType.STRING).setCellValue("Date");
-        header.createCell(1, CellType.STRING).setCellValue(fixedRows.get(0).chamberSensorName);
-        header.createCell(2, CellType.STRING).setCellValue(fixedRows.get(0).wortSensorName);
+        header.createCell(1, CellType.STRING).setCellValue(fixedRows.get(0).chamberSensor.id);
+        header.createCell(2, CellType.STRING).setCellValue(fixedRows.get(0).wortSensor.id);
 
         CellStyle cellStyle = myWorkBook.createCellStyle();
         CreationHelper createHelper = myWorkBook.getCreationHelper();

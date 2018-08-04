@@ -52,23 +52,26 @@ public class FTPUploadFile implements Runnable{
             ftpClient.enterLocalPassiveMode();
             ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 
-            File localFile = new File(htmlPageFileToUpload); // TODO explicit error
-           // String remoteFilePath = "public_html/index.html"; //TODO Rebuild index page
+            File localFile = new File(htmlPageFileToUpload);
             String remoteFilePath = "public_html/"+htmlPageName+".html";
 
-            try(InputStream inputStream = new FileInputStream(localFile)) {
-                logger.info("Start uploading "+htmlPageName+" html page...");
-                boolean done = ftpClient.storeFile(remoteFilePath, inputStream);
-                if (done) {
-                    logger.info("Html page "+htmlPageName+" is uploaded successfully.");
-                } else{
-                    logger.warn("Html page not uploaded");
-                }
+            try(InputStream fileToUpload = new FileInputStream(localFile)) {
+                upload(ftpClient, remoteFilePath, fileToUpload);
             }
         } catch (Exception ex) {
             logger.error("Error: " + ex.getMessage(), ex);
         } finally {
             close(ftpClient);
+        }
+    }
+
+    private void upload(FTPClient ftpClient, String remoteFilePath, InputStream inputStream) throws IOException {
+        logger.info("Start uploading "+htmlPageName+" html page...");
+        boolean done = ftpClient.storeFile(remoteFilePath, inputStream);
+        if (done) {
+            logger.info("Html page "+htmlPageName+" has been uploaded successfully.");
+        } else{
+            logger.warn("Html page "+htmlPageName+ " not uploaded");
         }
     }
 

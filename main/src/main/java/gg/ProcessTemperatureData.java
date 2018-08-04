@@ -165,22 +165,22 @@ public class ProcessTemperatureData implements Runnable{
         List<TemperatureRow> rows = null;
         try {
             List<String> temperatureLines = Files.readAllLines(Paths.get(filePath));
-            String header = temperatureLines.get(0);
+            String header = temperatureLines.remove(0);
             List<String> headerElements = Arrays.asList(header.split("\\|"));
             if (headerElements.size() != 3) { // TODO generalize for more sensors
-                logger.error("Invalid header format, expected 3 parts in header");
+                logger.error("Invalid header format, expected 3 parts in the header");
                 return new ArrayList<>();
             }
-            temperatureLines.remove(0);
 
-            List<String> sensorsName = headerElements.subList(1, headerElements.size());
+            List<String> sensorsAsStr = headerElements.subList(1, headerElements.size());
+            List<Sensor> s = sensorsAsStr.stream().map(Sensor::decode).collect(Collectors.toList());
 
             rows = temperatureLines.stream()
                     .map(l -> l.split("\\|"))
                     .map(r -> new TemperatureRowBuilder()
                             .date(r[0], datePattern)
-                            .chamber(sensorsName.get(0), r[1])
-                            .wort(sensorsName.get(1), r[2])
+                            .chamber(s.get(0), r[1])
+                            .wort(s.get(1), r[2])
                             .settings(temperatureSettings)
                             .build())
                     .collect(Collectors.toList());

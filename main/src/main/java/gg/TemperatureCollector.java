@@ -26,13 +26,13 @@ public class TemperatureCollector extends Thread{
 
     private static final Logger logger = LogManager.getLogger(TemperatureCollector.class);
 
-    private final String[] sensors;
+    private final List<Sensor> sensors;
     private final String sensorsFolder;
     private final Integer numberOfReadToPerform;
     private final String timeBetweenReads;
     private final String outputFilePath;
 
-    public TemperatureCollector(String[] sensors, String sensorsFolder, Integer numberOfReadToPerform, String timeBetweenReads, String outputFilePath) {
+    public TemperatureCollector(List<Sensor> sensors, String sensorsFolder, Integer numberOfReadToPerform, String timeBetweenReads, String outputFilePath) {
         this.sensors = sensors;
         this.sensorsFolder = sensorsFolder;
         this.numberOfReadToPerform = numberOfReadToPerform;
@@ -41,14 +41,23 @@ public class TemperatureCollector extends Thread{
     }
 
     static TemperatureCollector build(Properties properties) {
-        String[] sensors = properties.getProperty(SENSORS).split(";");
-
+        List<Sensor> sensors = getSensors(properties);
         Integer numberOfReadToPerform = getNumberOfReadToPerform(properties);
         String timeBetweenReads = properties.getProperty(WAIT);
         String outputFilePath = properties.getProperty(TEMPERATURE_OUTPUT_FILE);
         String sensorsFolder = properties.getProperty(SENSORS_FOLDER);
 
         return new TemperatureCollector(sensors, sensorsFolder, numberOfReadToPerform, timeBetweenReads, outputFilePath);
+    }
+
+    private static List<Sensor> getSensors(Properties properties) {
+        List<Sensor> sensors = new ArrayList<>();
+        String[] sensorInfoSrt = properties.getProperty(SENSORS).split(";");
+        for (String s : sensorInfoSrt) {
+            String[] sensorInfo = s.split("\\|");
+            sensors.add(new Sensor(sensorInfo[0], sensorInfo[1]));
+        }
+        return sensors;
     }
 
     public static void main(String[] args) {
@@ -65,7 +74,7 @@ public class TemperatureCollector extends Thread{
         int readsDone = 1;
         while (thereAreReadsToDo(readsDone, numberOfReadToPerform)) {
             StringBuilder allSensorLine = new StringBuilder(now());
-            for (String sensor : sensors) {
+            for (Sensor sensor : sensors) {
                 addSensorTempToRow(allSensorLine, sensor);
             }
             logger.debug("\n" + allSensorLine.toString().replace("|", " "));
@@ -75,7 +84,7 @@ public class TemperatureCollector extends Thread{
         }
     }
 
-    private void addSensorTempToRow(StringBuilder allSensorLine, String sensor) {
+    private void addSensorTempToRow(StringBuilder allSensorLine, Sensor sensor) {
         Optional<String> temperature = readTemperatureFromFile(buildSensorPath(sensor));
         if (temperature.isPresent()) {
             allSensorLine.append("|").append(temperature.get());
@@ -85,16 +94,16 @@ public class TemperatureCollector extends Thread{
     }
 
     private void writeHeader() {
-        StringBuilder header= new StringBuilder("date|");
-        for (String s : sensors) {
-            header.append(s).append("|");
+        StringBuilder header = new StringBuilder("date|");
+        for (Sensor s : sensors) {
+            header.append(s.encode()).append("|");
         }
         header = header.deleteCharAt(header.lastIndexOf("|"));
         writeTemperatureInFile(outputFilePath, header.toString());
     }
 
-    private String buildSensorPath(String sensor) {
-        return sensorsFolder + File.separator +  sensor + File.separator  + TEMPERATURE_FILE;
+    private String buildSensorPath(Sensor sensor) {
+        return sensorsFolder + File.separator +  sensor.id + File.separator  + TEMPERATURE_FILE;
     }
 
     private static void writeTemperatureInFile(String outputFilePath, String line) {

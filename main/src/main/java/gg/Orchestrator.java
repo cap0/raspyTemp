@@ -10,7 +10,6 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import static gg.Constants.ENABLE_GOOGLE_DRIVE;
 import static gg.Util.getIntegerProperty;
-import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 

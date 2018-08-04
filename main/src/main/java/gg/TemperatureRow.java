@@ -7,34 +7,34 @@ import static gg.Util.toJsDate;
 public class TemperatureRow {
     LocalDateTime date;
     Double chamberTemp;
-    String chamberSensorName;
+    Sensor chamberSensor;
     Double wortTemp;
-    String wortSensorName;
+    Sensor wortSensor;
     private Double settingTemperature;
 
     TemperatureRow(LocalDateTime date,
-                   Double chamberTemp, String chamberSensorName,
-                   Double wortTemp, String wortSensorName,
+                   Double chamberTemp, Sensor chamberSensor,
+                   Double wortTemp, Sensor wortSensor,
                    Double settingTemperature) {
         this.date = date;
         this.chamberTemp = chamberTemp;
-        this.chamberSensorName = chamberSensorName;
+        this.chamberSensor = chamberSensor;
         this.wortTemp = wortTemp;
-        this.wortSensorName = wortSensorName;
+        this.wortSensor = wortSensor;
         this.settingTemperature = settingTemperature;
     }
 
     TemperatureRow(TemperatureRow t){
         this.date = t.date;
         this.chamberTemp = t.chamberTemp;
-        this.chamberSensorName = t.chamberSensorName;
+        this.chamberSensor = t.chamberSensor;
         this.wortTemp = t.wortTemp;
-        this.wortSensorName = t.wortSensorName;
+        this.wortSensor = t.wortSensor;
         this.settingTemperature = t.settingTemperature;
     }
 
     @Override
-    public String toString() { //TODO make another method
+    public String toString() {
         return "[ " + toJsDate(date) + "," + chamberTemp + "," + wortTemp + "," + settingTemperature + "]";
     }
 

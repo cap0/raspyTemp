@@ -6,21 +6,10 @@ import org.apache.logging.log4j.Logger;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Properties;
 
 class Util {
     private static final Logger logger = LogManager.getLogger(Util.class);
-
-    static Properties getPropertiesFromMain(String[] args) {
-        if(args.length!=1){
-            logger.error("Property file is missing");
-            System.exit(-1);
-        }
-
-        logger.info("Start. Parameters: " + Arrays.asList(args));
-        return getProperties(args[0]);
-    }
 
     static Properties getProperties(String arg) {
         Properties p = new Properties();
