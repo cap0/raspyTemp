@@ -57,7 +57,11 @@ public class GoogleDriveHelper implements Runnable{
 
     @Override
     public void run() {
-        uploadFile();
+        try {
+            uploadFile();
+        } catch (Throwable t) {
+            logger.fatal(t);
+        }
     }
 
     public static void main(String... args) {

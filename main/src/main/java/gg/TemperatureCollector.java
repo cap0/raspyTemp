@@ -66,6 +66,14 @@ public class TemperatureCollector extends Thread{
 
     @Override
     public void run() {
+        try {
+            execute();
+        } catch (Throwable t) {
+            logger.fatal(t);
+        }
+    }
+
+    private void execute() {
         boolean outputFileExists = Files.exists(Paths.get(outputFilePath));
         if (!outputFileExists) {
             writeHeader();

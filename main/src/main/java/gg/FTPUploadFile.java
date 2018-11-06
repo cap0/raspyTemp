@@ -39,7 +39,11 @@ public class FTPUploadFile implements Runnable{
 
     @Override
     public void run() {
-        uploadFile();
+        try {
+            uploadFile();
+        } catch (Throwable t) {
+            logger.fatal(t);
+        }
     }
 
     private void uploadFile() {
@@ -66,7 +70,7 @@ public class FTPUploadFile implements Runnable{
     }
 
     private void upload(FTPClient ftpClient, String remoteFilePath, InputStream inputStream) throws IOException {
-        logger.info("Start uploading "+htmlPageName+" html page...");
+        logger.info("Start uploading "+htmlPageName+" html page in " + remoteFilePath);
         boolean done = ftpClient.storeFile(remoteFilePath, inputStream);
         if (done) {
             logger.info("Html page "+htmlPageName+" has been uploaded successfully.");

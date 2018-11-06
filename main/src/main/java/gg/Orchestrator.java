@@ -40,6 +40,7 @@ public class Orchestrator {
         int initialDelay = getIntegerProperty(properties, "process.initialDelay");
         int periodicDelay = getIntegerProperty(properties, "process.periodicDelay");
 
+        logger.info("Data Process. initialDelay= " + initialDelay + " periodicDelay= " + periodicDelay + " period= " + SECONDS);
         scheduler.scheduleAtFixedRate(task, initialDelay, periodicDelay, SECONDS);
     }
 

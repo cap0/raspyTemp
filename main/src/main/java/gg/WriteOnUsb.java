@@ -14,7 +14,7 @@ import static java.nio.file.Files.exists;
 
 public class WriteOnUsb implements Runnable {
 
-    private static final String MNT_USB = "/mnt/usb";
+    private static final String MNT_USB = "/media/usb";
     private static final String TEMPERATURE_FILE = "/path/test.txt";
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss",Locale.ITALY); //TODO handle
 
@@ -28,6 +28,14 @@ public class WriteOnUsb implements Runnable {
 
     @Override
     public void run() {
+        try {
+            execute();
+        } catch (Throwable t) {
+            logger.fatal(t);
+        }
+    }
+
+    private void execute() {
         logger.info("Start.");
         Path path = Paths.get(MNT_USB);
 

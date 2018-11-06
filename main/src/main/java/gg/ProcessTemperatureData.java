@@ -40,7 +40,11 @@ public class ProcessTemperatureData implements Runnable{
 
     @Override
     public void run() {
-        processRawData();
+        try {
+            processRawData();
+        } catch (Throwable t){
+            logger.fatal("unexpected error", t);
+        }
     }
 
     public static void main(String[] args) {
@@ -167,7 +171,7 @@ public class ProcessTemperatureData implements Runnable{
             List<String> temperatureLines = Files.readAllLines(Paths.get(filePath));
             String header = temperatureLines.remove(0);
             List<String> headerElements = Arrays.asList(header.split("\\|"));
-            if (headerElements.size() != 3) { // TODO generalize for more sensors
+            if (headerElements.size() != 3) {
                 logger.error("Invalid header format, expected 3 parts in the header");
                 return new ArrayList<>();
             }
@@ -179,8 +183,8 @@ public class ProcessTemperatureData implements Runnable{
                     .map(l -> l.split("\\|"))
                     .map(r -> new TemperatureRowBuilder()
                             .date(r[0], datePattern)
-                            .chamber(s.get(0), r[1])
-                            .wort(s.get(1), r[2])
+                            .chamber(s.get(0), r.length >1 ?r[1] : "0")
+                            .wort(s.get(1), r.length >2 ?r[2] : "0")
                             .settings(temperatureSettings)
                             .build())
                     .collect(Collectors.toList());
