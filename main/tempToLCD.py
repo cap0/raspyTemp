@@ -33,6 +33,7 @@
 #--------------------------------------
 import smbus
 import time
+import requests
 
 # Define some device parameters
 I2C_ADDR  = 0x27 # I2C device address
@@ -113,7 +114,15 @@ def readTemp(pathFile):
 	temperature1 = float(tempdata1[2:])
 	temperature0 = temperature1 / 1000
 	return temperature0
-	
+
+def connected_to_internet(url='http://www.google.com/', timeout=5):
+    try:
+        _ = requests.get(url, timeout=timeout)
+        return "connection OK"
+    except requests.ConnectionError:
+        return "connection KO"
+    return "connection KO"
+
 def main():
   # Main program block
 
@@ -132,11 +141,12 @@ def main():
     lcd_string(txtT1,LCD_LINE_1)
     lcd_string(txtT2,LCD_LINE_2)
 
-    #time.sleep(3)
+    time.sleep(3)
   
     # Send some more text
-    #lcd_string(">         RPiSpy",LCD_LINE_1)
-    #lcd_string(">        I2C LCD",LCD_LINE_2)
+    isConnected = connected_to_internet()
+    lcd_string(isConnected,LCD_LINE_1)
+    lcd_string("",LCD_LINE_2)
 
     time.sleep(3)
 

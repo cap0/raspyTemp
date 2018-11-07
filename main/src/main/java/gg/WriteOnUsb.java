@@ -41,20 +41,10 @@ public class WriteOnUsb implements Runnable {
 
     private void execute() {
         logger.info("Start USB process");
-        Path path = Paths.get(MNT_USB);
 
         while (true) {
-            checkIfExistsAndWrite(path);
-            sleepSomeTime();
-        }
-    }
-
-    private void checkIfExistsAndWrite(Path path) {
-        if (Files.isWritable(path)) {
-            logger.info("USB is plugged");
             writeFileOnUSB();
-        } else {
-            logger.debug("USB is not plugged");
+            sleepSomeTime();
         }
     }
 
@@ -65,7 +55,6 @@ public class WriteOnUsb implements Runnable {
             Files.write(Paths.get(fileName), temperatureBytes);
             logger.info("file " + fileName + " has been written");
         } catch (Exception e) {
-            logger.error(e);
         }
     }
 
