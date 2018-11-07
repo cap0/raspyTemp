@@ -50,7 +50,7 @@ public class WriteOnUsb implements Runnable {
     }
 
     private void checkIfExistsAndWrite(Path path) {
-        if (exists(path)) {
+        if (Files.isWritable(path)) {
             logger.info("USB is plugged");
             writeFileOnUSB();
         } else {
@@ -71,7 +71,7 @@ public class WriteOnUsb implements Runnable {
 
     private void sleepSomeTime() {
         try {
-            Thread.sleep(5000);
+            Thread.sleep(10000);
         } catch (Exception e) {
             logger.error(e);
         }
