@@ -90,6 +90,7 @@ public class TemperatureCollector extends Thread{
             readsDone++;
             pause(timeBetweenReads);
         }
+        logger.info("temperature collection procedure completed. Read "+numberOfReadToPerform +" reads");
     }
 
     private void addSensorTempToRow(StringBuilder allSensorLine, Sensor sensor) {
