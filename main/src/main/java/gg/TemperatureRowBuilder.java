@@ -58,7 +58,7 @@ class TemperatureRowBuilder {
 
     private Double getSettingTemperature(LocalDateTime date, LinkedHashMap<LocalDateTime, Double> temperatureSettings) {
         for (Map.Entry<LocalDateTime, Double> set : temperatureSettings.entrySet()) {
-            if (date.isBefore(set.getKey())){
+            if (date != null && date.isBefore(set.getKey())){
                 return set.getValue();
             }
         }
