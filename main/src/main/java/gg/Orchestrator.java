@@ -25,6 +25,12 @@ public class Orchestrator {
         scheduleDataProcess(properties);
         scheduleFTPUpload(properties);
         scheduleGoogleDriveBackup(properties);
+        runWriteToUsb(properties);
+    }
+
+    private static void runWriteToUsb(Properties properties) {
+        String temperatureOutFileName = properties.getProperty(Constants.TEMPERATURE_OUTPUT_FILE);
+        new WriteOnUsb(temperatureOutFileName).run();
     }
 
     private static void runTemperatureCollector(Properties properties) {
