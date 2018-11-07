@@ -19,18 +19,30 @@ class TemperatureRowBuilder {
 
     TemperatureRowBuilder date(String date, String datePattern){
         DateTimeFormatter formatter = StringUtils.isBlank(datePattern) ? DateTimeFormatter.ISO_LOCAL_DATE_TIME : DateTimeFormatter.ofPattern(datePattern);
-        this.date = LocalDateTime.parse(date, formatter);
+        try {
+            this.date = LocalDateTime.parse(date, formatter);
+        } catch (Exception e) {
+            this.date = null;
+        }
         return this;
     }
 
     TemperatureRowBuilder chamber(Sensor chamberSensor, String chamberTemp){
-        this.chamberTemp = Double.parseDouble(chamberTemp);
+        try {
+            this.chamberTemp = Double.parseDouble(chamberTemp);
+        } catch (NumberFormatException e) {
+            this.chamberTemp = Double.NaN;
+        }
         this.chamberSensor = chamberSensor;
         return this;
     }
 
     TemperatureRowBuilder wort(Sensor wortSensor, String wortTemp){
-        this.wortTemp = Double.parseDouble(wortTemp);
+        try {
+            this.wortTemp = Double.parseDouble(wortTemp);
+        } catch (NumberFormatException e) {
+            this.wortTemp = Double.NaN;
+        }
         this.wortSensor = wortSensor;
         return this;
     }

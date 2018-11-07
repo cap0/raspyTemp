@@ -38,4 +38,11 @@ public class TemperatureRow {
         return "[ " + toJsDate(date) + "," + chamberTemp + "," + wortTemp + "," + settingTemperature + "]";
     }
 
+    public boolean isValid(){
+        return date != null && !chamberTemp.isNaN() && !wortTemp.isNaN();
+    }
+
+
+
+
 }

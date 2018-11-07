@@ -187,6 +187,7 @@ public class ProcessTemperatureData implements Runnable{
                             .wort(s.get(1), r.length >2 ?r[2] : "0")
                             .settings(temperatureSettings)
                             .build())
+                    .filter(TemperatureRow::isValid)
                     .collect(Collectors.toList());
         } catch (IOException e) {
             logger.error("Cannot read file: " + filePath, e);
