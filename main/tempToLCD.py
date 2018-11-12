@@ -107,21 +107,20 @@ def lcd_string(message,line):
     lcd_byte(ord(message[i]),LCD_CHR)
 
 def readTemp(pathFile):
-	tempfile1 = open(pathFile)
-	thetext1 = tempfile1.read()
-	tempfile1.close()
-	tempdata1 = thetext1.split("\n")[1].split(" ")[9]
-	temperature1 = float(tempdata1[2:])
-	temperature0 = temperature1 / 1000
-	return temperature0
+    tempfile1 = open(pathFile)
+    thetext1 = tempfile1.read()
+    tempfile1.close()
+    tempdata1 = thetext1.split("\n")[1].split(" ")[9]
+    temperature1 = float(tempdata1[2:])
+    temperature0 = temperature1 / 1000
+    return temperature0
 
 def connected_to_internet(url='http://www.google.com/', timeout=5):
     try:
         _ = requests.get(url, timeout=timeout)
         return "connection OK"
-    except requests.ConnectionError:
+    except:
         return "connection KO"
-    return "connection KO"
 
 def main():
   # Main program block
@@ -130,16 +129,19 @@ def main():
   lcd_init()
 
   while True:
+    try:
+        t1 = readTemp("/sys/bus/w1/devices/28-0216254c3bee/w1_slave")
+        txtT1 = "FERM: " + str(t1)
+        lcd_string(txtT1,LCD_LINE_1)
+    except:
+        lcd_string("ERR FERM",LCD_LINE_1)
 
-	t1 = readTemp("/sys/bus/w1/devices/28-0216254c3bee/w1_slave")
-	t2 = readTemp("/sys/bus/w1/devices/28-0417300110ff/w1_slave")
-	
-	txtT1 = "FERM: " + str(t1)
-	txtT2 = "ROOM: " + str(t2)
-	
-    # Send some test
-    lcd_string(txtT1,LCD_LINE_1)
-    lcd_string(txtT2,LCD_LINE_2)
+    try:
+        t2 = readTemp("/sys/bus/w1/devices/28-0417300110ff/w1_slave")
+        txtT2 = "ROOM: " + str(t2)
+        lcd_string(txtT2,LCD_LINE_2)
+    except:
+        lcd_string("ERR ROOM",LCD_LINE_2)
 
     time.sleep(3)
   
