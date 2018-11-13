@@ -32,4 +32,8 @@ class Constants {
     static final String ENABLE_GOOGLE_DRIVE = "enableGoogleDrive";
     static final String FILE_NAME_ON_GOOGLE_DRIVE = "fileNameOnGoogleDrive";
     static final String GOOGLE_DRIVE_FILE_PATH = "googleCredentialFilePath";
+
+    //USB
+    static final String ENABLE_USB_DRIVE = "enableUsbDrive";
+
 }

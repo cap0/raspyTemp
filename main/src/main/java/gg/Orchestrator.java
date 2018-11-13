@@ -9,6 +9,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static gg.Constants.ENABLE_GOOGLE_DRIVE;
+import static gg.Constants.ENABLE_USB_DRIVE;
 import static gg.Util.getIntegerProperty;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -29,8 +30,11 @@ public class Orchestrator {
     }
 
     private static void runWriteToUsb(Properties properties) {
-        String temperatureOutFileName = properties.getProperty(Constants.TEMPERATURE_OUTPUT_FILE);
-        new WriteOnUsb(temperatureOutFileName).run();
+        Boolean enableUsbDrive = Boolean.valueOf(properties.getProperty(ENABLE_USB_DRIVE, "false"));
+        if(enableUsbDrive) {
+            String temperatureOutFileName = properties.getProperty(Constants.TEMPERATURE_OUTPUT_FILE);
+            new WriteOnUsb(temperatureOutFileName).run();
+        }
     }
 
     private static void runTemperatureCollector(Properties properties) {
