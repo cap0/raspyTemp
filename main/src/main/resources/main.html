@@ -1,0 +1,199 @@
+<html>
+<head>
+    <script type='text/javascript' src='https://www.gstatic.com/charts/loader.js'></script>
+    <script type='text/javascript'>
+
+        /*  function loadFromFile() {
+              alert("pippo");
+
+              fetch('test.txt').then(function (file_content) {
+                 return processData(file_content);
+              }).catch(function (status) {
+                  console.log('Error ' + status);
+              });
+          }*/
+        function loadFile(filePath) {
+            var result = null;
+            var xmlhttp = new XMLHttpRequest();
+            xmlhttp.open("GET", filePath, false);
+            xmlhttp.send();
+            if (xmlhttp.status==200) {
+                result = xmlhttp.responseText;
+            }
+            return result;
+        }
+
+        function processData(allText) {
+            var allTextLines = allText.split(/\r\n|\n/);
+            var headers = allTextLines[0].split('|');
+            var lines = [];
+
+            for (var i=1; i<allTextLines.length; i++) {
+
+                var data = allTextLines[i].split('|');
+                if (data.length == headers.length) {
+
+                    var tarr = [];
+                    //   for (var j=0; j<headers.length; j++) {
+                    //     tarr.push(headers[j]+":"+data[j]);
+                    //}
+                    tarr.push(new Date(data[0]));
+                    tarr.push(Number(data[1]));
+                    tarr.push(Number(data[2]));
+                    tarr.push(Number(data[3]));
+
+                    lines.push(tarr);
+                }
+            }
+            return lines;
+        }
+
+
+        google.charts.load('current', {'packages':['annotatedtimeline']});
+        google.charts.setOnLoadCallback(drawChart);
+        var chart;
+        function drawChart() {
+
+            var data = new google.visualization.DataTable();
+            data.addColumn('date', 'Date');
+            data.addColumn('number', 'Chamber');
+            data.addColumn('number', 'Wort');
+            data.addColumn('number', 'Set Temperature');
+
+            var d = processData(loadFile("test.txt"));
+            alert(d);
+            data.addRows(
+                d
+            );
+
+            chart = new google.visualization.AnnotatedTimeLine(document.getElementById('chart_div'));
+            chart.draw(data, {displayAnnotations: true, dateFormat : 'dd MM yyyy HH:mm:ss'});
+            google.visualization.events.addListener(chart, 'rangechange', selectHandler);
+            function selectHandler(e) {
+                var startDate = e['start'];
+                var endDate = e['end'];
+
+                calculateDetails(startDate, endDate);
+            }
+            function calculateDetails(startDate, endDate) {
+
+                document.getElementById('start_div').innerText = startDate.toLocaleString();
+                document.getElementById('end_div').innerText = endDate.toLocaleString();
+
+                var sd = Date.parse(startDate);
+                var ed = Date.parse(endDate);
+
+                var sum = 0;
+                var ele = 0;
+                var min = 100;
+                var max = 0;
+
+                var sumWort = 0;
+                var eleWort = 0;
+                var minWort = 100;
+                var maxWort = 0;
+
+                for( var i = 0; i < d.length; i++ ){
+                    var date = Date.parse(d[i][0]);
+
+                    if(date > sd && date <ed) {
+                        var chamberValue = parseFloat(d[i][1]);
+                        var wortValue = parseFloat(d[i][2]);
+
+                        sum += chamberValue;
+                        ele = ele +1;
+
+                        if(chamberValue < min){
+                            min = chamberValue;
+                        }
+                        if(chamberValue > max){
+                            max = chamberValue;
+                        }
+
+                        //Wort
+                        sumWort += wortValue;
+                        eleWort = eleWort +1;
+
+                        if(wortValue < minWort){
+                            minWort = wortValue;
+                        }
+                        if(wortValue > maxWort){
+                            maxWort = wortValue;
+                        }
+                    }
+                }
+
+                var avg = sum/ele;
+                var avgWort = sumWort/eleWort;
+                document.getElementById('avg_chamber_div').innerText = avg.toFixed(2);
+                document.getElementById('min_chamber_div').innerText = min.toFixed(2);
+                document.getElementById('max_chamber_div').innerText = max.toFixed(2);
+
+                document.getElementById('avg_wort_div').innerText = avgWort.toFixed(2);
+                document.getElementById('min_wort_div').innerText = minWort.toFixed(2);
+                document.getElementById('max_wort_div').innerText = maxWort.toFixed(2);
+
+            }
+
+            window.onload = function () { calculateDetails(param.startDate, param.endDate) }
+
+        }
+        function hideChamber() {
+            chart.hideDataColumns(0);
+        }
+        function showChamber() {
+            chart.showDataColumns(0);
+        }
+
+        function hideFermenter() {
+            chart.hideDataColumns(1);
+        }
+        function showFermenter() {
+            chart.showDataColumns(1);
+        }
+
+        function hideSettings() {
+            chart.hideDataColumns(2);
+        }
+        function showSettings() {
+            chart.showDataColumns(2);
+        }
+
+    </script>
+</head>
+
+<body>
+<h1>info.brewName - info.brewDayDate</h1>
+<div id='chart_div' style='width: 1200px; height: 500px;'></div>
+<div id='details_div' style='width: 1200px;'>
+
+    <div id='start_lbl_div' style="float:left">Start Date: </div><div id='start_div' style="float:left"></div><div style="clear:both"></div>
+    <div id='end_lbl_div' style="float:left">End Date: </div><div id='end_div' style="float:left"></div><div style="clear:both"></div>
+
+    <div id='avg_chamber_lbl_div' style="float:left;color: blue;">AVG chamber:</div><div id='avg_chamber_div' style="float:left" >x</div><div style="clear:both"></div>
+    <div id='min_chamber_lbl_div' style="float:left;color: blue;">MIN chamber:</div><div id='min_chamber_div' style="float:left">x</div><div style="clear:both"></div>
+    <div id='max_chamber_lbl_div' style="float:left;color: blue;">MAX chamber:</div><div id='max_chamber_div' style="float:left">x</div><div style="clear:both"></div>
+
+    <div id='avg_wort_lbl_div' style="float:left;color: red;">AVG wort:</div><div id='avg_wort_div' style="float:left">x</div><div style="clear:both"></div>
+    <div id='min_wort_lbl_div' style="float:left;color: red;">MIN wort:</div><div id='min_wort_div'  style="float:left">x</div><div style="clear:both"></div>
+    <div id='max_wort_lbl_div' style="float:left;color: red;">MAX wort:</div><div id='max_wort_div'  style="float:left">x</div><div style="clear:both"></div>
+
+    <button onclick="hideChamber()">Hide Chamber</button>
+    <button onclick="showChamber()">Show Chamber</button>
+    <button onclick="hideFermenter()">Hide Fermenter</button>
+    <button onclick="showFermenter()">Show Fermenter</button>
+    <button onclick="hideSettings()">Hide Settings</button>
+    <button onclick="showSettings()">Show Settings</button>
+
+</div>
+<div id='info_div' style='width: 1200px; height: 500px;'>
+    <div id='chamber_fan_div' style="float:left;">Chamber Fan:info.chamberFan</div><div style="clear:both"></div>
+    <div id='chamber_cold_settings_div' style="float:left;">Chamber Settings:info.chamberColdSettings</div><div style="clear:both"></div>
+    <div id='hot_wire_div' style="float:left;">Hot wire:info.hotWire</div><div style="clear:both"></div>
+    <div id='stc_temp_div' style="float:left;">STC temperature tolerance:info.stcTempDiff</div><div style="clear:both"></div>
+    <div id='stc_lag_cold_div' style="float:left;">STC lag cold:info.stcColdLag</div><div style="clear:both"></div>
+    <div id='note_div' style="float:left;">Notes:info.notes</div><div style="clear:both"></div>
+    <div id='date_div' style="float:left;">Date:param.now</div><div style="clear:both"></div>
+</div>
+</body>
+</html>
