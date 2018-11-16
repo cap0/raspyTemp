@@ -57,7 +57,7 @@ public class FTPUploadFile implements Runnable{
             ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 
             File localFile = new File(htmlPageFileToUpload);
-            String remoteFilePath = "public_html/"+htmlPageName+".html";
+            String remoteFilePath = htmlPageName+".html";
 
             try(InputStream fileToUpload = new FileInputStream(localFile)) {
                 upload(ftpClient, remoteFilePath, fileToUpload);
