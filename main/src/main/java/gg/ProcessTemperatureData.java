@@ -70,7 +70,7 @@ public class ProcessTemperatureData implements Runnable{
     private void processRawData() {
         logger.info("Start processing data");
         StatisticalInfo statisticalInfo = processSourceFile(dataRange, sourceFilePath, settingsTemperature, minAllowedTemp, maxAllowedTemp, aggregationFactor);
-
+        //TODO replace page with two files: data and info and upload both
         new GenerateHtmlPage().generateChart(statisticalInfo, htmlOutputFilePath, p);
 
         if(generateXlsxFile) {

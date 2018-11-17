@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,14 +20,13 @@ import static gg.Util.toJsDate;
 class GenerateHtmlPage {
     private static final Logger logger = LogManager.getLogger(Orchestrator.class);
 
-    void generateChart(StatisticalInfo statisticalInfo, String outputFilePath, Properties p) {
+    void generateChart(StatisticalInfo statisticalInfo, String dashboardOutputFilePath, Properties p) {
         String dashboardSource = getHtmlPageTemplate();
         dashboardSource = addPropertiesInfoToTemplate(p, dashboardSource);
         dashboardSource = addDataToTemplate(statisticalInfo, dashboardSource);
 
-        Path outputFile = Paths.get(outputFilePath);
         try {
-            Files.write(outputFile, dashboardSource.getBytes(StandardCharsets.UTF_8));
+            Files.write(Paths.get(dashboardOutputFilePath), dashboardSource.getBytes(StandardCharsets.UTF_8));
             logger.info("chart generated");
         } catch (IOException e) {
             logger.error("Cannot write html page file on disk", e);

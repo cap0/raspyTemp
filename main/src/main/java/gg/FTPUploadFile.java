@@ -49,33 +49,65 @@ public class FTPUploadFile implements Runnable{
     private void uploadFile() {
         logger.info("Starting FTP Upload");
 
-        FTPClient ftpClient = new FTPClient();
+        FTPClient ftp = new FTPClient();
         try {
-            ftpClient.connect(host, port);
-            ftpClient.login(user, pass);
-            ftpClient.enterLocalPassiveMode();
-            ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
-
+            connect(ftp);
+            login(ftp);
+            setOptions(ftp);
+            String remoteTempFilePath = htmlPageName + "_tmp" + ".html";
             File localFile = new File(htmlPageFileToUpload);
-            String remoteFilePath = htmlPageName+".html";
 
-            try(InputStream fileToUpload = new FileInputStream(localFile)) {
-                upload(ftpClient, remoteFilePath, fileToUpload);
+            try (InputStream fileToUpload = new FileInputStream(localFile)) {
+                logger.info("Start uploading " + htmlPageName + " html page in " + remoteTempFilePath);
+                boolean done = ftp.storeFile(remoteTempFilePath, fileToUpload);
+                if (done) {
+                    logger.info("Html page " + htmlPageName + " has been uploaded successfully.");
+                    rename(ftp, remoteTempFilePath);
+                } else {
+                    logger.warn("Html page " + htmlPageName + " not uploaded");
+                }
             }
-        } catch (Exception ex) {
-            logger.error("Error: " + ex.getMessage(), ex);
+        } catch (IOException e) {
+            logger.error("Error on upload", e);
         } finally {
-            close(ftpClient);
+            close(ftp);
         }
     }
 
-    private void upload(FTPClient ftpClient, String remoteFilePath, InputStream inputStream) throws IOException {
-        logger.info("Start uploading "+htmlPageName+" html page in " + remoteFilePath);
-        boolean done = ftpClient.storeFile(remoteFilePath, inputStream);
-        if (done) {
-            logger.info("Html page "+htmlPageName+" has been uploaded successfully.");
-        } else{
-            logger.warn("Html page "+htmlPageName+ " not uploaded");
+    private void setOptions(FTPClient ftpClient) throws IOException {
+        try {
+            ftpClient.enterLocalPassiveMode();
+            ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+        } catch (IOException e) {
+            logger.error("Error on set options", e);
+            throw e;
+        }
+    }
+
+    private void rename(FTPClient ftpClient, String remoteTempFilePath) throws IOException {
+        try {
+            ftpClient.rename(remoteTempFilePath, htmlPageName+".html");
+        } catch (IOException e) {
+            logger.error("Error on rename", e);
+            throw e;
+        }
+    }
+
+    private boolean login(FTPClient ftpClient) throws IOException {
+        try {
+            return ftpClient.login(user, pass);
+        } catch (IOException e) {
+            logger.error("Error on login", e);
+            throw e;
+        }
+    }
+
+    private void connect(FTPClient ftpClient) throws IOException {
+        try {
+            ftpClient.connect(host, port);
+        } catch (IOException e) {
+            logger.error("Error on connect", e);
+            throw e;
         }
     }
 
@@ -86,7 +118,7 @@ public class FTPUploadFile implements Runnable{
                 ftpClient.disconnect();
             }
         } catch (IOException ex) {
-            logger.error("Error: " + ex.getMessage(), ex);
+            logger.error("Error on close: " + ex.getMessage(), ex);
         }
     }
 }
