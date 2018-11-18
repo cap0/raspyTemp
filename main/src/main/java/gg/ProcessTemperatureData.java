@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import static gg.Constants.*;
@@ -34,21 +35,27 @@ public class ProcessTemperatureData implements Runnable{
 
     private Properties p;
 
-    public ProcessTemperatureData(Properties p){
+    private ReentrantLock lock;
+
+    public ProcessTemperatureData(Properties p, ReentrantLock lock){
         getProperties(p);
+        this.lock = lock;
     }
 
     @Override
     public void run() {
         try {
+            lock.lock();
             processRawData();
-        } catch (Throwable t){
+        } catch (Throwable t) {
             logger.fatal("unexpected error", t);
+        } finally {
+            lock.unlock();
         }
     }
 
     public static void main(String[] args) {
-        new ProcessTemperatureData(Util.getProperties(args[0])).processRawData();
+        new ProcessTemperatureData(Util.getProperties(args[0]), new ReentrantLock()).processRawData();
     }
 
     private void getProperties(Properties p){

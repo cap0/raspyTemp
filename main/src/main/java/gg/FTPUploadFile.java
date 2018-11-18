@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
@@ -23,26 +24,47 @@ public class FTPUploadFile implements Runnable{
     private final String pass;
     private final String htmlPageFileToUpload;
     private final String htmlPageName;
+    private final ReentrantLock lock;
 
-    FTPUploadFile(Properties p){
+    FTPUploadFile(Properties p, ReentrantLock lock){
         host = p.getProperty(FTP_HOST);
         port = Integer.parseInt(p.getProperty(FTP_PORT));
         user = p.getProperty(FTP_USER);
         pass = p.getProperty(FTP_PASS);
         htmlPageFileToUpload = p.getProperty(HTML_OUTPUT_FILE);
         htmlPageName = p.getProperty(HTML_PAGE_NAME);
+        this.lock = lock;
     }
 
     public static void main(String[] args) {
-        new FTPUploadFile(Util.getProperties(args[0])).uploadFile();
+        new FTPUploadFile(Util.getProperties(args[0]), new ReentrantLock()).uploadFile();
     }
 
     @Override
     public void run() {
+        waitForDataProcessCompletion();
+
         try {
             uploadFile();
         } catch (Throwable t) {
             logger.fatal(t);
+        }
+    }
+
+    private void waitForDataProcessCompletion() {
+        int i = 1;
+        while (lock.isLocked() && i<= 5) {
+            int sleep = 5000;
+            logger.warn("lock is taken. wait for " + sleep + " ms. Attempt " + i +"/5");
+            i++;
+            try {
+                Thread.sleep(sleep);
+            } catch (InterruptedException ignored) {
+            }
+        }
+
+        if(lock.isLocked()){
+            logger.warn("lock is still taken. go anyway");
         }
     }
 

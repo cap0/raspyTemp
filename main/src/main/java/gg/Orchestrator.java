@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static gg.Constants.ENABLE_GOOGLE_DRIVE;
 import static gg.Constants.ENABLE_USB_DRIVE;
@@ -23,8 +24,11 @@ public class Orchestrator {
         Properties properties = mergePropertiesFile(args);
 
         runTemperatureCollector(properties);
-        scheduleDataProcess(properties);
-        scheduleFTPUpload(properties);
+
+        ReentrantLock lock = new ReentrantLock();
+        scheduleDataProcess(properties, lock);
+        scheduleFTPUpload(properties, lock);
+
         scheduleGoogleDriveBackup(properties);
         runWriteToUsb(properties);
     }
@@ -43,10 +47,10 @@ public class Orchestrator {
         temperatureCollector.start();
     }
 
-    private static void scheduleDataProcess(Properties properties) {
+    private static void scheduleDataProcess(Properties properties, ReentrantLock lock) {
         logger.info("Schedule data Process");
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        Runnable task = new ProcessTemperatureData(properties);
+        Runnable task = new ProcessTemperatureData(properties, lock);
         int initialDelay = getIntegerProperty(properties, "process.initialDelay");
         int periodicDelay = getIntegerProperty(properties, "process.periodicDelay");
 
@@ -54,10 +58,10 @@ public class Orchestrator {
         scheduler.scheduleAtFixedRate(task, initialDelay, periodicDelay, SECONDS);
     }
 
-    private static void scheduleFTPUpload(Properties properties) {
+    private static void scheduleFTPUpload(Properties properties, ReentrantLock lock) {
         logger.info("Schedule FTP Upload");
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        Runnable ftpUploadTask = new FTPUploadFile(properties);
+        Runnable ftpUploadTask = new FTPUploadFile(properties, lock);
         int initialDelay = getIntegerProperty(properties, "ftp.initialDelay");
         int periodicDelay = getIntegerProperty(properties, "ftp.periodicDelay");
 
