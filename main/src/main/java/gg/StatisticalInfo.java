@@ -30,7 +30,6 @@ public class StatisticalInfo {
     }
 
     void storeDates(LocalDateTime date) {
-
         if (startDate==null) {
             startDate= date;
         }else{

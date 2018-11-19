@@ -3,15 +3,6 @@
     <script type='text/javascript' src='https://www.gstatic.com/charts/loader.js'></script>
     <script type='text/javascript'>
 
-        /*  function loadFromFile() {
-              alert("pippo");
-
-              fetch('test.txt').then(function (file_content) {
-                 return processData(file_content);
-              }).catch(function (status) {
-                  console.log('Error ' + status);
-              });
-          }*/
         function loadFile(filePath) {
             var result = null;
             var xmlhttp = new XMLHttpRequest();
@@ -23,6 +14,7 @@
             return result;
         }
 
+        var lastTarr;
         function processData(allText) {
             var allTextLines = allText.split(/\r\n|\n/);
             var headers = allTextLines[0].split('|');
@@ -34,34 +26,30 @@
                 if (data.length == headers.length) {
 
                     var tarr = [];
-                    //   for (var j=0; j<headers.length; j++) {
-                    //     tarr.push(headers[j]+":"+data[j]);
-                    //}
                     tarr.push(new Date(data[0]));
                     tarr.push(Number(data[1]));
                     tarr.push(Number(data[2]));
                     tarr.push(Number(data[3]));
 
+                    lastTarr = tarr;
                     lines.push(tarr);
                 }
             }
             return lines;
         }
 
-
-        google.charts.load('current', {'packages':['annotatedtimeline']});
+        google.charts.load('current', {'packages':['annotatedtimeline', 'gauge']});
         google.charts.setOnLoadCallback(drawChart);
         var chart;
         function drawChart() {
-
+            // TIME SERIES CHART
             var data = new google.visualization.DataTable();
             data.addColumn('date', 'Date');
-            data.addColumn('number', 'Chamber');
+            data.addColumn('number', 'Room');
             data.addColumn('number', 'Wort');
             data.addColumn('number', 'Set Temperature');
 
-            var d = processData(loadFile("ira_t.txt"));
-            alert(d);
+            var d = processData(loadFile("test.txt"));
             data.addRows(
                 d
             );
@@ -137,6 +125,26 @@
 
             window.onload = function () { calculateDetails(param.startDate, param.endDate) }
 
+            // GAUGE CHART
+
+            var gaugeData = google.visualization.arrayToDataTable([
+                ['Label', 'Value'],
+                ['Room', lastTarr[1]],
+                ['Wort', lastTarr[2]]
+            ]);
+
+            var options = {
+                width: 600, height: 200,
+                redFrom: 25, redTo: 30,
+                yellowFrom:20, yellowTo: 25,
+                minorTicks: 5,
+                min: -5, max: 30
+            };
+
+            var gaugeChart = new google.visualization.Gauge(document.getElementById('gauge_div'));
+
+            gaugeChart.draw(gaugeData, options);
+
         }
         function hideChamber() {
             chart.hideDataColumns(0);
@@ -170,23 +178,23 @@
     <div id='start_lbl_div' style="float:left">Start Date: </div><div id='start_div' style="float:left"></div><div style="clear:both"></div>
     <div id='end_lbl_div' style="float:left">End Date: </div><div id='end_div' style="float:left"></div><div style="clear:both"></div>
 
-    <div id='avg_chamber_lbl_div' style="float:left;color: blue;">AVG chamber:</div><div id='avg_chamber_div' style="float:left" >x</div><div style="clear:both"></div>
-    <div id='min_chamber_lbl_div' style="float:left;color: blue;">MIN chamber:</div><div id='min_chamber_div' style="float:left">x</div><div style="clear:both"></div>
-    <div id='max_chamber_lbl_div' style="float:left;color: blue;">MAX chamber:</div><div id='max_chamber_div' style="float:left">x</div><div style="clear:both"></div>
+    <div id='avg_chamber_lbl_div' style="float:left;color: blue;">AVG room:</div><div id='avg_chamber_div' style="float:left" >x</div><div style="clear:both"></div>
+    <div id='min_chamber_lbl_div' style="float:left;color: blue;">MIN room:</div><div id='min_chamber_div' style="float:left">x</div><div style="clear:both"></div>
+    <div id='max_chamber_lbl_div' style="float:left;color: blue;">MAX room:</div><div id='max_chamber_div' style="float:left">x</div><div style="clear:both"></div>
 
     <div id='avg_wort_lbl_div' style="float:left;color: red;">AVG wort:</div><div id='avg_wort_div' style="float:left">x</div><div style="clear:both"></div>
     <div id='min_wort_lbl_div' style="float:left;color: red;">MIN wort:</div><div id='min_wort_div'  style="float:left">x</div><div style="clear:both"></div>
     <div id='max_wort_lbl_div' style="float:left;color: red;">MAX wort:</div><div id='max_wort_div'  style="float:left">x</div><div style="clear:both"></div>
 
-    <button onclick="hideChamber()">Hide Chamber</button>
-    <button onclick="showChamber()">Show Chamber</button>
+    <button onclick="hideChamber()">Hide Room</button>
+    <button onclick="showChamber()">Show Room</button>
     <button onclick="hideFermenter()">Hide Fermenter</button>
     <button onclick="showFermenter()">Show Fermenter</button>
     <button onclick="hideSettings()">Hide Settings</button>
     <button onclick="showSettings()">Show Settings</button>
 
 </div>
-<div id='info_div' style='width: 1200px; height: 500px;'>
+<div id='info_div' style='width: 1200px; height: 180px;'>
     <div id='chamber_fan_div' style="float:left;">Chamber Fan:info.chamberFan</div><div style="clear:both"></div>
     <div id='chamber_cold_settings_div' style="float:left;">Chamber Settings:info.chamberColdSettings</div><div style="clear:both"></div>
     <div id='hot_wire_div' style="float:left;">Hot wire:info.hotWire</div><div style="clear:both"></div>
@@ -195,5 +203,8 @@
     <div id='note_div' style="float:left;">Notes:info.notes</div><div style="clear:both"></div>
     <div id='date_div' style="float:left;">Date:param.now</div><div style="clear:both"></div>
 </div>
+
+<div id="gauge_div" style="width: 400px; height: 120px;"></div>
+
 </body>
 </html>

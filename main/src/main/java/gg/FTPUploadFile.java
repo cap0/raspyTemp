@@ -22,8 +22,8 @@ public class FTPUploadFile implements Runnable{
     private final int port;
     private final String user;
     private final String pass;
-    private final String htmlPageFileToUpload;
-    private final String htmlPageName;
+    private final String dataFileToUpload;
+    private final String remoteFileName;
     private final ReentrantLock lock;
 
     FTPUploadFile(Properties p, ReentrantLock lock){
@@ -31,8 +31,8 @@ public class FTPUploadFile implements Runnable{
         port = Integer.parseInt(p.getProperty(FTP_PORT));
         user = p.getProperty(FTP_USER);
         pass = p.getProperty(FTP_PASS);
-        htmlPageFileToUpload = p.getProperty(HTML_OUTPUT_FILE);
-        htmlPageName = p.getProperty(HTML_PAGE_NAME);
+        dataFileToUpload = p.getProperty(TEMPERATURE_PROCESSED_OUTPUT_FILE);
+        remoteFileName = p.getProperty(HTML_PAGE_NAME);
         this.lock = lock;
     }
 
@@ -76,17 +76,17 @@ public class FTPUploadFile implements Runnable{
             connect(ftp);
             login(ftp);
             setOptions(ftp);
-            String remoteTempFilePath = htmlPageName + "_tmp" + ".html";
-            File localFile = new File(htmlPageFileToUpload);
+            String remoteTempFilePath = remoteFileName + "_tmp";
+            File localFile = new File(dataFileToUpload);
 
             try (InputStream fileToUpload = new FileInputStream(localFile)) {
-                logger.info("Start uploading " + htmlPageName + " html page in " + remoteTempFilePath);
+                logger.info("Start uploading " + remoteFileName + " in " + remoteTempFilePath);
                 boolean done = ftp.storeFile(remoteTempFilePath, fileToUpload);
                 if (done) {
-                    logger.info("Html page " + htmlPageName + " has been uploaded successfully.");
+                    logger.info("Html page " + remoteFileName + " has been uploaded successfully.");
                     rename(ftp, remoteTempFilePath);
                 } else {
-                    logger.warn("Html page " + htmlPageName + " not uploaded");
+                    logger.warn("Html page " + remoteFileName + " not uploaded");
                 }
             }
         } catch (IOException e) {
@@ -108,7 +108,7 @@ public class FTPUploadFile implements Runnable{
 
     private void rename(FTPClient ftpClient, String remoteTempFilePath) throws IOException {
         try {
-            ftpClient.rename(remoteTempFilePath, htmlPageName+".html");
+            ftpClient.rename(remoteTempFilePath, remoteFileName +".txt");
         } catch (IOException e) {
             logger.error("Error on rename", e);
             throw e;
