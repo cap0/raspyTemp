@@ -80,7 +80,7 @@ public class FTPUploadFile implements Runnable{
             File localFile = new File(dataFileToUpload);
 
             try (InputStream fileToUpload = new FileInputStream(localFile)) {
-                logger.info("Start uploading " + remoteFileName + " in " + remoteTempFilePath);
+                logger.info("Start uploading " + remoteFileName + " in ftp://" + host+"/"+remoteTempFilePath);
                 boolean done = ftp.storeFile(remoteTempFilePath, fileToUpload);
                 if (done) {
                     logger.info("Html page " + remoteFileName + " has been uploaded successfully.");

@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -16,7 +17,9 @@ import java.util.stream.Collectors;
 import static gg.Constants.*;
 import static gg.Util.getProperty;
 import static gg.Util.getPropertyOrDefault;
+import static java.nio.file.StandardOpenOption.APPEND;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+import static java.util.Collections.singletonList;
 
 public class ProcessTemperatureData implements Runnable{
 
@@ -54,7 +57,7 @@ public class ProcessTemperatureData implements Runnable{
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         new ProcessTemperatureData(Util.getProperties(args[0]), new ReentrantLock()).processRawData();
     }
 
@@ -74,7 +77,7 @@ public class ProcessTemperatureData implements Runnable{
         this.p = p;
     }
 
-    private void processRawData() {
+    private void processRawData() throws IOException {
         logger.info("Start processing data");
         StatisticalInfo statisticalInfo = processSourceFile(dataRange, sourceFilePath, settingsTemperature, minAllowedTemp, maxAllowedTemp, aggregationFactor);
         //TODO replace page with two files: data and info and upload both
@@ -107,7 +110,6 @@ public class ProcessTemperatureData implements Runnable{
 
     private StatisticalInfo processSourceFile(DateRange dataRange, String filePath, LinkedHashMap<LocalDateTime, Double> settingsTemperature,
                                                      Double minAllowedTemp, Double maxAllowedTemp, int aggregationFactor) {
-        logger.info("startDate " + dataRange.sd + " endDate " + dataRange.ed);
         List<TemperatureRow> rows = extractTemperatureInfoFromSourceFile(filePath, settingsTemperature);
 
         logger.info("Processing " + rows.size() + " rows");
@@ -157,9 +159,6 @@ public class ProcessTemperatureData implements Runnable{
 
         stats.wortStats = stats.temperatures.stream()
                 .collect(Collectors.summarizingDouble(r-> r.wortTemp));
-
-        logger.info(stats);
-        logger.debug(stats.temperatures);
 
         return stats;
     }

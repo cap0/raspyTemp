@@ -17,13 +17,13 @@
         var lastTarr;
         function processData(allText) {
             var allTextLines = allText.split(/\r\n|\n/);
-            var headers = allTextLines[0].split('|');
+            document.getElementById('date_div').innerText = "Last Update: " +allTextLines[0];
             var lines = [];
 
             for (var i=1; i<allTextLines.length; i++) {
 
                 var data = allTextLines[i].split('|');
-                if (data.length == headers.length) {
+                if (data.length == 3) {
 
                     var tarr = [];
                     tarr.push(new Date(data[0]));
@@ -201,7 +201,7 @@
     <div id='stc_temp_div' style="float:left;">STC temperature tolerance:info.stcTempDiff</div><div style="clear:both"></div>
     <div id='stc_lag_cold_div' style="float:left;">STC lag cold:info.stcColdLag</div><div style="clear:both"></div>
     <div id='note_div' style="float:left;">Notes:info.notes</div><div style="clear:both"></div>
-    <div id='date_div' style="float:left;">Date:param.now</div><div style="clear:both"></div>
+    <div id='date_div' style="float:left;"></div><div style="clear:both"></div>
 </div>
 
 <div id="gauge_div" style="width: 400px; height: 120px;"></div>
