@@ -72,6 +72,7 @@ public class FTPUploadFile implements Runnable{
         logger.info("Starting FTP Upload");
 
         FTPClient ftp = new FTPClient();
+        ftp.setConnectTimeout(5*60*1000);
         try {
             connect(ftp);
             login(ftp);
