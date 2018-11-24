@@ -28,26 +28,23 @@ public class TemperatureCollector extends Thread{
 
     private final List<Sensor> sensors;
     private final String sensorsFolder;
-    private final Integer numberOfReadToPerform;
     private final String timeBetweenReads;
     private final String outputFilePath;
 
-    public TemperatureCollector(List<Sensor> sensors, String sensorsFolder, Integer numberOfReadToPerform, String timeBetweenReads, String outputFilePath) {
+    public TemperatureCollector(List<Sensor> sensors, String sensorsFolder, String timeBetweenReads, String outputFilePath) {
         this.sensors = sensors;
         this.sensorsFolder = sensorsFolder;
-        this.numberOfReadToPerform = numberOfReadToPerform;
         this.timeBetweenReads = timeBetweenReads;
         this.outputFilePath = outputFilePath;
     }
 
     static TemperatureCollector build(Properties properties) {
         List<Sensor> sensors = getSensors(properties);
-        Integer numberOfReadToPerform = getNumberOfReadToPerform(properties);
         String timeBetweenReads = properties.getProperty(WAIT);
         String outputFilePath = properties.getProperty(TEMPERATURE_OUTPUT_FILE);
         String sensorsFolder = properties.getProperty(SENSORS_FOLDER);
 
-        return new TemperatureCollector(sensors, sensorsFolder, numberOfReadToPerform, timeBetweenReads, outputFilePath);
+        return new TemperatureCollector(sensors, sensorsFolder, timeBetweenReads, outputFilePath);
     }
 
     private static List<Sensor> getSensors(Properties properties) {
@@ -79,18 +76,15 @@ public class TemperatureCollector extends Thread{
             writeHeader();
         }
 
-        int readsDone = 1;
-        while (thereAreReadsToDo(readsDone, numberOfReadToPerform)) {
+        while (true) { //TODO make this a timer
             StringBuilder allSensorLine = new StringBuilder(now());
             for (Sensor sensor : sensors) {
                 addSensorTempToRow(allSensorLine, sensor);
             }
             logger.debug("\n" + allSensorLine.toString().replace("|", " "));
             writeTemperatureInFile(outputFilePath, allSensorLine.toString());
-            readsDone++;
             pause(timeBetweenReads);
         }
-        logger.info("temperature collection procedure completed. Read "+numberOfReadToPerform +" reads");
     }
 
     private void addSensorTempToRow(StringBuilder allSensorLine, Sensor sensor) {
@@ -163,14 +157,6 @@ public class TemperatureCollector extends Thread{
             logger.error("Error accessing file " + completeFilePath,e);
             return null;
         }
-    }
-
-    private static boolean thereAreReadsToDo(int i, Integer numberOfRead) {
-        return numberOfRead == -1 || i <= numberOfRead;
-    }
-
-    private static int getNumberOfReadToPerform(Properties properties) {
-        return Integer.parseInt((String) properties.getOrDefault(Constants.NUMBER_OF_READ, "-1"));
     }
 
     private String now() {

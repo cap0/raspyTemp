@@ -5,7 +5,6 @@ class Constants {
     static final String HTML_OUTPUT_FILE = "htmlOutputFile";
     static final String SENSORS = "sensors";
     static final String WAIT = "wait";
-    static final String NUMBER_OF_READ = "numberOfRead";
     static final String SENSORS_FOLDER = "sensorsFolder";
     static final String TEMPERATURE_FILE = "w1_slave";
     static final String TEMPERATURE_OUTPUT_FILE = "temperatureOutputFile";
