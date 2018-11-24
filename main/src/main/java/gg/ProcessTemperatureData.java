@@ -31,12 +31,10 @@ public class ProcessTemperatureData implements Runnable{
     private Double maxAllowedTemp;
     private int aggregationFactor;
     private String sourceFilePath;
-    private String htmlOutputFilePath;
+    private String temperatureProcessedOutputFile;
     private boolean generateXlsxFile;
     private String xlsxFilePath;
     private String datePattern;
-
-    private Properties p;
 
     private ReentrantLock lock;
 
@@ -68,24 +66,35 @@ public class ProcessTemperatureData implements Runnable{
         maxAllowedTemp = Double.valueOf(getPropertyOrDefault(p, MAX_ALLOWED_TEMP, "50"));
         aggregationFactor = Integer.valueOf(getPropertyOrDefault(p, SERIES_AGGREGATION_FACTOR, "1"));
         sourceFilePath = getProperty(p, TEMPERATURE_OUTPUT_FILE);
-        htmlOutputFilePath = getProperty(p, HTML_OUTPUT_FILE);
+        temperatureProcessedOutputFile = getProperty(p, TEMPERATURE_PROCESSED_OUTPUT_FILE);
         datePattern = getProperty(p, DATE_PATTERN);
 
         generateXlsxFile = Boolean.parseBoolean(getPropertyOrDefault(p, GENERATE_XLSX_FILE, "false"));
         xlsxFilePath = getProperty(p, XLSX_OUTPUT_FILE);
-
-        this.p = p;
     }
 
     private void processRawData() throws IOException {
         logger.info("Start processing data");
         StatisticalInfo statisticalInfo = processSourceFile(dataRange, sourceFilePath, settingsTemperature, minAllowedTemp, maxAllowedTemp, aggregationFactor);
-        //TODO replace page with two files: data and info and upload both
-        new GenerateHtmlPage().generateChart(statisticalInfo, htmlOutputFilePath, p);
+        writeProcessedData(temperatureProcessedOutputFile, statisticalInfo.temperatures);
 
         if(generateXlsxFile) {
             WriteXlsx.writeXlsxFile(statisticalInfo.temperatures, xlsxFilePath);
         }
+    }
+
+    private void writeProcessedData(String temperatureProcessedOutputFile, List<TemperatureRow> temperatures) throws IOException {
+        writeNowDateInFile(temperatureProcessedOutputFile);
+
+        List<String> lines = temperatures.stream()
+                .map(TemperatureRow::toCsv)
+                .collect(Collectors.toList());
+
+        Files.write(Paths.get(temperatureProcessedOutputFile), lines, APPEND);
+    }
+
+    private Path writeNowDateInFile(String temperatureProcessedOutputFile) throws IOException {
+        return Files.write(Paths.get(temperatureProcessedOutputFile), singletonList(LocalDateTime.now().format(ISO_LOCAL_DATE_TIME)));
     }
 
     private static String[] getTemperatureSettingFromProperty(Properties p) {
@@ -203,6 +212,10 @@ public class ProcessTemperatureData implements Runnable{
     }
 
     private static Double avg(CircularFifoQueue<Double> lastValues) {
+        if(lastValues.isEmpty()){
+            return 0D;
+        }
+
         double sum  = 0;
         int i=0;
 

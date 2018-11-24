@@ -2,12 +2,12 @@ package gg;
 
 class Constants {
     //Used to read temperature from file
-    static final String HTML_OUTPUT_FILE = "htmlOutputFile";
     static final String SENSORS = "sensors";
     static final String WAIT = "wait";
     static final String SENSORS_FOLDER = "sensorsFolder";
     static final String TEMPERATURE_FILE = "w1_slave";
     static final String TEMPERATURE_OUTPUT_FILE = "temperatureOutputFile";
+    static final String TEMPERATURE_PROCESSED_OUTPUT_FILE = "temperatureProcessedOutputFile";
     static final String DATE_PATTERN = "datePattern";
 
     //Used to process data
