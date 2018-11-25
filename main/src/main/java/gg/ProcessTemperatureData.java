@@ -7,7 +7,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -93,8 +92,8 @@ public class ProcessTemperatureData implements Runnable{
         Files.write(Paths.get(temperatureProcessedOutputFile), lines, APPEND);
     }
 
-    private Path writeNowDateInFile(String temperatureProcessedOutputFile) throws IOException {
-        return Files.write(Paths.get(temperatureProcessedOutputFile), singletonList(LocalDateTime.now().format(ISO_LOCAL_DATE_TIME)));
+    private void writeNowDateInFile(String temperatureProcessedOutputFile) throws IOException {
+        Files.write(Paths.get(temperatureProcessedOutputFile), singletonList(LocalDateTime.now().format(ISO_LOCAL_DATE_TIME)));
     }
 
     private static String[] getTemperatureSettingFromProperty(Properties p) {
@@ -184,22 +183,14 @@ public class ProcessTemperatureData implements Runnable{
         List<TemperatureRow> rows = null;
         try {
             List<String> temperatureLines = Files.readAllLines(Paths.get(filePath));
-            String header = temperatureLines.remove(0);
-            List<String> headerElements = Arrays.asList(header.split("\\|"));
-            if (headerElements.size() != 3) {
-                logger.error("Invalid header format, expected 3 parts in the header");
-                return new ArrayList<>();
-            }
-
-            List<String> sensorsAsStr = headerElements.subList(1, headerElements.size());
-            List<Sensor> s = sensorsAsStr.stream().map(Sensor::decode).collect(Collectors.toList());
+            temperatureLines.remove(0); //Ignoring header
 
             rows = temperatureLines.stream()
                     .map(l -> l.split("\\|"))
                     .map(r -> new TemperatureRowBuilder()
                             .date(r[0], datePattern)
-                            .chamber(s.get(0), r.length >1 ?r[1] : "0")
-                            .wort(s.get(1), r.length >2 ?r[2] : "0")
+                            .chamber(r.length >1 ?r[1] : "0")
+                            .wort(r.length >2 ?r[2] : "0")
                             .settings(temperatureSettings)
                             .build())
                     .filter(TemperatureRow::isValid)

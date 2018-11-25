@@ -23,7 +23,7 @@ public class Orchestrator {
         checkArguments(args);
         Properties properties = mergePropertiesFile(args);
 
-        runTemperatureCollector(properties);
+        scheduleTemperatureCollector(properties);
 
         ReentrantLock lock = new ReentrantLock();
         scheduleDataProcess(properties, lock);
@@ -41,10 +41,14 @@ public class Orchestrator {
         }
     }
 
-    private static void runTemperatureCollector(Properties properties) {
-        logger.info("Starting temperature collector");
-        TemperatureCollector temperatureCollector = TemperatureCollector.build(properties);
-        temperatureCollector.start();
+    private static void scheduleTemperatureCollector(Properties properties) {
+        logger.info("Schedule temperature collector Process");
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+        Runnable task = TemperatureCollector.build(properties);
+        int periodicDelay = getIntegerProperty(properties, "process.periodicDelay");
+
+        logger.info("Temperature collector Process. initialDelay= " + 0 + " periodicDelay= " + periodicDelay + " period= " + SECONDS);
+        scheduler.scheduleAtFixedRate(task, 0, periodicDelay, SECONDS);
     }
 
     private static void scheduleDataProcess(Properties properties, ReentrantLock lock) {

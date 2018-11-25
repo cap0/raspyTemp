@@ -11,9 +11,7 @@ class TemperatureRowBuilder {
 
     private LocalDateTime date;
     private double chamberTemp;
-    private Sensor chamberSensor;
     private double wortTemp;
-    private Sensor wortSensor;
     private Double settingTemperature;
 
 
@@ -27,23 +25,21 @@ class TemperatureRowBuilder {
         return this;
     }
 
-    TemperatureRowBuilder chamber(Sensor chamberSensor, String chamberTemp){
+    TemperatureRowBuilder chamber(String chamberTemp){
         try {
             this.chamberTemp = Double.parseDouble(chamberTemp);
         } catch (NumberFormatException e) {
             this.chamberTemp = Double.NaN;
         }
-        this.chamberSensor = chamberSensor;
         return this;
     }
 
-    TemperatureRowBuilder wort(Sensor wortSensor, String wortTemp){
+    TemperatureRowBuilder wort(String wortTemp){
         try {
             this.wortTemp = Double.parseDouble(wortTemp);
         } catch (NumberFormatException e) {
             this.wortTemp = Double.NaN;
         }
-        this.wortSensor = wortSensor;
         return this;
     }
 
@@ -53,7 +49,7 @@ class TemperatureRowBuilder {
     }
 
     TemperatureRow build(){
-        return new TemperatureRow(date, chamberTemp, chamberSensor, wortTemp, wortSensor, settingTemperature);
+        return new TemperatureRow(date, chamberTemp, wortTemp, settingTemperature);
     }
 
     private Double getSettingTemperature(LocalDateTime date, LinkedHashMap<LocalDateTime, Double> temperatureSettings) {

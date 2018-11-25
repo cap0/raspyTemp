@@ -27,8 +27,8 @@ class WriteXlsx {
         int rowNumber = 0;
         XSSFRow header = dataSheet.createRow(rowNumber++);
         header.createCell(0, CellType.STRING).setCellValue("Date");
-        header.createCell(1, CellType.STRING).setCellValue(fixedRows.get(0).chamberSensor.id);
-        header.createCell(2, CellType.STRING).setCellValue(fixedRows.get(0).wortSensor.id);
+        header.createCell(1, CellType.STRING).setCellValue("Room");
+        header.createCell(2, CellType.STRING).setCellValue("Wort");
 
         CellStyle cellStyle = myWorkBook.createCellStyle();
         CreationHelper createHelper = myWorkBook.getCreationHelper();

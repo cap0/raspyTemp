@@ -1,6 +1,11 @@
 package gg;
 
-import java.io.*;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
@@ -8,57 +13,44 @@ import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Properties;
 
+import static gg.Constants.*;
 import static java.lang.Double.parseDouble;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import static gg.Constants.*;
-
 public class TemperatureCollector extends Thread{
 
-    private static NumberFormat nf =  new DecimalFormat("##.##"); // TODO check locale
+    private static NumberFormat nf =  new DecimalFormat("##.##");
 
     private static final Logger logger = LogManager.getLogger(TemperatureCollector.class);
 
-    private final List<Sensor> sensors;
     private final String sensorsFolder;
-    private final String timeBetweenReads;
     private final String outputFilePath;
+    private final String roomSensorName;
+    private final String wortSensorName;
 
-    public TemperatureCollector(List<Sensor> sensors, String sensorsFolder, String timeBetweenReads, String outputFilePath) {
-        this.sensors = sensors;
+    public TemperatureCollector(String roomSensorName, String wortSensorName, String sensorsFolder, String outputFilePath) {
+        this.roomSensorName = roomSensorName;
+        this.wortSensorName = wortSensorName;
         this.sensorsFolder = sensorsFolder;
-        this.timeBetweenReads = timeBetweenReads;
         this.outputFilePath = outputFilePath;
     }
 
     static TemperatureCollector build(Properties properties) {
-        List<Sensor> sensors = getSensors(properties);
-        String timeBetweenReads = properties.getProperty(WAIT);
+        String roomSensorName = properties.getProperty(ROOM_SENSOR);
+        String wortSensorName = properties.getProperty(WORT_SENSOR);
         String outputFilePath = properties.getProperty(TEMPERATURE_OUTPUT_FILE);
         String sensorsFolder = properties.getProperty(SENSORS_FOLDER);
 
-        return new TemperatureCollector(sensors, sensorsFolder, timeBetweenReads, outputFilePath);
-    }
-
-    private static List<Sensor> getSensors(Properties properties) {
-        List<Sensor> sensors = new ArrayList<>();
-        String[] sensorInfoSrt = properties.getProperty(SENSORS).split(";");
-        for (String s : sensorInfoSrt) {
-            String[] sensorInfo = s.split("\\|");
-            sensors.add(new Sensor(sensorInfo[0], sensorInfo[1]));
-        }
-        return sensors;
+        return new TemperatureCollector(roomSensorName, wortSensorName, sensorsFolder, outputFilePath);
     }
 
     public static void main(String[] args) {
-        build(Util.getProperties(args[0])).run();
+        build(Util.getProperties(args[0])).execute();
     }
 
     @Override
@@ -71,42 +63,37 @@ public class TemperatureCollector extends Thread{
     }
 
     private void execute() {
-        boolean outputFileExists = Files.exists(Paths.get(outputFilePath));
+        logger.info("Start collecting temperature");
+        boolean outputFileExists = Paths.get(outputFilePath).toFile().exists();
         if (!outputFileExists) {
+            logger.info("Writing Header");
             writeHeader();
         }
 
-        while (true) { //TODO make this a timer
-            StringBuilder allSensorLine = new StringBuilder(now());
-            for (Sensor sensor : sensors) {
-                addSensorTempToRow(allSensorLine, sensor);
-            }
-            logger.debug("\n" + allSensorLine.toString().replace("|", " "));
-            writeTemperatureInFile(outputFilePath, allSensorLine.toString());
-            pause(timeBetweenReads);
-        }
+        String roomTemperatureValue = readTemperatureForSensor(roomSensorName);
+        String wortTemperatureValue = readTemperatureForSensor(wortSensorName);
+
+        String line = now() + "|" + roomTemperatureValue + "|" + wortTemperatureValue;
+
+        logger.info(line);
+        writeTemperatureInFile(outputFilePath, line);
     }
 
-    private void addSensorTempToRow(StringBuilder allSensorLine, Sensor sensor) {
-        Optional<String> temperature = readTemperatureFromFile(buildSensorPath(sensor));
+    private String readTemperatureForSensor(String sensorId) {
+        Optional<String> temperature = readTemperatureFromFile(buildSensorPath(sensorId));
         if (temperature.isPresent()) {
-            allSensorLine.append("|").append(temperature.get());
-        } else {
-            logger.warn("cannot read temperature file for sensor:" + sensor);
+            return temperature.get();
         }
+        logger.warn("cannot read temperature file for sensor:" + sensorId);
+        return "";
     }
 
     private void writeHeader() {
-        StringBuilder header = new StringBuilder("date|");
-        for (Sensor s : sensors) {
-            header.append(s.encode()).append("|");
-        }
-        header = header.deleteCharAt(header.lastIndexOf("|"));
-        writeTemperatureInFile(outputFilePath, header.toString());
+        writeTemperatureInFile(outputFilePath, "date|room|wort");
     }
 
-    private String buildSensorPath(Sensor sensor) {
-        return sensorsFolder + File.separator +  sensor.id + File.separator  + TEMPERATURE_FILE;
+    private String buildSensorPath(String sensorId) {
+        return sensorsFolder + File.separator + sensorId + File.separator  + TEMPERATURE_FILE;
     }
 
     private static void writeTemperatureInFile(String outputFilePath, String line) {
@@ -118,14 +105,6 @@ public class TemperatureCollector extends Thread{
             Files.write(Paths.get(outputFilePath), Collections.singletonList(line), APPEND, CREATE);
         } catch (IOException e) {
             logger.error("error writing line " +line+" into file : " + outputFilePath, e);
-        }
-    }
-
-    private static void pause(String secondsToWait) {
-        try {
-            Thread.sleep(1000 * Integer.parseInt(secondsToWait));
-        } catch (InterruptedException e) {
-           logger.error(e);
         }
     }
 

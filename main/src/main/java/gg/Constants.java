@@ -2,8 +2,8 @@ package gg;
 
 class Constants {
     //Used to read temperature from file
-    static final String SENSORS = "sensors";
-    static final String WAIT = "wait";
+    static final String ROOM_SENSOR = "roomSensor";
+    static final String WORT_SENSOR = "wortSensor";
     static final String SENSORS_FOLDER = "sensorsFolder";
     static final String TEMPERATURE_FILE = "w1_slave";
     static final String TEMPERATURE_OUTPUT_FILE = "temperatureOutputFile";
