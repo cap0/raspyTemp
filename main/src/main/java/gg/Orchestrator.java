@@ -24,6 +24,7 @@ public class Orchestrator {
         Properties properties = mergePropertiesFile(args);
 
         scheduleTemperatureCollector(properties);
+        scheduleIOTSender(properties);
 
         ReentrantLock lock = new ReentrantLock();
         scheduleDataProcess(properties, lock);
@@ -48,6 +49,16 @@ public class Orchestrator {
         int periodicDelay = getIntegerProperty(properties, "process.periodicDelay");
 
         logger.info("Temperature collector Process. initialDelay= " + 0 + " periodicDelay= " + periodicDelay + " period= " + SECONDS);
+        scheduler.scheduleAtFixedRate(task, 0, periodicDelay, SECONDS);
+    }
+
+    private static void scheduleIOTSender(Properties properties) {
+        logger.info("Schedule IOT sender Process");
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+        Runnable task = new IotSender(properties);
+        int periodicDelay = getIntegerProperty(properties, "process.periodicDelay");
+
+        logger.info("IOT sender Process. initialDelay= " + 0 + " periodicDelay= " + periodicDelay + " period= " + SECONDS);
         scheduler.scheduleAtFixedRate(task, 0, periodicDelay, SECONDS);
     }
 

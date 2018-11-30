@@ -35,4 +35,7 @@ class Constants {
     //USB
     static final String ENABLE_USB_DRIVE = "enableUsbDrive";
 
+    //IOT
+    static final String WRITE_KEY = "writeKey";
+
 }
