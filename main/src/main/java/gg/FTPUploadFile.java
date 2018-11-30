@@ -42,28 +42,24 @@ public class FTPUploadFile implements Runnable{
 
     @Override
     public void run() {
-        waitForDataProcessCompletion();
-
         try {
+            waitForDataProcessCompletion();
             uploadFile();
-        } catch (Throwable t) {
+        } catch (Exception t) {
             logger.fatal(t);
         }
     }
 
-    private void waitForDataProcessCompletion() {
+    private void waitForDataProcessCompletion() throws InterruptedException {
         int i = 1;
-        while (lock.isLocked() && i<= 5) {
+        while (lock.isLocked() && i <= 5) {
             int sleep = 5000;
-            logger.warn("lock is taken. wait for " + sleep + " ms. Attempt " + i +"/5");
+            logger.warn("lock is taken. wait for " + sleep + " ms. Attempt " + i + "/5");
             i++;
-            try {
-                Thread.sleep(sleep);
-            } catch (InterruptedException ignored) {
-            }
+            Thread.sleep(sleep);
         }
 
-        if(lock.isLocked()){
+        if (lock.isLocked()) {
             logger.warn("lock is still taken. go anyway");
         }
     }
@@ -116,9 +112,9 @@ public class FTPUploadFile implements Runnable{
         }
     }
 
-    private boolean login(FTPClient ftpClient) throws IOException {
+    private void login(FTPClient ftpClient) throws IOException {
         try {
-            return ftpClient.login(user, pass);
+            ftpClient.login(user, pass);
         } catch (IOException e) {
             logger.error("Error on login", e);
             throw e;

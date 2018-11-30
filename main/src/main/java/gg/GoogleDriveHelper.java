@@ -59,7 +59,7 @@ public class GoogleDriveHelper implements Runnable{
     public void run() {
         try {
             uploadFile();
-        } catch (Throwable t) {
+        } catch (Exception t) {
             logger.fatal(t);
         }
     }
@@ -78,7 +78,7 @@ public class GoogleDriveHelper implements Runnable{
                     .setFields("id")
                     .execute();
             logger.info("File ID: " + file.getId());
-        } catch (Throwable e) {
+        } catch (Exception e) {
             logger.error("cannot upload file to Google Drive", e);
         }
     }
