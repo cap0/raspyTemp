@@ -9,8 +9,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static gg.Constants.ENABLE_GOOGLE_DRIVE;
-import static gg.Constants.ENABLE_USB_DRIVE;
+import static gg.Constants.*;
 import static gg.Util.getIntegerProperty;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -21,32 +20,24 @@ public class Orchestrator {
 
     public static void main(String[] args) {
         checkArguments(args);
-        Properties properties = mergePropertiesFile(args);
+        Properties p = mergePropertiesFile(args);
 
-        scheduleTemperatureCollector(properties);
-        scheduleIOTSender(properties);
+        scheduleTemperatureCollector(p);
+        scheduleIOTSender(p);
 
         ReentrantLock lock = new ReentrantLock();
-        scheduleDataProcess(properties, lock);
-        scheduleFTPUpload(properties, lock);
+        scheduleDataProcess(p, lock);
+        scheduleFTPUpload(p, lock);
 
-        scheduleGoogleDriveBackup(properties);
-        runWriteToUsb(properties);
-    }
-
-    private static void runWriteToUsb(Properties properties) {
-        Boolean enableUsbDrive = Boolean.valueOf(properties.getProperty(ENABLE_USB_DRIVE, "false"));
-        if(enableUsbDrive) {
-            String temperatureOutFileName = properties.getProperty(Constants.TEMPERATURE_OUTPUT_FILE);
-            new WriteOnUsb(temperatureOutFileName).run();
-        }
+        scheduleGoogleDriveBackup(p);
+        runWriteToUsb(p);
     }
 
     private static void scheduleTemperatureCollector(Properties properties) {
         logger.info("Schedule temperature collector Process");
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         Runnable task = TemperatureCollector.build(properties);
-        int periodicDelay = getIntegerProperty(properties, "process.periodicDelay");
+        int periodicDelay = getIntegerProperty(properties, PROCESSES_PERIODIC_DELAY);
 
         logger.info("Temperature collector Process. initialDelay= " + 0 + " periodicDelay= " + periodicDelay + " period= " + SECONDS);
         scheduler.scheduleAtFixedRate(task, 0, periodicDelay, SECONDS);
@@ -56,7 +47,7 @@ public class Orchestrator {
         logger.info("Schedule IOT sender Process");
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         Runnable task = new IotSender(properties);
-        int periodicDelay = getIntegerProperty(properties, "process.periodicDelay");
+        int periodicDelay = getIntegerProperty(properties, PROCESSES_PERIODIC_DELAY);
 
         logger.info("IOT sender Process. initialDelay= " + 0 + " periodicDelay= " + periodicDelay + " period= " + SECONDS);
         scheduler.scheduleAtFixedRate(task, 0, periodicDelay, SECONDS);
@@ -67,7 +58,7 @@ public class Orchestrator {
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         Runnable task = new ProcessTemperatureData(properties, lock);
         int initialDelay = getIntegerProperty(properties, "process.initialDelay");
-        int periodicDelay = getIntegerProperty(properties, "process.periodicDelay");
+        int periodicDelay = getIntegerProperty(properties, PROCESSES_PERIODIC_DELAY);
 
         logger.info("Data Process. initialDelay= " + initialDelay + " periodicDelay= " + periodicDelay + " period= " + SECONDS);
         scheduler.scheduleAtFixedRate(task, initialDelay, periodicDelay, SECONDS);
@@ -96,6 +87,17 @@ public class Orchestrator {
         }else{
             logger.info("Google Drive Backup disabled");
         }
+    }
+
+    private static void runWriteToUsb(Properties properties) {
+        Boolean enableUsbDrive = Boolean.valueOf(properties.getProperty(ENABLE_USB_DRIVE, "false"));
+        if(enableUsbDrive) {
+            String temperatureOutFileName = properties.getProperty(Constants.TEMPERATURE_OUTPUT_FILE);
+            new WriteOnUsb(temperatureOutFileName).run();
+        } else{
+            logger.info("Write on USB is disabled");
+        }
+
     }
 
     private static void checkArguments(String[] args) {

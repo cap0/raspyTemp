@@ -50,7 +50,7 @@ public class TemperatureCollector extends Thread{
     public void run() {
         try {
             execute();
-        } catch (Throwable t) {
+        } catch (Exception t) {
             logger.fatal(t);
         }
     }

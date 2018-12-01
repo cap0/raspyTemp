@@ -47,7 +47,7 @@ public class ProcessTemperatureData implements Runnable{
         try {
             lock.lock();
             processRawData();
-        } catch (Throwable t) {
+        } catch (Exception t) {
             logger.fatal("unexpected error", t);
         } finally {
             lock.unlock();

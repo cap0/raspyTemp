@@ -38,4 +38,8 @@ class Constants {
     //IOT
     static final String WRITE_KEY = "writeKey";
 
+    //TIMER DELAYS
+    static final String PROCESSES_PERIODIC_DELAY = "process.periodicDelay";
+
+
 }
