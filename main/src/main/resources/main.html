@@ -17,7 +17,11 @@
         var lastTarr;
         function processData(allText) {
             var allTextLines = allText.split(/\r\n|\n/);
-            document.getElementById('date_div').innerText = "Last Update: " +allTextLines[0];
+            let dateLastUp = allTextLines[0];
+            let dateLastAsDate = new Date(allTextLines[0]);
+
+            document.getElementById('date_div').innerText = "Last Update: " + dateLastUp;
+            document.getElementById('date_div2').innerText = "Time since update: "+dateLastAsDate;
             var lines = [];
 
             for (var i=1; i<allTextLines.length; i++) {
@@ -172,6 +176,9 @@
 
 <body>
 <h1>info.brewName - info.brewDayDate</h1>
+<div id='date_div' style="float:left;"></div><div style="clear:both"></div>
+<div id='date_div2' style="float:left;"></div><div style="clear:both"></div>
+
 <div id='chart_div' style='width: 1200px; height: 500px;'></div>
 <div id='details_div' style='width: 1200px;'>
 
@@ -201,7 +208,6 @@
     <div id='stc_temp_div' style="float:left;">STC temperature tolerance:info.stcTempDiff</div><div style="clear:both"></div>
     <div id='stc_lag_cold_div' style="float:left;">STC lag cold:info.stcColdLag</div><div style="clear:both"></div>
     <div id='note_div' style="float:left;">Notes:info.notes</div><div style="clear:both"></div>
-    <div id='date_div' style="float:left;"></div><div style="clear:both"></div>
 </div>
 
 <div id="gauge_div" style="width: 400px; height: 120px;"></div>
