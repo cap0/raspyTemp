@@ -34,6 +34,7 @@
 import smbus
 import time
 import requests
+import datetime
 
 # Define some device parameters
 I2C_ADDR  = 0x27 # I2C device address
@@ -118,15 +119,17 @@ def readTemp(pathFile):
 def connected_to_internet(url='http://www.google.com/', timeout=5):
     try:
         _ = requests.get(url, timeout=timeout)
-        return "connection OK"
+        return True
     except:
-        return "connection KO"
+        return False
 
 def main():
   # Main program block
 
   # Initialise display
   lcd_init()
+
+  lastDateInternetAccess = datetime.datetime.now()
 
   while True:
     try:
@@ -147,10 +150,15 @@ def main():
   
     # Send some more text
     isConnected = connected_to_internet()
-    lcd_string(isConnected,LCD_LINE_1)
-    lcd_string("",LCD_LINE_2)
+    if isConnected:
+        lcd_string("connection OK",LCD_LINE_1)
+        lastDateInternetAccess = datetime.datetime.now()
+        lcd_string(lastDateInternetAccess.strftime("%Y-%m-%d %H:%M"), LCD_LINE_2)
+  else:
+        lcd_string("connection KO",LCD_LINE_1)
+        lcd_string(lastDateInternetAccess.strftime("%Y-%m-%d %H:%M"), LCD_LINE_2)
 
-    time.sleep(3)
+  time.sleep(3)
 
 if __name__ == '__main__':
 
