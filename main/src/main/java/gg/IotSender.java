@@ -30,7 +30,7 @@ public class IotSender implements Runnable{
         roomSensorName = p.getProperty(ROOM_SENSOR);
         wortSensorName = p.getProperty(WORT_SENSOR);
         temperatureReader = new ReadTemperature(p.getProperty(SENSORS_FOLDER));
-        writeKey= p.getProperty(WRITE_KEY);
+        writeKey= p.getProperty(IOT_WRITE_KEY);
     }
 
     private void send() throws URISyntaxException {

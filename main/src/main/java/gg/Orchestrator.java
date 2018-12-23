@@ -24,6 +24,7 @@ public class Orchestrator {
 
         scheduleTemperatureCollector(p);
         scheduleIOTSender(p);
+        scheduleTemperatureAlarm(p);
 
         ReentrantLock lock = new ReentrantLock();
         scheduleDataProcess(p, lock);
@@ -31,6 +32,15 @@ public class Orchestrator {
 
         scheduleGoogleDriveBackup(p);
         runWriteToUsb(p);
+    }
+
+    private static void scheduleTemperatureAlarm(Properties properties) {
+        logger.info("Schedule Temperature alarm Process");
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+        Runnable task = new TemperatureAlarm(properties);
+
+        logger.info("ITemperature alarm Process. initialDelay= " + 0 + " periodicDelay= " + 60 + " period= " + SECONDS);
+        scheduler.scheduleAtFixedRate(task, 0, 60, SECONDS);
     }
 
     private static void scheduleTemperatureCollector(Properties properties) {
@@ -102,18 +112,18 @@ public class Orchestrator {
 
     private static void checkArguments(String[] args) {
         if(args.length != 2){
-            logger.error("mandatory arguments: propertyFile ftpPropertyFile");
+            logger.error("mandatory arguments: configPropertyFile credentialPropertyFile");
             System.exit(-1);
         }
         logger.info("Arguments: " + Arrays.asList(args));
     }
 
     private static Properties mergePropertiesFile(String[] args) {
-        String propertyFile = args[0];
-        String ftpPropertyFile = args[1];
+        String configPropertyFile = args[0];
+        String credentialPropertyFile = args[1];
 
-        Properties properties = Util.getProperties(propertyFile);
-        properties.putAll(Util.getProperties(ftpPropertyFile));
+        Properties properties = Util.getProperties(configPropertyFile);
+        properties.putAll(Util.getProperties(credentialPropertyFile));
         return properties;
     }
 

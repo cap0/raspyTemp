@@ -21,10 +21,10 @@ class Constants {
     static final String SERIES_AGGREGATION_FACTOR = "seriesAggregationFactor";
 
     //FTP
-    static final String FTP_HOST = "ftpHost";
-    static final String FTP_PORT = "ftpPort";
-    static final String FTP_USER = "ftpUser";
-    static final String FTP_PASS = "ftpPass";
+    static final String FTP_HOST = "ftp.host";
+    static final String FTP_PORT = "ftp.port";
+    static final String FTP_USER = "ftp.user";
+    static final String FTP_PASS = "ftp.pass";
     static final String HTML_PAGE_NAME = "htmlPageName";
 
     //Google
@@ -36,10 +36,13 @@ class Constants {
     static final String ENABLE_USB_DRIVE = "enableUsbDrive";
 
     //IOT
-    static final String WRITE_KEY = "writeKey";
+    static final String IOT_WRITE_KEY = "iot.writeKey";
 
     //TIMER DELAYS
     static final String PROCESSES_PERIODIC_DELAY = "process.periodicDelay";
 
-
+    //MAIL
+    static final String MAIL_USERNAME = "mail.username";
+    static final String MAIL_PASSWORD = "mail.password";
+    static final String MAIL_RECEIVER = "mail.receiver";
 }
