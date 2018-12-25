@@ -68,10 +68,17 @@ public class FTPUploadFile implements Runnable{
         logger.info("Starting FTP Upload");
 
         FTPClient ftp = new FTPClient();
-        ftp.setConnectTimeout(5*60*1000);
+        int timeout = 5 * 60 * 1000;
+
+        ftp.setConnectTimeout(timeout);
+        ftp.setDataTimeout(timeout);
+        ftp.setDefaultTimeout(timeout);
         try {
             connect(ftp);
+            ftp.setSoTimeout(timeout);
+            logger.info("connected");
             login(ftp);
+            logger.info("login");
             setOptions(ftp);
             String remoteTempFilePath = remoteFileName + "_tmp";
             File localFile = new File(dataFileToUpload);
