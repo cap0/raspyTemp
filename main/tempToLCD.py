@@ -35,6 +35,7 @@ import smbus
 import time
 import requests
 import datetime
+import subprocess
 
 # Define some device parameters
 I2C_ADDR  = 0x27 # I2C device address
@@ -123,6 +124,10 @@ def connected_to_internet(url='http://www.google.com/', timeout=5):
     except:
         return False
 
+
+def get_ssid_name():
+    return subprocess.check_output("iwgetid -r", shell = True)
+
 def main():
   # Main program block
 
@@ -151,7 +156,8 @@ def main():
     # Send some more text
     isConnected = connected_to_internet()
     if isConnected:
-        lcd_string("connection OK",LCD_LINE_1)
+        ssid_name = get_ssid_name()
+        lcd_string(ssid_name[:16],LCD_LINE_1)
         lastDateInternetAccess = datetime.datetime.now()
         lcd_string(lastDateInternetAccess.strftime("%Y-%m-%d %H:%M"), LCD_LINE_2)
   else:
