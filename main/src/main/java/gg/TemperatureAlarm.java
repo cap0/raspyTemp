@@ -6,6 +6,8 @@ import org.apache.logging.log4j.util.Strings;
 
 import javax.mail.MessagingException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import static gg.Constants.*;
@@ -19,11 +21,11 @@ public class TemperatureAlarm implements Runnable {
 
     private final String roomSensorName;
     private final String wortSensorName;
-    private int lowerViolationsInArow = 0;
-    private int upperViolationsInArow = 0;
+    private Map<SensorType,Integer> lowerViolationsInArow = new HashMap<>();
+    private Map<SensorType,Integer> upperViolationsInArow = new HashMap<>();
 
-    private final ReadTemperature temperatureReader;
-    private final GMailSender mailSender;
+    IReadTemperature temperatureReader;
+    IGMailSender mailSender;
 
     TemperatureAlarm(Properties p) {
         roomSensorName = p.getProperty(ROOM_SENSOR);
@@ -31,6 +33,9 @@ public class TemperatureAlarm implements Runnable {
 
         temperatureReader = new ReadTemperature(p.getProperty(SENSORS_FOLDER));
         mailSender = new GMailSender(p);
+
+        lowerViolationsInArow.put(SensorType.wort, 0);
+        lowerViolationsInArow.put(SensorType.room, 0);
     }
 
     @Override
@@ -43,7 +48,7 @@ public class TemperatureAlarm implements Runnable {
     private void checkWortTempForAlarm() {
         try {
             String wortTemperatureValue = temperatureReader.readTemperatureForSensor(wortSensorName);
-            checkViolationAndSendAlarm(wortTemperatureValue, "Wort");
+            checkViolationAndSendAlarm(wortTemperatureValue, SensorType.wort);
         } catch (Exception e) {
             logger.error("Error during check for wort temperature", e);
         }
@@ -52,38 +57,38 @@ public class TemperatureAlarm implements Runnable {
     private void checkRoomTempForAlarm() {
         try {
             String roomTemperatureValue = temperatureReader.readTemperatureForSensor(roomSensorName);
-            checkViolationAndSendAlarm(roomTemperatureValue, "Room");
+            checkViolationAndSendAlarm(roomTemperatureValue, SensorType.room);
         } catch (Exception e) {
             logger.error("Error during check for room temperature", e);
         }
     }
 
-    private void checkViolationAndSendAlarm(String tempValueAsString, String sensorType) {
+    private void checkViolationAndSendAlarm(String tempValueAsString, SensorType sensorType) {
         Double tempValue = toDouble(tempValueAsString);
 
         if (tempValue < LOWER_TEMPERATURE_LIMIT) {
-            lowerViolationsInArow++;
+            lowerViolationsInArow.compute(sensorType, (k,v) -> v++);
             logger.warn(sensorType + " temperature under lower limit. " +
-                    "Violation (" + lowerViolationsInArow + "/" + NUMBER_OF_VIOLATIONS + "): " + tempValue);
+                    "Violation (" + lowerViolationsInArow.get(sensorType) + "/" + NUMBER_OF_VIOLATIONS + "): " + tempValue);
         } else {
-            lowerViolationsInArow = 0;
+            lowerViolationsInArow.put(sensorType, 0);
         }
 
         if (tempValue > UPPER_TEMPERATURE_LIMIT) {
-            upperViolationsInArow++;
+            upperViolationsInArow.compute(sensorType, (k,v) -> v++);
             logger.warn(sensorType + " temperature over upper limit." +
-                    "Violation (" + upperViolationsInArow + "/" + NUMBER_OF_VIOLATIONS + "): " + tempValue);
+                    "Violation (" + upperViolationsInArow.get(sensorType) + "/" + NUMBER_OF_VIOLATIONS + "): " + tempValue);
         } else {
-            upperViolationsInArow = 0;
+            upperViolationsInArow.put(sensorType, 0);
         }
 
-        boolean lowerViolation = lowerViolationsInArow >= NUMBER_OF_VIOLATIONS;
-        boolean upperViolation = upperViolationsInArow >= NUMBER_OF_VIOLATIONS;
+        boolean lowerViolation = lowerViolationsInArow.get(sensorType) >= NUMBER_OF_VIOLATIONS;
+        boolean upperViolation = upperViolationsInArow.get(sensorType) >= NUMBER_OF_VIOLATIONS;
         if (lowerViolation || upperViolation) {
             logger.warn("sending notification for temperature violations");
             sendMail(sensorType + " temperature " + (lowerViolation ? "under" : "over") + " limit",
                     toParagraph("date:" + LocalDateTime.now().toString()) +
-                            toParagraph(sensorType + " temperature " + (lowerViolation ? lowerViolationsInArow : upperViolationsInArow) + " times in a row outside range") +
+                            toParagraph(sensorType + " temperature " + (lowerViolation ? lowerViolationsInArow.get(sensorType) : upperViolationsInArow.get(sensorType) ) + " times in a row outside range") +
                             toParagraph("Last temp: " + tempValue) +
                             toParagraph("Temperature " + (lowerViolation ? "under" : "over") + " limit value") +
                             toParagraph("Range (" + LOWER_TEMPERATURE_LIMIT + " - " + UPPER_TEMPERATURE_LIMIT + ")"));

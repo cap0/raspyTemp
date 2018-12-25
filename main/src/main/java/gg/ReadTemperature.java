@@ -15,18 +15,23 @@ import java.util.Optional;
 import static gg.Constants.TEMPERATURE_FILE;
 import static java.lang.Double.parseDouble;
 
-class ReadTemperature {
+class ReadTemperature implements IReadTemperature{
 
     private static final Logger logger = LogManager.getLogger(ReadTemperature.class);
     private static NumberFormat nf =  new DecimalFormat("##.##");
 
     private final String sensorsFolder;
 
+    public ReadTemperature() {
+        sensorsFolder = null;
+    }
+
     ReadTemperature(String sensorsFolder) {
         this.sensorsFolder = sensorsFolder;
     }
 
-    String readTemperatureForSensor(String sensorId) {
+    @Override
+    public String readTemperatureForSensor(String sensorId) {
         Optional<String> temperature = readTemperatureFromFile(buildSensorPath(sensorId));
         if (temperature.isPresent()) {
             return temperature.get();

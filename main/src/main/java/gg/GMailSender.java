@@ -13,7 +13,7 @@ import java.util.Properties;
 
 import static gg.Constants.*;
 
-class GMailSender {
+class GMailSender implements  IGMailSender{
 
     private static final Logger logger = LogManager.getLogger(GMailSender.class);
 
@@ -21,6 +21,13 @@ class GMailSender {
     private final String mailPassword;
     private final String mailReceiver;
     private final Properties mailServerProperties;
+
+    public GMailSender() {
+       mailUsername = null;
+       mailPassword = null;
+       mailReceiver = null;
+       mailServerProperties = null;
+    }
 
     GMailSender(Properties p) {
         mailUsername = p.getProperty(MAIL_USERNAME);
@@ -30,7 +37,8 @@ class GMailSender {
         mailServerProperties = getServerMailProperties();
     }
 
-    void sendAlarm(String subject, String emailBody) throws MessagingException {
+    @Override
+    public void sendAlarm(String subject, String emailBody) throws MessagingException {
         logger.debug("get Mail Session..");
         Session getMailSession = Session.getDefaultInstance(mailServerProperties, null);
         MimeMessage generateMailMessage = new MimeMessage(getMailSession);
