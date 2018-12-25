@@ -67,7 +67,7 @@ public class TemperatureAlarm implements Runnable {
         Double tempValue = toDouble(tempValueAsString);
 
         if (tempValue < LOWER_TEMPERATURE_LIMIT) {
-            lowerViolationsInArow.compute(sensorType, (k,v) -> v++);
+            lowerViolationsInArow.compute(sensorType, (k,v) -> ++v);
             logger.warn(sensorType + " temperature under lower limit. " +
                     "Violation (" + lowerViolationsInArow.get(sensorType) + "/" + NUMBER_OF_VIOLATIONS + "): " + tempValue);
         } else {
@@ -75,7 +75,7 @@ public class TemperatureAlarm implements Runnable {
         }
 
         if (tempValue > UPPER_TEMPERATURE_LIMIT) {
-            upperViolationsInArow.compute(sensorType, (k,v) -> v++);
+            upperViolationsInArow.compute(sensorType, (k,v) -> ++v);
             logger.warn(sensorType + " temperature over upper limit." +
                     "Violation (" + upperViolationsInArow.get(sensorType) + "/" + NUMBER_OF_VIOLATIONS + "): " + tempValue);
         } else {
