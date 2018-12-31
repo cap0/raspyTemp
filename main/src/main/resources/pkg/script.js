@@ -8,6 +8,8 @@ function drawChart() {
     data.addColumn('number', 'Room');
     data.addColumn('number', 'Wort');
     data.addColumn('number', 'Set Temperature');
+ //   data.addColumn('number', 'Set Temperature up');
+ //   data.addColumn('number', 'Set Temperature low');
 
     var d = processData(loadFile("APA_2018-DEC.txt"));
     data.addRows(
@@ -130,9 +132,13 @@ function showSettings() {
 }
 
 function diff_data(d) {
-    let date_diff = new Date() - d;
+    let date_diff = date_minus_now(d);
     let date_diff_as_date = new Date(date_diff);
     return  (date_diff_as_date.getHours() - 1) + " Hours " + date_diff_as_date.getMinutes() + " Minutes " + date_diff_as_date.getSeconds() + " Seconds";
+}
+
+function date_minus_now(d) {
+    return new Date() - d;
 }
 
 function loadFile(filePath) {
@@ -154,6 +160,13 @@ function processData(allText) {
 
     document.getElementById('date_div').innerText = "Last update: " +dateLastUp;
     document.getElementById('date_div2').innerText = "Time since last update: "+ diff_data(dateLastAsDate);
+
+    if(date_minus_now(dateLastAsDate) < 10*60*1000) {
+        document.getElementById("dot").className = "greenDot";
+    }else{
+        document.getElementById("dot").className = "redDot";
+    }
+
     var lines = [];
 
     for (var i=1; i<allTextLines.length; i++) {
@@ -162,12 +175,17 @@ function processData(allText) {
         if (data.length == 3) {
 
             var tarr = [];
-            var d = new Date(data[0])
+            var d = new Date(data[0]);
             tarr.push(d);
-            tarr.push(Number(data[1]));
-            tarr.push(Number(data[2]));
+            tarr.push(Number(data[1]) );
+            tarr.push(Number(data[2]) );
 
-            tarr.push(Number(get_set(d)));
+            tarr.push(Number(get_settings(d)));
+
+//            tarr.push(Number(get_settings(d) - 0.3));
+  //          tarr.push(Number(get_settings(d) + 0.3));
+
+
 
             lastTarr = tarr;
             lines.push(tarr);
@@ -176,7 +194,7 @@ function processData(allText) {
     return lines;
 }
 
-function get_set(dat) {
+function get_settings(dat) {
     var val = 0;
     for (var i = 0; i < opt.length; i++) {
         if(new Date(opt[i].d) < dat){
