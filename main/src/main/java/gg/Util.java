@@ -2,6 +2,7 @@ package gg;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.util.Strings;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -46,5 +47,12 @@ class Util {
         int second = date.getSecond();
 
         return "new Date(" + year + ", " + (month - 1) + ", " + day + ", " + hour + ", " + minute + ", " + second + ", 0)";
+    }
+
+    static Double toDouble(String tempValueAsString) {
+        if(Strings.isNotBlank(tempValueAsString)){
+            return Double.parseDouble(tempValueAsString);
+        }
+        return Double.NaN;
     }
 }

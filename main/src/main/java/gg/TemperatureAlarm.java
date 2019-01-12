@@ -2,7 +2,6 @@ package gg;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.util.Strings;
 
 import javax.mail.MessagingException;
 import java.time.LocalDateTime;
@@ -11,13 +10,18 @@ import java.util.Map;
 import java.util.Properties;
 
 import static gg.Constants.*;
+import static gg.Util.toDouble;
 
 public class TemperatureAlarm implements Runnable {
     private static final Logger logger = LogManager.getLogger(TemperatureAlarm.class);
 
     private static final int NUMBER_OF_VIOLATIONS = 3;
-    private static final double LOWER_TEMPERATURE_LIMIT = 0;
-    private static final double UPPER_TEMPERATURE_LIMIT = 25;
+
+    private static final double WORT_LOWER_TEMPERATURE_LIMIT = 0;
+    private static final double WORT_UPPER_TEMPERATURE_LIMIT = 25;
+
+    private static final double ROOM_LOWER_TEMPERATURE_LIMIT = -5;
+    private static final double ROOM_UPPER_TEMPERATURE_LIMIT = 40;
 
     private final String roomSensorName;
     private final String wortSensorName;
@@ -66,7 +70,7 @@ public class TemperatureAlarm implements Runnable {
     private void checkViolationAndSendAlarm(String tempValueAsString, SensorType sensorType) {
         Double tempValue = toDouble(tempValueAsString);
 
-        if (tempValue < LOWER_TEMPERATURE_LIMIT) {
+        if (tempValue < getLowerTempLimit(sensorType)) {
             lowerViolationsInArow.compute(sensorType, (k,v) -> ++v);
             logger.warn(sensorType + " temperature under lower limit. " +
                     "Violation (" + lowerViolationsInArow.get(sensorType) + "/" + NUMBER_OF_VIOLATIONS + "): " + tempValue);
@@ -74,7 +78,7 @@ public class TemperatureAlarm implements Runnable {
             lowerViolationsInArow.put(sensorType, 0);
         }
 
-        if (tempValue > UPPER_TEMPERATURE_LIMIT) {
+        if (tempValue >  getUpperTempLimit(sensorType)) {
             upperViolationsInArow.compute(sensorType, (k,v) -> ++v);
             logger.warn(sensorType + " temperature over upper limit." +
                     "Violation (" + upperViolationsInArow.get(sensorType) + "/" + NUMBER_OF_VIOLATIONS + "): " + tempValue);
@@ -91,8 +95,16 @@ public class TemperatureAlarm implements Runnable {
                             toParagraph(sensorType + " temperature " + (lowerViolation ? lowerViolationsInArow.get(sensorType) : upperViolationsInArow.get(sensorType) ) + " times in a row outside range") +
                             toParagraph("Last temp: " + tempValue) +
                             toParagraph("Temperature " + (lowerViolation ? "under" : "over") + " limit value") +
-                            toParagraph("Range (" + LOWER_TEMPERATURE_LIMIT + " - " + UPPER_TEMPERATURE_LIMIT + ")"));
+                            toParagraph("Range (" + getLowerTempLimit(sensorType) + " - " + getUpperTempLimit(sensorType) + ")"));
         }
+    }
+
+    private Double getLowerTempLimit(SensorType sensorType) {
+        return sensorType == SensorType.wort ? WORT_LOWER_TEMPERATURE_LIMIT : ROOM_LOWER_TEMPERATURE_LIMIT;
+    }
+
+    private Double getUpperTempLimit(SensorType sensorType) {
+        return sensorType == SensorType.wort ? WORT_UPPER_TEMPERATURE_LIMIT : ROOM_UPPER_TEMPERATURE_LIMIT;
     }
 
     private String toParagraph(String s) {
@@ -107,10 +119,4 @@ public class TemperatureAlarm implements Runnable {
         }
     }
 
-    private Double toDouble(String tempValueAsString) {
-        if(Strings.isNotBlank(tempValueAsString)){
-            return Double.parseDouble(tempValueAsString);
-        }
-        return Double.NaN;
-    }
 }
