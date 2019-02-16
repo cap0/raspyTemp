@@ -45,4 +45,6 @@ class Constants {
     static final String MAIL_USERNAME = "mail.username";
     static final String MAIL_PASSWORD = "mail.password";
     static final String MAIL_RECEIVER = "mail.receiver";
+
+    static final String CTRL_DELTA_TEMP = "ctrl.delta.temp";
 }
