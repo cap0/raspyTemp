@@ -7,7 +7,11 @@ import org.apache.logging.log4j.util.Strings;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.Properties;
+
+import static gg.Constants.TEMPERATURE_SETTINGS;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
 class Util {
     private static final Logger logger = LogManager.getLogger(Util.class);
@@ -54,5 +58,25 @@ class Util {
             return Double.parseDouble(tempValueAsString);
         }
         return Double.NaN;
+    }
+
+    private static String[] getTemperatureSettingFromProperty(Properties p) {
+        String temperatureSettings = getProperty(p, TEMPERATURE_SETTINGS);
+        if(temperatureSettings!= null && !temperatureSettings.isEmpty()){
+            return temperatureSettings.trim().split(";");
+        }
+        return new String[0];
+    }
+
+    static LinkedHashMap<LocalDateTime, Double> getTemperatureSettings(Properties p) {
+        String[] temperatureSettings = getTemperatureSettingFromProperty(p);
+
+        LinkedHashMap<LocalDateTime, Double> settingsTemperature = new LinkedHashMap<>();
+        for (int i = 0; i < temperatureSettings.length; i=i+2) {
+            LocalDateTime dateTime = LocalDateTime.parse(temperatureSettings[i], ISO_LOCAL_DATE_TIME);
+            double temperature = Double.parseDouble(temperatureSettings[i + 1]);
+            settingsTemperature.put(dateTime, temperature);
+        }
+        return settingsTemperature;
     }
 }

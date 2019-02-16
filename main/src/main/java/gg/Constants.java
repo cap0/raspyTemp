@@ -14,10 +14,8 @@ class Constants {
     static final String START_DATE = "startDate";
     static final String END_DATE = "endDate";
     static final String TEMPERATURE_SETTINGS = "temperatureSettings";
-    static final String GENERATE_XLSX_FILE = "generateXlsxFile";
     static final String MIN_ALLOWED_TEMP = "minAllowedTemp";
     static final String MAX_ALLOWED_TEMP = "maxAllowedTemp";
-    static final String XLSX_OUTPUT_FILE = "xlsxOutputFile";
     static final String SERIES_AGGREGATION_FACTOR = "seriesAggregationFactor";
 
     //FTP
@@ -31,9 +29,6 @@ class Constants {
     static final String ENABLE_GOOGLE_DRIVE = "enableGoogleDrive";
     static final String FILE_NAME_ON_GOOGLE_DRIVE = "fileNameOnGoogleDrive";
     static final String GOOGLE_DRIVE_FILE_PATH = "googleCredentialFilePath";
-
-    //USB
-    static final String ENABLE_USB_DRIVE = "enableUsbDrive";
 
     //IOT
     static final String IOT_WRITE_KEY = "iot.writeKey";

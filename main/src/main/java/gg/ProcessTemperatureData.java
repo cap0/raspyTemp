@@ -14,8 +14,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import static gg.Constants.*;
-import static gg.Util.getProperty;
-import static gg.Util.getPropertyOrDefault;
+import static gg.Util.*;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 import static java.util.Collections.singletonList;
@@ -31,8 +30,6 @@ public class ProcessTemperatureData implements Runnable{
     private int aggregationFactor;
     private String sourceFilePath;
     private String temperatureProcessedOutputFile;
-    private boolean generateXlsxFile;
-    private String xlsxFilePath;
     private String datePattern;
 
     private ReentrantLock lock;
@@ -67,19 +64,12 @@ public class ProcessTemperatureData implements Runnable{
         sourceFilePath = getProperty(p, TEMPERATURE_OUTPUT_FILE);
         temperatureProcessedOutputFile = getProperty(p, TEMPERATURE_PROCESSED_OUTPUT_FILE);
         datePattern = getProperty(p, DATE_PATTERN);
-
-        generateXlsxFile = Boolean.parseBoolean(getPropertyOrDefault(p, GENERATE_XLSX_FILE, "false"));
-        xlsxFilePath = getProperty(p, XLSX_OUTPUT_FILE);
     }
 
     private void processRawData() throws IOException {
         logger.info("Start processing data");
         StatisticalInfo statisticalInfo = processSourceFile(dataRange, sourceFilePath, settingsTemperature, minAllowedTemp, maxAllowedTemp, aggregationFactor);
         writeProcessedData(temperatureProcessedOutputFile, statisticalInfo.temperatures);
-
-        if(generateXlsxFile) {
-            WriteXlsx.writeXlsxFile(statisticalInfo.temperatures, xlsxFilePath);
-        }
     }
 
     private void writeProcessedData(String temperatureProcessedOutputFile, List<TemperatureRow> temperatures) throws IOException {
@@ -94,26 +84,6 @@ public class ProcessTemperatureData implements Runnable{
 
     private void writeNowDateInFile(String temperatureProcessedOutputFile) throws IOException {
         Files.write(Paths.get(temperatureProcessedOutputFile), singletonList(LocalDateTime.now().format(ISO_LOCAL_DATE_TIME)));
-    }
-
-    private static String[] getTemperatureSettingFromProperty(Properties p) {
-        String temperatureSettings = getProperty(p, TEMPERATURE_SETTINGS);
-        if(temperatureSettings!= null && !temperatureSettings.isEmpty()){
-            return temperatureSettings.trim().split(";");
-        }
-        return new String[0];
-    }
-
-    private static LinkedHashMap<LocalDateTime, Double> getTemperatureSettings(Properties p) {
-        String[] temperatureSettings = getTemperatureSettingFromProperty(p);
-
-        LinkedHashMap<LocalDateTime, Double> settingsTemperature = new LinkedHashMap<>();
-        for (int i = 0; i < temperatureSettings.length; i=i+2) {
-            LocalDateTime dateTime = LocalDateTime.parse(temperatureSettings[i], ISO_LOCAL_DATE_TIME);
-            double temperature = Double.parseDouble(temperatureSettings[i + 1]);
-            settingsTemperature.put(dateTime, temperature);
-        }
-        return settingsTemperature;
     }
 
     private StatisticalInfo processSourceFile(DateRange dataRange, String filePath, LinkedHashMap<LocalDateTime, Double> settingsTemperature,

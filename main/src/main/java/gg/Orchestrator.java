@@ -31,7 +31,6 @@ public class Orchestrator {
         scheduleFTPUpload(p, lock);
 
         scheduleGoogleDriveBackup(p);
-        runWriteToUsb(p);
     }
 
     private static void scheduleTemperatureAlarm(Properties properties) {
@@ -97,17 +96,6 @@ public class Orchestrator {
         }else{
             logger.info("Google Drive Backup disabled");
         }
-    }
-
-    private static void runWriteToUsb(Properties properties) {
-        Boolean enableUsbDrive = Boolean.valueOf(properties.getProperty(ENABLE_USB_DRIVE, "false"));
-        if(enableUsbDrive) {
-            String temperatureOutFileName = properties.getProperty(Constants.TEMPERATURE_OUTPUT_FILE);
-            new WriteOnUsb(temperatureOutFileName).run();
-        } else{
-            logger.info("Write on USB is disabled");
-        }
-
     }
 
     private static void checkArguments(String[] args) {
