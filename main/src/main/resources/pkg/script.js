@@ -134,7 +134,7 @@ function showSettings() {
 function diff_data(d) {
     let date_diff = date_minus_now(d);
     let date_diff_as_date = new Date(date_diff);
-    return  (date_diff_as_date.getHours() - 1) + " Hours " + date_diff_as_date.getMinutes() + " Minutes " + date_diff_as_date.getSeconds() + " Seconds";
+    return  date_diff_as_date.getDate() + " Days " +(date_diff_as_date.getHours() - 1) + " Hours " + date_diff_as_date.getMinutes() + " Minutes " + date_diff_as_date.getSeconds() + " Seconds";
 }
 
 function date_minus_now(d) {
