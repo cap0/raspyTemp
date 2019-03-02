@@ -4,7 +4,7 @@ import com.pi4j.io.gpio.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class GPIOController {
+public class GPIOController implements IGPIOController{
 
     private static final Logger logger = LogManager.getLogger(Controller.class);
 
@@ -23,6 +23,7 @@ public class GPIOController {
         beltPin.setShutdownOptions(true, PinState.LOW);
     }
 
+    @Override
     public void startFridge() {
         logger.info("request to start fridge");
 
@@ -34,6 +35,7 @@ public class GPIOController {
         }
     }
 
+    @Override
     public void stopFridge() {
         logger.info("request to stop fridge");
 
@@ -45,6 +47,7 @@ public class GPIOController {
         }
     }
 
+    @Override
     public void startBelt() {
         logger.info("request to start belt");
 
@@ -56,6 +59,7 @@ public class GPIOController {
         }
     }
 
+    @Override
     public void stopBelt() {
         logger.info("request to stop belt");
 
@@ -66,6 +70,7 @@ public class GPIOController {
             beltPin.high();
         }    }
 
+    @Override
     public void stop() {
         stopBelt();
         stopFridge();

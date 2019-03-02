@@ -9,7 +9,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
@@ -23,7 +24,7 @@ public class ProcessTemperatureData implements Runnable{
 
     private static final Logger logger = LogManager.getLogger(ProcessTemperatureData.class);
 
-    private LinkedHashMap<LocalDateTime, Double> settingsTemperature;
+    private TemperatureSettings temperatureSettings;
     private DateRange dataRange;
     private Double minAllowedTemp;
     private Double maxAllowedTemp;
@@ -56,7 +57,7 @@ public class ProcessTemperatureData implements Runnable{
     }
 
     private void getProperties(Properties p){
-        settingsTemperature = getTemperatureSettings(p);
+        temperatureSettings = readTemperatureSettings(p);
         dataRange = buildDataRange(getProperty(p, START_DATE), getProperty(p, END_DATE));
         minAllowedTemp = Double.valueOf(getPropertyOrDefault(p, MIN_ALLOWED_TEMP, "0"));
         maxAllowedTemp = Double.valueOf(getPropertyOrDefault(p, MAX_ALLOWED_TEMP, "50"));
@@ -68,7 +69,7 @@ public class ProcessTemperatureData implements Runnable{
 
     private void processRawData() throws IOException {
         logger.info("Start processing data");
-        StatisticalInfo statisticalInfo = processSourceFile(dataRange, sourceFilePath, settingsTemperature, minAllowedTemp, maxAllowedTemp, aggregationFactor);
+        StatisticalInfo statisticalInfo = processSourceFile(dataRange, sourceFilePath, temperatureSettings, minAllowedTemp, maxAllowedTemp, aggregationFactor);
         writeProcessedData(temperatureProcessedOutputFile, statisticalInfo.temperatures);
     }
 
@@ -86,8 +87,8 @@ public class ProcessTemperatureData implements Runnable{
         Files.write(Paths.get(temperatureProcessedOutputFile), singletonList(LocalDateTime.now().format(ISO_LOCAL_DATE_TIME)));
     }
 
-    private StatisticalInfo processSourceFile(DateRange dataRange, String filePath, LinkedHashMap<LocalDateTime, Double> settingsTemperature,
-                                                     Double minAllowedTemp, Double maxAllowedTemp, int aggregationFactor) {
+    private StatisticalInfo processSourceFile(DateRange dataRange, String filePath, TemperatureSettings settingsTemperature,
+                                              Double minAllowedTemp, Double maxAllowedTemp, int aggregationFactor) {
         List<TemperatureRow> rows = extractTemperatureInfoFromSourceFile(filePath, settingsTemperature);
 
         logger.info("Processing " + rows.size() + " rows");
@@ -149,7 +150,7 @@ public class ProcessTemperatureData implements Runnable{
         return chamberTemp < minAllowedTemp || chamberTemp > maxAllowedTemp;
     }
 
-    private List<TemperatureRow> extractTemperatureInfoFromSourceFile(String filePath, LinkedHashMap<LocalDateTime, Double> temperatureSettings) {
+    private List<TemperatureRow> extractTemperatureInfoFromSourceFile(String filePath, TemperatureSettings temperatureSettings) {
         List<TemperatureRow> rows = null;
         try {
             List<String> temperatureLines = Files.readAllLines(Paths.get(filePath));
@@ -187,17 +188,7 @@ public class ProcessTemperatureData implements Runnable{
         return sum/i;
     }
 
-    private static class DateRange {
-        final LocalDateTime sd;
-        final LocalDateTime ed;
-
-        DateRange(LocalDateTime sd, LocalDateTime ed) {
-            this.sd = sd;
-            this.ed = ed;
-        }
-    }
-
-    private static ProcessTemperatureData.DateRange buildDataRange(String startDate, String endDate) {
+    private static DateRange buildDataRange(String startDate, String endDate) {
         LocalDateTime sd = null;
         LocalDateTime ed = null;
         if (StringUtils.isNotBlank(startDate)) {
@@ -206,6 +197,6 @@ public class ProcessTemperatureData implements Runnable{
         if (StringUtils.isNotBlank(endDate)) {
             ed = LocalDateTime.parse(endDate, ISO_LOCAL_DATE_TIME);
         }
-        return new ProcessTemperatureData.DateRange(sd, ed);
+        return new DateRange(sd, ed);
     }
 }

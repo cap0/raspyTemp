@@ -35,7 +35,7 @@ public class TemperatureAlarm implements Runnable {
         roomSensorName = p.getProperty(ROOM_SENSOR);
         wortSensorName = p.getProperty(WORT_SENSOR);
 
-        temperatureReader = new ReadTemperature(p.getProperty(SENSORS_FOLDER));
+        temperatureReader = new TemperatureReader(p.getProperty(SENSORS_FOLDER));
         mailSender = new GMailSender(p);
 
         lowerViolationsInArow.put(SensorType.wort, 0);

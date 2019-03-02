@@ -4,8 +4,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 import static gg.Constants.*;
@@ -15,26 +13,36 @@ public class Controller implements Runnable{
 
     private static final Logger logger = LogManager.getLogger(Controller.class);
     private final Double deltaTemp;
-    private final GPIOController gpioCtrl;
+    final IGPIOController gpioCtrl;
 
-    private ReadTemperature temperatureReader;
+    IReadTemperature temperatureReader;
     private String wortSensorName;
 
-    private Map<LocalDateTime, Double> temperatureSettings = new HashMap<>();
+    private TemperatureSettings temperatureSettings;
 
     public Controller(Properties p) {
-        temperatureReader = new ReadTemperature(p.getProperty(SENSORS_FOLDER));
-        wortSensorName = p.getProperty(WORT_SENSOR);
-
-        deltaTemp = Double.valueOf(p.getProperty(CTRL_DELTA_TEMP,"0.5"));
-
-        gpioCtrl = new GPIOController();
+        this(new TemperatureReader(p.getProperty(SENSORS_FOLDER)),
+                p.getProperty(WORT_SENSOR),
+               null, //TODO
+                //readTemperatureSettings(p),
+                Double.valueOf(p.getProperty(CTRL_DELTA_TEMP,"0.5")),
+                new GPIOController());
     }
 
-    public void checkIfTempIsOnRange() {
-        double wortTemp = getWortTemp();//todo repeat 3 times
+    public Controller(IReadTemperature temperatureReader, String wortSensorName, TemperatureSettings temperatureSettings,
+                      Double deltaTemp, IGPIOController gpioCtrl) {
+        this.temperatureReader = temperatureReader;
+        this.wortSensorName = wortSensorName;
+        this.temperatureSettings = temperatureSettings;
+        this.deltaTemp = deltaTemp;
+        this.gpioCtrl = gpioCtrl;
+    }
 
-        double settingTemp = getSettingTempForThisMoment();
+
+    public void checkIfTempIsOnRange(LocalDateTime now) {
+        double wortTemp = getWortTemp();//todo repeat 3 times to check the stability
+
+        double settingTemp = temperatureSettings.getTemperatureSettingsValueForDate(now);
 
         double upperBound = settingTemp + deltaTemp;
         double lowerBound = settingTemp - deltaTemp;
@@ -60,10 +68,6 @@ public class Controller implements Runnable{
         return toDouble(wortTemperatureValue);
     }
 
-    private double getSettingTempForThisMoment() {
-        return 0;//todo impl
-    }
-
     private void heating() {
         //trigger relay heating belt
         gpioCtrl.startBelt();
@@ -72,13 +76,13 @@ public class Controller implements Runnable{
     private void cooling() {
         gpioCtrl.startFridge();
         //trigger relay fridge
-        //pump protection
+        //TODO pump protection
     }
 
     @Override
     public void run() {
         try {
-            checkIfTempIsOnRange();
+            checkIfTempIsOnRange(LocalDateTime.now());
         } catch (Exception e) {
             logger.error(e);
         }

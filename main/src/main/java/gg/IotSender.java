@@ -20,7 +20,7 @@ import static gg.Constants.*;
 
 public class IotSender implements Runnable{
     private static final Logger logger = LogManager.getLogger(Orchestrator.class);
-    private final ReadTemperature temperatureReader;
+    private final TemperatureReader temperatureReader;
     private final String roomSensorName;
     private final String wortSensorName;
     private final String writeKey;
@@ -29,7 +29,7 @@ public class IotSender implements Runnable{
     IotSender(Properties p) {
         roomSensorName = p.getProperty(ROOM_SENSOR);
         wortSensorName = p.getProperty(WORT_SENSOR);
-        temperatureReader = new ReadTemperature(p.getProperty(SENSORS_FOLDER));
+        temperatureReader = new TemperatureReader(p.getProperty(SENSORS_FOLDER));
         writeKey= p.getProperty(IOT_WRITE_KEY);
     }
 

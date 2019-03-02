@@ -13,7 +13,7 @@ class Constants {
     //Used to process data
     static final String START_DATE = "startDate";
     static final String END_DATE = "endDate";
-    static final String TEMPERATURE_SETTINGS = "temperatureSettings";
+    static final String TEMPERATURE_SETTINGS_FILE_PATH = "temperatureSettingsFilePath";
     static final String MIN_ALLOWED_TEMP = "minAllowedTemp";
     static final String MAX_ALLOWED_TEMP = "maxAllowedTemp";
     static final String SERIES_AGGREGATION_FACTOR = "seriesAggregationFactor";

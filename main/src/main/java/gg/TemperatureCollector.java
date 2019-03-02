@@ -24,13 +24,13 @@ public class TemperatureCollector extends Thread{
     private final String outputFilePath;
     private final String roomSensorName;
     private final String wortSensorName;
-    private final ReadTemperature temperatureReader;
+    private final TemperatureReader temperatureReader;
 
     public TemperatureCollector(String roomSensorName, String wortSensorName, String sensorsFolder, String outputFilePath) {
         this.roomSensorName = roomSensorName;
         this.wortSensorName = wortSensorName;
         this.outputFilePath = outputFilePath;
-        this.temperatureReader = new ReadTemperature(sensorsFolder);
+        this.temperatureReader = new TemperatureReader(sensorsFolder);
     }
 
     static TemperatureCollector build(Properties p) {

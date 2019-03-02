@@ -11,7 +11,7 @@ function drawChart() {
  //   data.addColumn('number', 'Set Temperature up');
  //   data.addColumn('number', 'Set Temperature low');
 
-    var d = processData(loadFile("APA_2018-DEC.txt"));
+    var d = processData(loadFile("data.txt"));
     data.addRows(
         d
     );

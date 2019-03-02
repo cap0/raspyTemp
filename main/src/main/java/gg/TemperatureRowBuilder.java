@@ -4,8 +4,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 class TemperatureRowBuilder {
 
@@ -43,8 +41,8 @@ class TemperatureRowBuilder {
         return this;
     }
 
-    TemperatureRowBuilder settings(LinkedHashMap<LocalDateTime, Double> temperatureSettings) {
-        this.settingTemperature = getSettingTemperature(this.date, temperatureSettings);
+    TemperatureRowBuilder settings(TemperatureSettings temperatureSettings) {
+        this.settingTemperature = temperatureSettings.getTemperatureSettingsValueForDate(this.date);
         return this;
     }
 
@@ -52,13 +50,4 @@ class TemperatureRowBuilder {
         return new TemperatureRow(date, chamberTemp, wortTemp, settingTemperature);
     }
 
-    private Double getSettingTemperature(LocalDateTime date, LinkedHashMap<LocalDateTime, Double> temperatureSettings) {
-        for (Map.Entry<LocalDateTime, Double> set : temperatureSettings.entrySet()) {
-            if (date != null && date.isBefore(set.getKey())){
-                return set.getValue();
-            }
-        }
-
-        return -1D;
-    }
 }
