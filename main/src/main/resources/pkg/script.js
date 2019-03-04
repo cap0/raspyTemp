@@ -1,3 +1,4 @@
+var fileName="WH10_2019-FEB.txt";
 google.charts.load('current', {'packages':['annotatedtimeline', 'gauge']});
 google.charts.setOnLoadCallback(drawChart);
 var chart;
@@ -11,7 +12,7 @@ function drawChart() {
  //   data.addColumn('number', 'Set Temperature up');
  //   data.addColumn('number', 'Set Temperature low');
 
-    var d = processData(loadFile("data.txt"));
+    var d = processData(loadFile(fileName));
     data.addRows(
         d
     );
@@ -137,6 +138,12 @@ function diff_data(d) {
     return  (date_diff_as_date.getDate() -1) + " Days " +(date_diff_as_date.getHours() - 1) + " Hours " + date_diff_as_date.getMinutes() + " Minutes " + date_diff_as_date.getSeconds() + " Seconds";
 }
 
+function diff_data_days(d) {
+    let date_diff = date_minus_now(d);
+    let date_diff_as_date = new Date(date_diff);
+    return date_diff_as_date.getDate() -1;
+}
+
 function date_minus_now(d) {
     return new Date() - d;
 }
@@ -153,6 +160,7 @@ function loadFile(filePath) {
 }
 
 var lastTarr;
+var firstDate = null;
 function processData(allText) {
     var allTextLines = allText.split(/\r\n|\n/);
     let dateLastUp = allTextLines[0];
@@ -182,13 +190,16 @@ function processData(allText) {
 
             tarr.push(Number(get_settings(d)));
 
-//            tarr.push(Number(get_settings(d) - 0.3));
-  //          tarr.push(Number(get_settings(d) + 0.3));
-
-
+//          tarr.push(Number(get_settings(d) - 0.3));
+//          tarr.push(Number(get_settings(d) + 0.3));
 
             lastTarr = tarr;
             lines.push(tarr);
+
+            if(firstDate == null){
+                firstDate = d;
+                document.getElementById('info_age').innerText= "Brew Day "+ diff_data_days(firstDate);
+            }
         }
     }
     return lines;
