@@ -29,7 +29,7 @@ public class ControllerTest {
         temperatureSettings.put(r2,  19D);
         */
     }
-
+/*
     @Test
     public void startBeltIfTemperatureIsLower() {
         IReadTemperature temperatureReader = context.mock(IReadTemperature.class);
@@ -80,4 +80,5 @@ public class ControllerTest {
         LocalDateTime now = LocalDateTime.of(2019, 1, 1, 1, 0);
         controller.checkIfTempIsOnRange(now);
     }
+    */
 }
