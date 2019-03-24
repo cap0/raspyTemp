@@ -12,7 +12,7 @@ public class GPIOController implements IGPIOController{
     private final GpioPinDigitalOutput fridgePin;
     private final GpioPinDigitalOutput beltPin;
 
-    public GPIOController(){
+    GPIOController(){
         gpio = GpioFactory.getInstance();
 
         fridgePin = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_04, "fridgePin", PinState.HIGH);
@@ -23,30 +23,17 @@ public class GPIOController implements IGPIOController{
         fridgePin.setShutdownOptions(true, PinState.HIGH);
         beltPin.setShutdownOptions(true, PinState.HIGH);
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                Thread.sleep(200);
-                logger.info("Shouting down ...");
-
-                gpio.shutdown();
-                gpio.unprovisionPin(fridgePin, beltPin);
-
-                logger.info("released GPIO");
-
-            } catch (InterruptedException e) {
-                logger.error(e);
-            }
-        }));
-
+        shutdownHook();
     }
 
     @Override
     public void startFridge() {
         logger.info("request to start fridge");
+        beltPin.high();
 
         if (fridgePin.isLow()) {
             logger.info("fridge pin is low, nope");
-        } else{
+        } else {
             logger.info("setting fridge pin to low");
             fridgePin.low();
         }
@@ -58,7 +45,7 @@ public class GPIOController implements IGPIOController{
 
         if (fridgePin.isHigh()) {
             logger.info("fridge pin is high, nope");
-        }else {
+        } else {
             logger.info("setting fridge pin to high");
             fridgePin.high();
         }
@@ -67,10 +54,11 @@ public class GPIOController implements IGPIOController{
     @Override
     public void startBelt() {
         logger.info("request to start belt");
+        fridgePin.high();
 
         if (beltPin.isLow()) {
             logger.info("belt pin is low, nope");
-        }else {
+        } else {
             logger.info("setting belt pin to low");
             beltPin.low();
         }
@@ -82,15 +70,33 @@ public class GPIOController implements IGPIOController{
 
         if (beltPin.isHigh()) {
             logger.info("belt pin is high, nope");
-        }else {
+        } else {
             logger.info("setting belt pin to high");
             beltPin.high();
-        }    }
+        }
+    }
 
     @Override
     public void stop() {
         stopBelt();
         stopFridge();
+    }
+
+    private void shutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                Thread.sleep(200);
+                logger.info("Shutting down ...");
+
+                gpio.shutdown();
+                gpio.unprovisionPin(fridgePin, beltPin);
+
+                logger.info("released GPIO");
+
+            } catch (InterruptedException e) {
+                logger.error(e);
+            }
+        }));
     }
 
     public static void main(String[] args) throws InterruptedException {

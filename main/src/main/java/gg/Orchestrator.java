@@ -23,7 +23,7 @@ public class Orchestrator {
         Properties p = mergePropertiesFile(args);
 
         LCD lcd = new LCD();
-        lcd.print0("Starting");
+        lcd.print0("starting...");
         scheduleTemperatureCollector(p, lcd);
         scheduleIOTSender(p);
         scheduleTemperatureAlarm(p);
@@ -32,7 +32,7 @@ public class Orchestrator {
         scheduleDataProcess(p, lock);
         scheduleFTPUpload(p, lock);
 
-        scheduleController(p);
+        scheduleController(p, lcd);
     }
 
     private static void scheduleTemperatureAlarm(Properties properties) {
@@ -85,10 +85,10 @@ public class Orchestrator {
         scheduler.scheduleAtFixedRate(ftpUploadTask, initialDelay, periodicDelay, MINUTES);
     }
 
-    private static void scheduleController(Properties properties) {
+    private static void scheduleController(Properties properties, LCD lcd) {
         logger.info("Schedule Controller");
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        Runnable controller = new Controller(properties);
+        Runnable controller = new Controller(properties, lcd);
         scheduler.schedule(controller, 20, SECONDS);
     }
 

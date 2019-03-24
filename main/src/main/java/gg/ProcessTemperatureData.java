@@ -35,7 +35,7 @@ public class ProcessTemperatureData implements Runnable{
 
     private ReentrantLock lock;
 
-    public ProcessTemperatureData(Properties p, ReentrantLock lock){
+    ProcessTemperatureData(Properties p, ReentrantLock lock){
         getProperties(p);
         this.lock = lock;
     }
@@ -68,7 +68,7 @@ public class ProcessTemperatureData implements Runnable{
     }
 
     private void processRawData() throws IOException {
-        logger.info("Start processing data");
+        logger.debug("Start processing data");
         StatisticalInfo statisticalInfo = processSourceFile(dataRange, sourceFilePath, temperatureSettings, minAllowedTemp, maxAllowedTemp, aggregationFactor);
         writeProcessedData(temperatureProcessedOutputFile, statisticalInfo.temperatures);
     }

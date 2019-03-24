@@ -16,13 +16,13 @@ import static gg.Constants.TEMPERATURE_SETTINGS_FILE_PATH;
 import static gg.Util.getPropertyOrDefault;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
-public class TemperatureSettings {
+class TemperatureSettings {
     private static final Logger logger = LogManager.getLogger(TemperatureSettings.class);
 
     private List<Range<ChronoLocalDateTime<?>>> ranges = new ArrayList<>();
     private List<Double> values = new ArrayList<>();
 
-    public TemperatureSettings(Properties p){
+    TemperatureSettings(Properties p){
         String tempSettingsFilePath = getPropertyOrDefault(p, TEMPERATURE_SETTINGS_FILE_PATH, TEMPERATURE_SETTINGS_FILE_PATH);
 
         try{

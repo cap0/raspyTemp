@@ -58,7 +58,7 @@ public class TemperatureCollector extends Thread{
     }
 
     private void execute() {
-        logger.info("Start collecting temperature");
+        logger.debug("Start collecting temperature");
         boolean outputFileExists = Paths.get(outputFilePath).toFile().exists();
         if (!outputFileExists) {
             logger.info("Writing Header");

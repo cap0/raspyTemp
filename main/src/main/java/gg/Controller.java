@@ -20,42 +20,44 @@ public class Controller implements Runnable{
     private static final double DELTA_TEMP_WHEN_ACTIVE = 0.1;
 
     private final Double deltaTemp;
-    final IGPIOController gpioCtrl;
+    private final IGPIOController gpioCtrl;
     private final Properties p;
+    private final LCD lcd;
 
-    IReadTemperature temperatureReader;
+    private IReadTemperature temperatureReader;
     private String wortSensorName;
 
     private TemperatureSettings temperatureSettings;
 
-    Controller(Properties p) {
+    Controller(Properties p, LCD lcd) {
         this(new TemperatureReader(p.getProperty(SENSORS_FOLDER)),
                 p.getProperty(WORT_SENSOR),
                new TemperatureSettings(p),
                 getDeltaTempFromProperties(p),
-                new GPIOController(), p);
+                new GPIOController(), lcd, p);
     }
 
-    private Controller(Properties p, double deltaTemp, IGPIOController gpioCtrl, TemperatureReader temperatureReader) {
+    private Controller(Properties p, double deltaTemp, IGPIOController gpioCtrl, TemperatureReader temperatureReader, LCD lcd) {
         this(temperatureReader,
                 p.getProperty(WORT_SENSOR),
                 new TemperatureSettings(p),
                 deltaTemp,
-                gpioCtrl, p);
+                gpioCtrl, lcd, p);
     }
 
     private Controller(IReadTemperature temperatureReader, String wortSensorName, TemperatureSettings temperatureSettings,
-                       Double deltaTemp, IGPIOController gpioCtrl, Properties p) {
+                       Double deltaTemp, IGPIOController gpioCtrl, LCD lcd, Properties p) {
         this.temperatureReader = temperatureReader;
         this.wortSensorName = wortSensorName;
         this.temperatureSettings = temperatureSettings;
         this.deltaTemp = deltaTemp;
         this.gpioCtrl = gpioCtrl;
         this.p = p;
+        this.lcd = lcd;
     }
 
 
-    void checkIfTempIsOnRange(LocalDateTime now) {
+    private void checkIfTempIsOnRange(LocalDateTime now) {
         Optional<Double> wortTempOpt = getWortTemp();
         if (!wortTempOpt.isPresent()) {
             return;
@@ -85,9 +87,6 @@ public class Controller implements Runnable{
         schedule(nextDeltaTemp);
     }
 
-    private void stopHeatingOrCooling() {
-        gpioCtrl.stop();
-    }
 
     private Optional<Double> getWortTemp() {
         String wortTemperatureValue1 = temperatureReader.readTemperatureForSensor(wortSensorName);
@@ -118,14 +117,19 @@ public class Controller implements Runnable{
     }
 
     private void heating() {
-        //trigger relay heating belt
+        lcd.print0("heating...");
         gpioCtrl.startBelt();
     }
 
     private void cooling() {
+        lcd.print0("cooling...");
         gpioCtrl.startFridge();
-        //trigger relay fridge
         //TODO pump protection
+    }
+
+    private void stopHeatingOrCooling() {
+        lcd.print0("fermenting...");
+        gpioCtrl.stop();
     }
 
     @Override
@@ -133,21 +137,20 @@ public class Controller implements Runnable{
         try {
             checkIfTempIsOnRange(LocalDateTime.now());
         } catch (Exception e) {
-            e.printStackTrace();
             logger.error(e);
             schedule(getDeltaTempFromProperties(p));
 
         }
     }
 
-    private void schedule(double deltaTemp){
+    private void schedule(double deltaTemp) {
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        Runnable task = new Controller(p, deltaTemp, gpioCtrl, new TemperatureReader(p.getProperty(SENSORS_FOLDER)));
+        Runnable task = new Controller(p, deltaTemp, gpioCtrl, new TemperatureReader(p.getProperty(SENSORS_FOLDER)), lcd);
         scheduler.schedule(task, 1, MINUTES);
-        logger.info("controller in a minute: " +deltaTemp);
+        logger.info("controller in a minute: " + deltaTemp);
     }
 
     private static Double getDeltaTempFromProperties(Properties p) {
-        return Double.valueOf(p.getProperty(CTRL_DELTA_TEMP,"0.5"));
+        return Double.valueOf(p.getProperty(CTRL_DELTA_TEMP, "0.5"));
     }
 }
