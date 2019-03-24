@@ -22,7 +22,9 @@ public class Orchestrator {
         checkArguments(args);
         Properties p = mergePropertiesFile(args);
 
-        scheduleTemperatureCollector(p);
+        LCD lcd = new LCD();
+        lcd.print0("Starting");
+        scheduleTemperatureCollector(p, lcd);
         scheduleIOTSender(p);
         scheduleTemperatureAlarm(p);
 
@@ -30,7 +32,7 @@ public class Orchestrator {
         scheduleDataProcess(p, lock);
         scheduleFTPUpload(p, lock);
 
-        scheduleGoogleDriveBackup(p);
+        scheduleController(p);
     }
 
     private static void scheduleTemperatureAlarm(Properties properties) {
@@ -42,10 +44,10 @@ public class Orchestrator {
         scheduler.scheduleAtFixedRate(task, 0, 60, SECONDS);
     }
 
-    private static void scheduleTemperatureCollector(Properties properties) {
+    private static void scheduleTemperatureCollector(Properties properties, LCD lcd) {
         logger.info("Schedule temperature collector Process");
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        Runnable task = TemperatureCollector.build(properties);
+        Runnable task = TemperatureCollector.build(properties, lcd);
         int periodicDelay = getIntegerProperty(properties, PROCESSES_PERIODIC_DELAY);
 
         logger.info("Temperature collector Process. initialDelay= " + 0 + " periodicDelay= " + periodicDelay + " period= " + SECONDS);
@@ -83,19 +85,11 @@ public class Orchestrator {
         scheduler.scheduleAtFixedRate(ftpUploadTask, initialDelay, periodicDelay, MINUTES);
     }
 
-    private static void scheduleGoogleDriveBackup(Properties properties) {
-        Boolean enableGoogleDrive = Boolean.valueOf(properties.getProperty(ENABLE_GOOGLE_DRIVE));
-        if (enableGoogleDrive) {
-            logger.info("Schedule Google Drive Backup");
-            ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-            Runnable googleDriveTask = new GoogleDriveHelper(properties);
-            int initialDelay = getIntegerProperty(properties, "driveBackup.initialDelay");
-            int periodicDelay = getIntegerProperty(properties, "driveBackup.periodicDelay");
-
-            scheduler.scheduleAtFixedRate(googleDriveTask, initialDelay, periodicDelay, MINUTES);
-        }else{
-            logger.info("Google Drive Backup disabled");
-        }
+    private static void scheduleController(Properties properties) {
+        logger.info("Schedule Controller");
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+        Runnable controller = new Controller(properties);
+        scheduler.schedule(controller, 20, SECONDS);
     }
 
     private static void checkArguments(String[] args) {
