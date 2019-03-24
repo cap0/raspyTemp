@@ -25,25 +25,27 @@ public class TemperatureCollector extends Thread{
     private final String roomSensorName;
     private final String wortSensorName;
     private final TemperatureReader temperatureReader;
+    private LCD lcd;
 
-    public TemperatureCollector(String roomSensorName, String wortSensorName, String sensorsFolder, String outputFilePath) {
+    private TemperatureCollector(String roomSensorName, String wortSensorName, String sensorsFolder, String outputFilePath, LCD lcd) {
         this.roomSensorName = roomSensorName;
         this.wortSensorName = wortSensorName;
         this.outputFilePath = outputFilePath;
         this.temperatureReader = new TemperatureReader(sensorsFolder);
+        this.lcd = lcd;
     }
 
-    static TemperatureCollector build(Properties p) {
+    static TemperatureCollector build(Properties p, LCD lcd) {
         String roomSensorName = p.getProperty(ROOM_SENSOR);
         String wortSensorName = p.getProperty(WORT_SENSOR);
         String outputFilePath = p.getProperty(TEMPERATURE_OUTPUT_FILE);
         String sensorsFolder = p.getProperty(SENSORS_FOLDER);
 
-        return new TemperatureCollector(roomSensorName, wortSensorName, sensorsFolder, outputFilePath);
+        return new TemperatureCollector(roomSensorName, wortSensorName, sensorsFolder, outputFilePath, lcd);
     }
 
     public static void main(String[] args) {
-        build(Util.getProperties(args[0])).execute();
+        build(Util.getProperties(args[0]), new LCD()).execute();
     }
 
     @Override
@@ -70,8 +72,8 @@ public class TemperatureCollector extends Thread{
 
         logger.info(line);
         writeTemperatureInFile(outputFilePath, line);
+        lcd.print1("R " +roomTemperatureValue + " W "+wortTemperatureValue);
     }
-
 
     private void writeHeader() {
         writeTemperatureInFile(outputFilePath, "date|room|wort");

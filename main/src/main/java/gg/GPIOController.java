@@ -15,12 +15,29 @@ public class GPIOController implements IGPIOController{
     public GPIOController(){
         gpio = GpioFactory.getInstance();
 
-        fridgePin = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_01, "fridgePin", PinState.HIGH);
-        beltPin = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_02, "beltPin", PinState.HIGH);
+        fridgePin = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_04, "fridgePin", PinState.HIGH);
+        beltPin = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_05, "beltPin", PinState.HIGH);
 
-        //TODO se non li faccio cosa succede?
-        fridgePin.setShutdownOptions(true, PinState.LOW);
-        beltPin.setShutdownOptions(true, PinState.LOW);
+        gpio.setMode(PinMode.DIGITAL_OUTPUT, fridgePin, beltPin);
+
+        fridgePin.setShutdownOptions(true, PinState.HIGH);
+        beltPin.setShutdownOptions(true, PinState.HIGH);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                Thread.sleep(200);
+                logger.info("Shouting down ...");
+
+                gpio.shutdown();
+                gpio.unprovisionPin(fridgePin, beltPin);
+
+                logger.info("released GPIO");
+
+            } catch (InterruptedException e) {
+                logger.error(e);
+            }
+        }));
+
     }
 
     @Override
@@ -74,5 +91,18 @@ public class GPIOController implements IGPIOController{
     public void stop() {
         stopBelt();
         stopFridge();
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        logger.info("GPIO Start");
+        GPIOController g = new GPIOController();
+
+        g.startFridge();
+        Thread.sleep(5000);
+        g.stopFridge();
+        Thread.sleep(5000);
+        g.startBelt();
+        Thread.sleep(5000);
+        g.stopBelt();
     }
 }

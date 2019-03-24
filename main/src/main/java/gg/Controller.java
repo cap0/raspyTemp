@@ -36,12 +36,12 @@ public class Controller implements Runnable{
                 new GPIOController(), p);
     }
 
-    private Controller(Properties p, double deltaTemp) {
-        this(new TemperatureReader(p.getProperty(SENSORS_FOLDER)),
+    private Controller(Properties p, double deltaTemp, IGPIOController gpioCtrl, TemperatureReader temperatureReader) {
+        this(temperatureReader,
                 p.getProperty(WORT_SENSOR),
                 new TemperatureSettings(p),
                 deltaTemp,
-                new GPIOController(), p);
+                gpioCtrl, p);
     }
 
     private Controller(IReadTemperature temperatureReader, String wortSensorName, TemperatureSettings temperatureSettings,
@@ -133,6 +133,7 @@ public class Controller implements Runnable{
         try {
             checkIfTempIsOnRange(LocalDateTime.now());
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error(e);
             schedule(getDeltaTempFromProperties(p));
 
@@ -141,9 +142,9 @@ public class Controller implements Runnable{
 
     private void schedule(double deltaTemp){
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        Runnable task = new Controller(p, deltaTemp);
+        Runnable task = new Controller(p, deltaTemp, gpioCtrl, new TemperatureReader(p.getProperty(SENSORS_FOLDER)));
         scheduler.schedule(task, 1, MINUTES);
-        logger.debug("controller in a minute: " +deltaTemp);
+        logger.info("controller in a minute: " +deltaTemp);
     }
 
     private static Double getDeltaTempFromProperties(Properties p) {
