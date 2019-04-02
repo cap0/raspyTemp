@@ -139,7 +139,6 @@ public class Controller implements Runnable{
         } catch (Exception e) {
             logger.error(e);
             schedule(getDeltaTempFromProperties(p));
-
         }
     }
 

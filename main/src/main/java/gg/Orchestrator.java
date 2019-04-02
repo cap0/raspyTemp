@@ -23,7 +23,7 @@ public class Orchestrator {
         Properties p = mergePropertiesFile(args);
 
         LCD lcd = new LCD();
-        lcd.print0("starting...");
+        lcd.print("starting...","");
         scheduleTemperatureCollector(p, lcd);
         scheduleIOTSender(p);
         scheduleTemperatureAlarm(p);
