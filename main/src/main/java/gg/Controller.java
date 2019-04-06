@@ -138,6 +138,7 @@ public class Controller implements Runnable{
             checkIfTempIsOnRange(LocalDateTime.now());
         } catch (Exception e) {
             logger.error(e);
+        } finally {
             schedule(getDeltaTempFromProperties(p));
         }
     }
