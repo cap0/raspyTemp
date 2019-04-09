@@ -11,6 +11,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static gg.Constants.*;
+import static gg.Util.formatTemperature;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -19,7 +20,7 @@ public class Controller implements Runnable{
     private static final Logger logger = LogManager.getLogger(Controller.class);
     private static final double DELTA_TEMP_WHEN_ACTIVE = 0.1;
 
-    private final Double deltaTemp;
+    private Double deltaTemp;
     private final IGPIOController gpioCtrl;
     private final Properties p;
     private final LCD lcd;
@@ -69,24 +70,31 @@ public class Controller implements Runnable{
         double upperBound = settingTemp + deltaTemp;
         double lowerBound = settingTemp - deltaTemp;
 
-        double nextDeltaTemp;
         if (wortTemp > upperBound) {
             logger.info("wort temperature over setting value. Wort: " + wortTemp + " upper bound: " + upperBound);
+            lcd("cool: ", lowerBound, upperBound);
             cooling();
-            nextDeltaTemp=DELTA_TEMP_WHEN_ACTIVE;
+            deltaTemp = DELTA_TEMP_WHEN_ACTIVE;
         } else if (wortTemp < lowerBound) {
-            logger.info("wort temperature under setting value. Wort: " + wortTemp + " lower bound: " + upperBound);
+            logger.info("wort: temperature under setting value. Wort: " + wortTemp + " lower bound: " + upperBound);
+            lcd("heat ", lowerBound, upperBound);
             heating();
-            nextDeltaTemp= DELTA_TEMP_WHEN_ACTIVE;
+            deltaTemp = DELTA_TEMP_WHEN_ACTIVE;
         } else { // temp in range
-            stopHeatingOrCooling();
             logger.info("temperature " + wortTemp + " inside range (" + lowerBound + "," + upperBound + ")");
-            nextDeltaTemp=getDeltaTempFromProperties(p);
+            lcd("ferm: ", lowerBound, upperBound);
+            stopHeatingOrCooling();
+            deltaTemp = getDeltaTempFromProperties(p);
         }
-
-        schedule(nextDeltaTemp);
     }
 
+    private void lcd(String status, double lowerBound, double upperBound) {
+        lcd.print0(status + formatTempRangeForLcd(lowerBound, upperBound));
+    }
+
+    private String formatTempRangeForLcd(double lowerBound, double upperBound) {
+        return formatTemperature(lowerBound) + "-" + formatTemperature(upperBound) ;
+    }
 
     private Optional<Double> getWortTemp() {
         String wortTemperatureValue1 = temperatureReader.readTemperatureForSensor(wortSensorName);
@@ -105,6 +113,7 @@ public class Controller implements Runnable{
                 return Optional.of(t1);
             }
         }
+        logger.warn("temperature not stable: {}, {}, {}", wortTemperatureValue1, wortTemperatureValue2, wortTemperatureValue3);
         return Optional.empty();
     }
 
@@ -117,18 +126,15 @@ public class Controller implements Runnable{
     }
 
     private void heating() {
-        lcd.print0("heating...");
         gpioCtrl.startBelt();
     }
 
     private void cooling() {
-        lcd.print0("cooling...");
         gpioCtrl.startFridge();
         //TODO pump protection
     }
 
     private void stopHeatingOrCooling() {
-        lcd.print0("fermenting...");
         gpioCtrl.stop();
     }
 
@@ -139,11 +145,11 @@ public class Controller implements Runnable{
         } catch (Exception e) {
             logger.error(e);
         } finally {
-            schedule(getDeltaTempFromProperties(p));
+            schedule();
         }
     }
 
-    private void schedule(double deltaTemp) {
+    private void schedule() {
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         Runnable task = new Controller(p, deltaTemp, gpioCtrl, new TemperatureReader(p.getProperty(SENSORS_FOLDER)), lcd);
         scheduler.schedule(task, 1, MINUTES);

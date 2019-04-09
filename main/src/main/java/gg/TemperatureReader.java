@@ -8,17 +8,15 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.Optional;
 
 import static gg.Constants.TEMPERATURE_FILE;
+import static gg.Util.formatTemperature;
 import static java.lang.Double.parseDouble;
 
 class TemperatureReader implements IReadTemperature{
 
     private static final Logger logger = LogManager.getLogger(TemperatureReader.class);
-    private static NumberFormat nf =  new DecimalFormat("##.##");
 
     private final String sensorsFolder;
 
@@ -52,7 +50,7 @@ class TemperatureReader implements IReadTemperature{
             logger.error("cannot find temperature value");
             return Optional.empty();
         }
-        return Optional.of(nf.format(getTemperature(split[1])));
+        return Optional.of(formatTemperature(getTemperature(split[1])));
     }
 
     private static double getTemperature(String s) {

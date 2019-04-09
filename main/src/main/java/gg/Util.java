@@ -6,6 +6,8 @@ import org.apache.logging.log4j.util.Strings;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.util.Properties;
 
@@ -58,5 +60,10 @@ class Util {
 
     static TemperatureSettings readTemperatureSettings(Properties p) {
         return new TemperatureSettings(p);
+    }
+
+    private static NumberFormat nf =  new DecimalFormat("##.##");
+    static String formatTemperature(double temperature) {
+        return nf.format(temperature);
     }
 }
