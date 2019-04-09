@@ -24,7 +24,7 @@ public class Orchestrator {
 
         LCD lcd = new LCD();
         lcd.print("starting...","");
-        scheduleTemperatureCollector(p, lcd);
+        scheduleTemperatureCollector(p);
         scheduleIOTSender(p);
         scheduleTemperatureAlarm(p);
 
@@ -44,7 +44,7 @@ public class Orchestrator {
         scheduler.scheduleAtFixedRate(task, 0, 60, SECONDS);
     }
 
-    private static void scheduleTemperatureCollector(Properties properties, LCD lcd) {
+    private static void scheduleTemperatureCollector(Properties properties) {
         logger.info("Schedule temperature collector Process");
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         Runnable task = TemperatureCollector.build(properties);

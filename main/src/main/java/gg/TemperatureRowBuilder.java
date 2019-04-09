@@ -1,11 +1,15 @@
 package gg;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 class TemperatureRowBuilder {
+    private static final Logger logger = LogManager.getLogger(TemperatureRowBuilder.class);
+
 
     private LocalDateTime date;
     private double chamberTemp;
@@ -18,6 +22,7 @@ class TemperatureRowBuilder {
         try {
             this.date = LocalDateTime.parse(date, formatter);
         } catch (Exception e) {
+            logger.error(e);
             this.date = null;
         }
         return this;

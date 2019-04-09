@@ -59,22 +59,22 @@ public class Controller implements Runnable{
 
         double settingTemp = temperatureSettings.getTemperatureSettingsValueForDate(now);
 
-        double upperBound = settingTemp + actualDeltaTemp;
-        double lowerBound = settingTemp - actualDeltaTemp;
+        double lowerBound = getLowerBound(settingTemp);
+        double upperBound = getUpperBound(settingTemp);
 
         String roomTemp = temperatureReader.getRoomTemperature();
         if (wortTemp > upperBound) {
-            lcd(cold, wortTemp, roomTemp, lowerBound, upperBound);
             cooling();
             actualDeltaTemp = DELTA_TEMP_WHEN_ACTIVE;
+            lcd(cold, wortTemp, roomTemp, getLowerBound(settingTemp), getUpperBound(settingTemp));
         } else if (wortTemp < lowerBound) {
-            lcd(warm, wortTemp, roomTemp, lowerBound, upperBound);
             heating();
             actualDeltaTemp = DELTA_TEMP_WHEN_ACTIVE;
+            lcd(warm, wortTemp, roomTemp, getLowerBound(settingTemp), getUpperBound(settingTemp));
         } else { // temp in range
-            lcd(ferm, wortTemp, roomTemp, lowerBound, upperBound);
             stopHeatingOrCooling();
             actualDeltaTemp = configDeltaTemp;
+            lcd(ferm, wortTemp, roomTemp, getLowerBound(settingTemp), getUpperBound(settingTemp));
         }
     }
 
@@ -151,6 +151,14 @@ public class Controller implements Runnable{
 
     private static Double getDeltaTempFromProperties(Properties p) {
         return Double.valueOf(p.getProperty(CTRL_DELTA_TEMP, "0.5"));
+    }
+
+    private double getUpperBound(double settingTemp) {
+        return settingTemp + actualDeltaTemp;
+    }
+
+    private double getLowerBound(double settingTemp) {
+        return settingTemp - actualDeltaTemp;
     }
 
     enum Status{
