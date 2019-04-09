@@ -22,34 +22,32 @@ public class Controller implements Runnable{
 
     private Double deltaTemp;
     private final IGPIOController gpioCtrl;
-    private final Properties p;
+    private final Properties p; //TODO REMOVE
     private final LCD lcd;
 
     private IReadTemperature temperatureReader;
-    private String wortSensorName;
-
     private TemperatureSettings temperatureSettings;
 
     Controller(Properties p, LCD lcd) {
-        this(new TemperatureReader(p.getProperty(SENSORS_FOLDER)),
+        this(new TemperatureReader(p.getProperty(SENSORS_FOLDER),
                 p.getProperty(WORT_SENSOR),
+                p.getProperty(ROOM_SENSOR)),
                new TemperatureSettings(p),
                 getDeltaTempFromProperties(p),
                 new GPIOController(), lcd, p);
     }
 
-    private Controller(Properties p, double deltaTemp, IGPIOController gpioCtrl, TemperatureReader temperatureReader, LCD lcd) {
+    //TODO REMOVE
+    private Controller(Properties p, double deltaTemp, IGPIOController gpioCtrl, IReadTemperature temperatureReader, LCD lcd) {
         this(temperatureReader,
-                p.getProperty(WORT_SENSOR),
                 new TemperatureSettings(p),
                 deltaTemp,
                 gpioCtrl, lcd, p);
     }
 
-    private Controller(IReadTemperature temperatureReader, String wortSensorName, TemperatureSettings temperatureSettings,
+    private Controller(IReadTemperature temperatureReader, TemperatureSettings temperatureSettings,
                        Double deltaTemp, IGPIOController gpioCtrl, LCD lcd, Properties p) {
         this.temperatureReader = temperatureReader;
-        this.wortSensorName = wortSensorName;
         this.temperatureSettings = temperatureSettings;
         this.deltaTemp = deltaTemp;
         this.gpioCtrl = gpioCtrl;
@@ -97,11 +95,11 @@ public class Controller implements Runnable{
     }
 
     private Optional<Double> getWortTemp() {
-        String wortTemperatureValue1 = temperatureReader.readTemperatureForSensor(wortSensorName);
+        String wortTemperatureValue1 = temperatureReader.getWorthTemperature();
         sleep1Sec();
-        String wortTemperatureValue2 = temperatureReader.readTemperatureForSensor(wortSensorName);
+        String wortTemperatureValue2 = temperatureReader.getWorthTemperature();
         sleep1Sec();
-        String wortTemperatureValue3 = temperatureReader.readTemperatureForSensor(wortSensorName);
+        String wortTemperatureValue3 = temperatureReader.getWorthTemperature();
 
         if (isNotBlank(wortTemperatureValue1) && isNotBlank(wortTemperatureValue2) && isNotBlank(wortTemperatureValue3)) {
             Double t1 = Double.valueOf(wortTemperatureValue1);
@@ -151,7 +149,7 @@ public class Controller implements Runnable{
 
     private void schedule() {
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        Runnable task = new Controller(p, deltaTemp, gpioCtrl, new TemperatureReader(p.getProperty(SENSORS_FOLDER)), lcd);
+        Runnable task = new Controller(p, deltaTemp, gpioCtrl, temperatureReader, lcd);
         scheduler.schedule(task, 1, MINUTES);
         logger.info("controller in a minute: " + deltaTemp);
     }

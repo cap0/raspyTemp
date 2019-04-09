@@ -21,21 +21,17 @@ import static gg.Constants.*;
 public class IotSender implements Runnable{
     private static final Logger logger = LogManager.getLogger(Orchestrator.class);
     private final TemperatureReader temperatureReader;
-    private final String roomSensorName;
-    private final String wortSensorName;
     private final String writeKey;
 
 
     IotSender(Properties p) {
-        roomSensorName = p.getProperty(ROOM_SENSOR);
-        wortSensorName = p.getProperty(WORT_SENSOR);
-        temperatureReader = new TemperatureReader(p.getProperty(SENSORS_FOLDER));
+        temperatureReader = new TemperatureReader(p.getProperty(SENSORS_FOLDER), p.getProperty(WORT_SENSOR), p.getProperty(ROOM_SENSOR));
         writeKey= p.getProperty(IOT_WRITE_KEY);
     }
 
     private void send() throws URISyntaxException {
-        String roomTemperatureValue = temperatureReader.readTemperatureForSensor(roomSensorName);
-        String wortTemperatureValue = temperatureReader.readTemperatureForSensor(wortSensorName);
+        String roomTemperatureValue = temperatureReader.getRoomTemperature();
+        String wortTemperatureValue = temperatureReader.getWorthTemperature();
 
         HttpUriRequest httpGet = buildURL(roomTemperatureValue, wortTemperatureValue);
         HttpClient httpClient = getHttpClient();

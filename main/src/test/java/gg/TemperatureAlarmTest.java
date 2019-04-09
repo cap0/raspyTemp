@@ -27,10 +27,10 @@ public class TemperatureAlarmTest {
         temperatureAlarm.temperatureReader = context.mock(IReadTemperature.class);
 
         context.checking(new Expectations() {{
-            oneOf(temperatureAlarm.temperatureReader).readTemperatureForSensor("wortSensorName");
+            oneOf(temperatureAlarm.temperatureReader).getWorthTemperature();
                 will(returnValue("18"));
 
-            oneOf(temperatureAlarm.temperatureReader).readTemperatureForSensor("roomSensorName");
+            oneOf(temperatureAlarm.temperatureReader).getRoomTemperature();
                 will(returnValue("19"));
 
             never(temperatureAlarm.mailSender).sendAlarm(with(any(String.class)), with(any(String.class)));
@@ -54,15 +54,15 @@ public class TemperatureAlarmTest {
         temperatureAlarm.temperatureReader = context.mock(IReadTemperature.class);
 
         context.checking(new Expectations() {{
-            allowing(temperatureAlarm.temperatureReader).readTemperatureForSensor("roomSensorName");
+            allowing(temperatureAlarm.temperatureReader).getRoomTemperature();
 
-            oneOf(temperatureAlarm.temperatureReader).readTemperatureForSensor("wortSensorName");
+            oneOf(temperatureAlarm.temperatureReader).getWorthTemperature();
             will(returnValue("-1"));
 
-            oneOf(temperatureAlarm.temperatureReader).readTemperatureForSensor("wortSensorName");
+            oneOf(temperatureAlarm.temperatureReader).getWorthTemperature();
             will(returnValue("-2"));
 
-            oneOf(temperatureAlarm.temperatureReader).readTemperatureForSensor("wortSensorName");
+            oneOf(temperatureAlarm.temperatureReader).getWorthTemperature();
             will(returnValue("-3"));
 
             never(temperatureAlarm.mailSender).sendAlarm(with(any(String.class)), with(any(String.class)));

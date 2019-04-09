@@ -22,16 +22,12 @@ public class TemperatureCollector extends Thread{
     private static final Logger logger = LogManager.getLogger(TemperatureCollector.class);
 
     private final String outputFilePath;
-    private final String roomSensorName;
-    private final String wortSensorName;
     private final TemperatureReader temperatureReader;
     private LCD lcd;
 
     private TemperatureCollector(String roomSensorName, String wortSensorName, String sensorsFolder, String outputFilePath, LCD lcd) {
-        this.roomSensorName = roomSensorName;
-        this.wortSensorName = wortSensorName;
         this.outputFilePath = outputFilePath;
-        this.temperatureReader = new TemperatureReader(sensorsFolder);
+        this.temperatureReader = new TemperatureReader(sensorsFolder, wortSensorName, roomSensorName);
         this.lcd = lcd;
     }
 
@@ -65,8 +61,8 @@ public class TemperatureCollector extends Thread{
             writeHeader();
         }
 
-        String roomTemperatureValue = temperatureReader.readTemperatureForSensor(roomSensorName);
-        String wortTemperatureValue = temperatureReader.readTemperatureForSensor(wortSensorName);
+        String roomTemperatureValue = temperatureReader.getRoomTemperature();
+        String wortTemperatureValue = temperatureReader.getWorthTemperature();
 
         String line = now() + "|" + roomTemperatureValue + "|" + wortTemperatureValue;
 

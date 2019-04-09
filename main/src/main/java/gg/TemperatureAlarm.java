@@ -23,8 +23,6 @@ public class TemperatureAlarm implements Runnable {
     private static final double ROOM_LOWER_TEMPERATURE_LIMIT = -5;
     private static final double ROOM_UPPER_TEMPERATURE_LIMIT = 40;
 
-    private final String roomSensorName;
-    private final String wortSensorName;
     private Map<SensorType,Integer> lowerViolationsInArow = new HashMap<>();
     private Map<SensorType,Integer> upperViolationsInArow = new HashMap<>();
 
@@ -32,10 +30,7 @@ public class TemperatureAlarm implements Runnable {
     IGMailSender mailSender;
 
     TemperatureAlarm(Properties p) {
-        roomSensorName = p.getProperty(ROOM_SENSOR);
-        wortSensorName = p.getProperty(WORT_SENSOR);
-
-        temperatureReader = new TemperatureReader(p.getProperty(SENSORS_FOLDER));
+        temperatureReader = new TemperatureReader(p.getProperty(SENSORS_FOLDER), p.getProperty(WORT_SENSOR),  p.getProperty(ROOM_SENSOR));
         mailSender = new GMailSender(p);
 
         lowerViolationsInArow.put(SensorType.wort, 0);
@@ -51,7 +46,7 @@ public class TemperatureAlarm implements Runnable {
 
     private void checkWortTempForAlarm() {
         try {
-            String wortTemperatureValue = temperatureReader.readTemperatureForSensor(wortSensorName);
+            String wortTemperatureValue = temperatureReader.getWorthTemperature();
             checkViolationAndSendAlarm(wortTemperatureValue, SensorType.wort);
         } catch (Exception e) {
             logger.error("Error during check for wort temperature", e);
@@ -60,7 +55,7 @@ public class TemperatureAlarm implements Runnable {
 
     private void checkRoomTempForAlarm() {
         try {
-            String roomTemperatureValue = temperatureReader.readTemperatureForSensor(roomSensorName);
+            String roomTemperatureValue = temperatureReader.getRoomTemperature();
             checkViolationAndSendAlarm(roomTemperatureValue, SensorType.room);
         } catch (Exception e) {
             logger.error("Error during check for room temperature", e);

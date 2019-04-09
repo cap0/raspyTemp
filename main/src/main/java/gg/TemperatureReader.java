@@ -19,17 +19,26 @@ class TemperatureReader implements IReadTemperature{
     private static final Logger logger = LogManager.getLogger(TemperatureReader.class);
 
     private final String sensorsFolder;
+    private final String wortSensorName;
+    private final String roomSensorName;
 
-    public TemperatureReader() {
-        sensorsFolder = null;
-    }
-
-    TemperatureReader(String sensorsFolder) {
+    TemperatureReader(String sensorsFolder, String wortSensorName, String roomSensorName) {
         this.sensorsFolder = sensorsFolder;
+        this.wortSensorName = wortSensorName;
+        this.roomSensorName = roomSensorName;
     }
 
     @Override
-    public String readTemperatureForSensor(String sensorId) {
+    public String getRoomTemperature() {
+        return readTemperatureForSensor(roomSensorName);
+    }
+
+    @Override
+    public String getWorthTemperature() {
+        return readTemperatureForSensor(wortSensorName);
+    }
+
+    private String readTemperatureForSensor(String sensorId) {
         Optional<String> temperature = readTemperatureFromFile(buildSensorPath(sensorId));
         if (temperature.isPresent()) {
             return temperature.get();

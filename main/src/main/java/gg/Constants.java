@@ -25,11 +25,6 @@ class Constants {
     static final String FTP_PASS = "ftp.pass";
     static final String HTML_PAGE_NAME = "htmlPageName";
 
-    //Google
-    static final String ENABLE_GOOGLE_DRIVE = "enableGoogleDrive";
-    static final String FILE_NAME_ON_GOOGLE_DRIVE = "fileNameOnGoogleDrive";
-    static final String GOOGLE_DRIVE_FILE_PATH = "googleCredentialFilePath";
-
     //IOT
     static final String IOT_WRITE_KEY = "iot.writeKey";
 
