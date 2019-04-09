@@ -47,7 +47,7 @@ public class Orchestrator {
     private static void scheduleTemperatureCollector(Properties properties, LCD lcd) {
         logger.info("Schedule temperature collector Process");
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        Runnable task = TemperatureCollector.build(properties, lcd);
+        Runnable task = TemperatureCollector.build(properties);
         int periodicDelay = getIntegerProperty(properties, PROCESSES_PERIODIC_DELAY);
 
         logger.info("Temperature collector Process. initialDelay= " + 0 + " periodicDelay= " + periodicDelay + " period= " + SECONDS);

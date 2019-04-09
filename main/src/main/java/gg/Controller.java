@@ -11,6 +11,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static gg.Constants.*;
+import static gg.Controller.Status.*;
 import static gg.Util.formatTemperature;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -20,9 +21,9 @@ public class Controller implements Runnable{
     private static final Logger logger = LogManager.getLogger(Controller.class);
     private static final double DELTA_TEMP_WHEN_ACTIVE = 0.1;
 
-    private Double deltaTemp;
+    private final Double configDeltaTemp;
+    private Double actualDeltaTemp;
     private final IGPIOController gpioCtrl;
-    private final Properties p; //TODO REMOVE
     private final LCD lcd;
 
     private IReadTemperature temperatureReader;
@@ -34,24 +35,17 @@ public class Controller implements Runnable{
                 p.getProperty(ROOM_SENSOR)),
                new TemperatureSettings(p),
                 getDeltaTempFromProperties(p),
-                new GPIOController(), lcd, p);
-    }
-
-    //TODO REMOVE
-    private Controller(Properties p, double deltaTemp, IGPIOController gpioCtrl, IReadTemperature temperatureReader, LCD lcd) {
-        this(temperatureReader,
-                new TemperatureSettings(p),
-                deltaTemp,
-                gpioCtrl, lcd, p);
+                getDeltaTempFromProperties(p),
+                new GPIOController(), lcd);
     }
 
     private Controller(IReadTemperature temperatureReader, TemperatureSettings temperatureSettings,
-                       Double deltaTemp, IGPIOController gpioCtrl, LCD lcd, Properties p) {
+                       Double configDeltaTemp, Double actualDeltaTemp,IGPIOController gpioCtrl, LCD lcd) {
         this.temperatureReader = temperatureReader;
         this.temperatureSettings = temperatureSettings;
-        this.deltaTemp = deltaTemp;
+        this.configDeltaTemp = configDeltaTemp;
+        this.actualDeltaTemp = actualDeltaTemp;
         this.gpioCtrl = gpioCtrl;
-        this.p = p;
         this.lcd = lcd;
     }
 
@@ -65,29 +59,30 @@ public class Controller implements Runnable{
 
         double settingTemp = temperatureSettings.getTemperatureSettingsValueForDate(now);
 
-        double upperBound = settingTemp + deltaTemp;
-        double lowerBound = settingTemp - deltaTemp;
+        double upperBound = settingTemp + actualDeltaTemp;
+        double lowerBound = settingTemp - actualDeltaTemp;
 
+        String roomTemp = temperatureReader.getRoomTemperature();
         if (wortTemp > upperBound) {
-            logger.info("wort temperature over setting value. Wort: " + wortTemp + " upper bound: " + upperBound);
-            lcd("cool: ", lowerBound, upperBound);
+            lcd(cold, wortTemp, roomTemp, lowerBound, upperBound);
             cooling();
-            deltaTemp = DELTA_TEMP_WHEN_ACTIVE;
+            actualDeltaTemp = DELTA_TEMP_WHEN_ACTIVE;
         } else if (wortTemp < lowerBound) {
-            logger.info("wort: temperature under setting value. Wort: " + wortTemp + " lower bound: " + upperBound);
-            lcd("heat ", lowerBound, upperBound);
+            lcd(warm, wortTemp, roomTemp, lowerBound, upperBound);
             heating();
-            deltaTemp = DELTA_TEMP_WHEN_ACTIVE;
+            actualDeltaTemp = DELTA_TEMP_WHEN_ACTIVE;
         } else { // temp in range
-            logger.info("temperature " + wortTemp + " inside range (" + lowerBound + "," + upperBound + ")");
-            lcd("ferm: ", lowerBound, upperBound);
+            lcd(ferm, wortTemp, roomTemp, lowerBound, upperBound);
             stopHeatingOrCooling();
-            deltaTemp = getDeltaTempFromProperties(p);
+            actualDeltaTemp = configDeltaTemp;
         }
     }
 
-    private void lcd(String status, double lowerBound, double upperBound) {
-        lcd.print0(status + formatTempRangeForLcd(lowerBound, upperBound));
+    private void lcd(Status cool, Double wortTemp, String roomTemp, double lowerBound, double upperBound) {
+        String row0 = "R " + roomTemp + " W " + wortTemp;
+        String row1 = cool + " "+ formatTempRangeForLcd(lowerBound, upperBound);
+        lcd.print(row0, row1);
+        logger.info(row0 + " " + row1);
     }
 
     private String formatTempRangeForLcd(double lowerBound, double upperBound) {
@@ -149,12 +144,16 @@ public class Controller implements Runnable{
 
     private void schedule() {
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        Runnable task = new Controller(p, deltaTemp, gpioCtrl, temperatureReader, lcd);
+        Runnable task = new Controller(temperatureReader, temperatureSettings, configDeltaTemp, actualDeltaTemp, gpioCtrl,lcd);
         scheduler.schedule(task, 1, MINUTES);
-        logger.info("controller in a minute: " + deltaTemp);
+        logger.info("controller in a minute: " + configDeltaTemp);
     }
 
     private static Double getDeltaTempFromProperties(Properties p) {
         return Double.valueOf(p.getProperty(CTRL_DELTA_TEMP, "0.5"));
+    }
+
+    enum Status{
+        warm, cold, ferm;
     }
 }

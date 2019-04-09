@@ -23,25 +23,23 @@ public class TemperatureCollector extends Thread{
 
     private final String outputFilePath;
     private final TemperatureReader temperatureReader;
-    private LCD lcd;
 
-    private TemperatureCollector(String roomSensorName, String wortSensorName, String sensorsFolder, String outputFilePath, LCD lcd) {
+    private TemperatureCollector(String roomSensorName, String wortSensorName, String sensorsFolder, String outputFilePath) {
         this.outputFilePath = outputFilePath;
         this.temperatureReader = new TemperatureReader(sensorsFolder, wortSensorName, roomSensorName);
-        this.lcd = lcd;
     }
 
-    static TemperatureCollector build(Properties p, LCD lcd) {
+    static TemperatureCollector build(Properties p) {
         String roomSensorName = p.getProperty(ROOM_SENSOR);
         String wortSensorName = p.getProperty(WORT_SENSOR);
         String outputFilePath = p.getProperty(TEMPERATURE_OUTPUT_FILE);
         String sensorsFolder = p.getProperty(SENSORS_FOLDER);
 
-        return new TemperatureCollector(roomSensorName, wortSensorName, sensorsFolder, outputFilePath, lcd);
+        return new TemperatureCollector(roomSensorName, wortSensorName, sensorsFolder, outputFilePath);
     }
 
     public static void main(String[] args) {
-        build(Util.getProperties(args[0]), new LCD()).execute();
+        build(Util.getProperties(args[0])).execute();
     }
 
     @Override
@@ -68,7 +66,6 @@ public class TemperatureCollector extends Thread{
 
         logger.info(line);
         writeTemperatureInFile(outputFilePath, line);
-        lcd.print1("R " +roomTemperatureValue + " W "+wortTemperatureValue);
     }
 
     private void writeHeader() {
