@@ -32,7 +32,18 @@ public class Orchestrator {
         scheduleDataProcess(p, lock);
         scheduleFTPUpload(p, lock);
 
-        scheduleController(p, lcd);
+        ConnectionChecker connCheck = scheduleConnectionChecker();
+        scheduleController(p, connCheck, lcd);
+    }
+
+    private static ConnectionChecker scheduleConnectionChecker() {
+        logger.info("Schedule Connection checker");
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+        ConnectionChecker task = new ConnectionChecker();
+
+        logger.info("Connection Checker Process. initialDelay= " + 0 + " periodicDelay= " + 60 + " period= " + SECONDS);
+        scheduler.scheduleAtFixedRate(task, 0, 60, SECONDS);
+        return task;
     }
 
     private static void scheduleTemperatureAlarm(Properties properties) {
@@ -85,10 +96,10 @@ public class Orchestrator {
         scheduler.scheduleAtFixedRate(ftpUploadTask, initialDelay, periodicDelay, MINUTES);
     }
 
-    private static void scheduleController(Properties properties, LCD lcd) {
+    private static void scheduleController(Properties properties, ConnectionChecker connCheck, LCD lcd) {
         logger.info("Schedule Controller");
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        Runnable controller = new Controller(properties, lcd);
+        Runnable controller = new Controller(properties, connCheck, lcd);
         scheduler.schedule(controller, 20, SECONDS);
     }
 
