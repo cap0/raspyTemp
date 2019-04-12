@@ -2,7 +2,7 @@ package gg;
 
 import java.time.LocalDateTime;
 
-public class DateRange {
+class DateRange {
     final LocalDateTime sd;
     final LocalDateTime ed;
 

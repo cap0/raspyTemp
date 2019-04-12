@@ -1,4 +1,4 @@
-var fileName="WH10_2019-FEB.txt";
+var fileName="TEST.txt";
 google.charts.load('current', {'packages':['annotatedtimeline', 'gauge']});
 google.charts.setOnLoadCallback(drawChart);
 var chart;
@@ -159,7 +159,7 @@ function loadFile(filePath) {
     return result;
 }
 
-var lastTarr;
+var lastTarr = [0, 0, 0];
 var firstDate = null;
 function processData(allText) {
     var allTextLines = allText.split(/\r\n|\n/);
@@ -180,15 +180,14 @@ function processData(allText) {
     for (var i=1; i<allTextLines.length; i++) {
 
         var data = allTextLines[i].split('|');
-        if (data.length == 3) {
+        if (data.length == 4) {
 
             var tarr = [];
             var d = new Date(data[0]);
             tarr.push(d);
-            tarr.push(Number(data[1]) );
-            tarr.push(Number(data[2]) );
-
-            tarr.push(Number(get_settings(d)));
+            tarr.push(Number(data[1]));
+            tarr.push(Number(data[2]));
+            tarr.push(Number(data[3]));
 
 //          tarr.push(Number(get_settings(d) - 0.3));
 //          tarr.push(Number(get_settings(d) + 0.3));

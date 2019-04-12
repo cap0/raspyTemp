@@ -124,6 +124,7 @@ public class ProcessTemperatureData implements Runnable{
                     TemperatureRow t = new TemperatureRow(row);
                     t.chamberTemp = avg(lastAvgChamber);
                     t.wortTemp = avg(lastAvgWort);
+                    t.settingTemperature = row.settingTemperature;
                     stats.temperatures.add(t);
                 }
             } else {

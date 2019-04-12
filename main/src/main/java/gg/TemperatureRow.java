@@ -8,7 +8,7 @@ public class TemperatureRow {
     LocalDateTime date;
     Double chamberTemp;
     Double wortTemp;
-    private Double settingTemperature;
+    Double settingTemperature;
 
     TemperatureRow(LocalDateTime date,
                    Double chamberTemp,
@@ -37,7 +37,7 @@ public class TemperatureRow {
     }
 
     String toCsv(){
-        return date.toString() + "|" + chamberTemp + "|" + wortTemp;
+        return date.toString() + "|" + chamberTemp + "|" + wortTemp+ "|" + settingTemperature;
     }
 
 
