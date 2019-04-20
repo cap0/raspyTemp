@@ -10,4 +10,6 @@ public interface IGPIOController {
     void stopBelt();
 
     void stop();
+
+    Status getStatus();
 }

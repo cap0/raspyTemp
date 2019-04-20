@@ -180,7 +180,7 @@ function processData(allText) {
     for (var i=1; i<allTextLines.length; i++) {
 
         var data = allTextLines[i].split('|');
-        if (data.length == 4) {
+        if (data.length >=4) {
 
             var tarr = [];
             var d = new Date(data[0]);
@@ -202,15 +202,4 @@ function processData(allText) {
         }
     }
     return lines;
-}
-
-function get_settings(dat) {
-    var val = 0;
-    for (var i = 0; i < opt.length; i++) {
-        if(new Date(opt[i].d) < dat){
-           val = opt[i].v;
-        }
-    }
-    return val;
-
 }

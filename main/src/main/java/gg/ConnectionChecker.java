@@ -20,7 +20,7 @@ public class ConnectionChecker implements Runnable {
         }
     }
 
-    public boolean isConnectionAvailable(){
+    boolean isConnectionAvailable(){
         return connectionAvailable;
     }
 }

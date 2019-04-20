@@ -125,6 +125,7 @@ public class ProcessTemperatureData implements Runnable{
                     t.chamberTemp = avg(lastAvgChamber);
                     t.wortTemp = avg(lastAvgWort);
                     t.settingTemperature = row.settingTemperature;
+                    t.status = row.status;
                     stats.temperatures.add(t);
                 }
             } else {
@@ -161,9 +162,10 @@ public class ProcessTemperatureData implements Runnable{
                     .map(l -> l.split("\\|"))
                     .map(r -> new TemperatureRowBuilder()
                             .date(r[0], datePattern)
-                            .chamber(r.length >1 ?r[1] : "0")
-                            .wort(r.length >2 ?r[2] : "0")
+                            .room(r.length > 1 ? r[1] : "0")
+                            .wort(r.length > 2 ? r[2] : "0")
                             .settings(temperatureSettings)
+                            .status(r.length > 3 ? Integer.valueOf(r[3]) : Status.unkn.encode())
                             .build())
                     .filter(TemperatureRow::isValid)
                     .collect(Collectors.toList());

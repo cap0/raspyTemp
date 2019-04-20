@@ -11,6 +11,8 @@ import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.util.Properties;
 
+import static gg.Constants.TEMPERATURE_SETTINGS_FILE_PATH;
+
 class Util {
     private static final Logger logger = LogManager.getLogger(Util.class);
 
@@ -59,7 +61,7 @@ class Util {
     }
 
     static TemperatureSettings readTemperatureSettings(Properties p) {
-        return new TemperatureSettings(p);
+        return new TemperatureSettings(getProperty(p, TEMPERATURE_SETTINGS_FILE_PATH));
     }
 
     private static NumberFormat nf =  new DecimalFormat("##.##");

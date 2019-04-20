@@ -22,24 +22,26 @@ public class TemperatureCollector extends Thread{
     private static final Logger logger = LogManager.getLogger(TemperatureCollector.class);
 
     private final String outputFilePath;
+    private GPIOController gpioCtrl;
     private final TemperatureReader temperatureReader;
 
-    private TemperatureCollector(String roomSensorName, String wortSensorName, String sensorsFolder, String outputFilePath) {
+    private TemperatureCollector(String roomSensorName, String wortSensorName, String sensorsFolder, String outputFilePath, GPIOController gpioCtrl) {
         this.outputFilePath = outputFilePath;
+        this.gpioCtrl = gpioCtrl;
         this.temperatureReader = new TemperatureReader(sensorsFolder, wortSensorName, roomSensorName);
     }
 
-    static TemperatureCollector build(Properties p) {
+    static TemperatureCollector build(Properties p, GPIOController gpioCtrl) {
         String roomSensorName = p.getProperty(ROOM_SENSOR);
         String wortSensorName = p.getProperty(WORT_SENSOR);
         String outputFilePath = p.getProperty(TEMPERATURE_OUTPUT_FILE);
         String sensorsFolder = p.getProperty(SENSORS_FOLDER);
 
-        return new TemperatureCollector(roomSensorName, wortSensorName, sensorsFolder, outputFilePath);
+        return new TemperatureCollector(roomSensorName, wortSensorName, sensorsFolder, outputFilePath, gpioCtrl);
     }
 
     public static void main(String[] args) {
-        build(Util.getProperties(args[0])).execute();
+        build(Util.getProperties(args[0]), new GPIOController()).execute();
     }
 
     @Override
@@ -62,14 +64,14 @@ public class TemperatureCollector extends Thread{
         String roomTemperatureValue = temperatureReader.getRoomTemperature();
         String wortTemperatureValue = temperatureReader.getWorthTemperature();
 
-        String line = now() + "|" + roomTemperatureValue + "|" + wortTemperatureValue;
+        String line = now() + "|" + roomTemperatureValue + "|" + wortTemperatureValue + "|" + gpioCtrl.getStatus().encode();
 
         logger.info(line);
         writeTemperatureInFile(outputFilePath, line);
     }
 
     private void writeHeader() {
-        writeTemperatureInFile(outputFilePath, "date|room|wort");
+        writeTemperatureInFile(outputFilePath, "date|room|wort|status");
     }
 
     private static void writeTemperatureInFile(String outputFilePath, String line) {

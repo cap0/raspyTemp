@@ -24,7 +24,9 @@ public class Orchestrator {
 
         LCD lcd = new LCD();
         lcd.print("starting...","");
-        scheduleTemperatureCollector(p);
+        GPIOController gpioCtrl = new GPIOController();
+
+        scheduleTemperatureCollector(p, gpioCtrl);
         scheduleIOTSender(p);
         scheduleTemperatureAlarm(p);
 
@@ -33,7 +35,8 @@ public class Orchestrator {
         scheduleFTPUpload(p, lock);
 
         ConnectionChecker connCheck = scheduleConnectionChecker();
-        scheduleController(p, connCheck, lcd);
+
+        scheduleController(p, connCheck, lcd, gpioCtrl);
     }
 
     private static ConnectionChecker scheduleConnectionChecker() {
@@ -55,10 +58,10 @@ public class Orchestrator {
         scheduler.scheduleAtFixedRate(task, 0, 60, SECONDS);
     }
 
-    private static void scheduleTemperatureCollector(Properties properties) {
+    private static void scheduleTemperatureCollector(Properties properties, GPIOController gpioCtrl) {
         logger.info("Schedule temperature collector Process");
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        Runnable task = TemperatureCollector.build(properties);
+        Runnable task = TemperatureCollector.build(properties, gpioCtrl);
         int periodicDelay = getIntegerProperty(properties, PROCESSES_PERIODIC_DELAY);
 
         logger.info("Temperature collector Process. initialDelay= " + 0 + " periodicDelay= " + periodicDelay + " period= " + SECONDS);
@@ -96,10 +99,10 @@ public class Orchestrator {
         scheduler.scheduleAtFixedRate(ftpUploadTask, initialDelay, periodicDelay, MINUTES);
     }
 
-    private static void scheduleController(Properties properties, ConnectionChecker connCheck, LCD lcd) {
+    private static void scheduleController(Properties properties, ConnectionChecker connCheck, LCD lcd, GPIOController gpioCtrl) {
         logger.info("Schedule Controller");
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        Runnable controller = new Controller(properties, connCheck, lcd);
+        Runnable controller = new Controller(properties, connCheck, lcd, gpioCtrl);
         scheduler.schedule(controller, 20, SECONDS);
     }
 

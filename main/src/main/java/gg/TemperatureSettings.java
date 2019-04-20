@@ -12,8 +12,6 @@ import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDateTime;
 import java.util.*;
 
-import static gg.Constants.TEMPERATURE_SETTINGS_FILE_PATH;
-import static gg.Util.getPropertyOrDefault;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
 class TemperatureSettings {
@@ -22,9 +20,7 @@ class TemperatureSettings {
     private List<Range<ChronoLocalDateTime<?>>> ranges = new ArrayList<>();
     private List<Double> values = new ArrayList<>();
 
-    TemperatureSettings(Properties p){
-        String tempSettingsFilePath = getPropertyOrDefault(p, TEMPERATURE_SETTINGS_FILE_PATH, TEMPERATURE_SETTINGS_FILE_PATH);
-
+    TemperatureSettings(String tempSettingsFilePath){
         try{
             long count = Files.lines(Paths.get(tempSettingsFilePath))
                     .filter(StringUtils::isNotBlank)

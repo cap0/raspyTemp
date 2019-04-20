@@ -11,7 +11,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static gg.Constants.*;
-import static gg.Controller.Status.*;
 import static gg.Util.formatTemperature;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -23,6 +22,7 @@ public class Controller implements Runnable{
 
     private final Double configDeltaTemp;
     private Double actualDeltaTemp;
+    private final String temperatureSettingsPath;
     private final IGPIOController gpioCtrl;
     private final LCD lcd;
     private ConnectionChecker connCheck;
@@ -30,20 +30,21 @@ public class Controller implements Runnable{
     private IReadTemperature temperatureReader;
     private TemperatureSettings temperatureSettings;
 
-    Controller(Properties p, ConnectionChecker connCheck, LCD lcd) {
+    Controller(Properties p, ConnectionChecker connCheck, LCD lcd, GPIOController gpioCtrl) {
         this(new TemperatureReader(p.getProperty(SENSORS_FOLDER),
-                p.getProperty(WORT_SENSOR),
-                p.getProperty(ROOM_SENSOR)),
-               new TemperatureSettings(p),
+                        p.getProperty(WORT_SENSOR),
+                        p.getProperty(ROOM_SENSOR)),
+                p.getProperty(TEMPERATURE_SETTINGS_FILE_PATH),
                 getDeltaTempFromProperties(p),
                 getDeltaTempFromProperties(p),
-                new GPIOController(), lcd, connCheck);
+                gpioCtrl, lcd, connCheck);
     }
 
-    private Controller(IReadTemperature temperatureReader, TemperatureSettings temperatureSettings,
+    private Controller(IReadTemperature temperatureReader, String temperatureSettingsPath,
                        Double configDeltaTemp, Double actualDeltaTemp, IGPIOController gpioCtrl, LCD lcd, ConnectionChecker connCheck) {
         this.temperatureReader = temperatureReader;
-        this.temperatureSettings = temperatureSettings;
+        this.temperatureSettingsPath = temperatureSettingsPath;
+        this.temperatureSettings = new TemperatureSettings(temperatureSettingsPath);
         this.configDeltaTemp = configDeltaTemp;
         this.actualDeltaTemp = actualDeltaTemp;
         this.gpioCtrl = gpioCtrl;
@@ -65,23 +66,19 @@ public class Controller implements Runnable{
         double upperBound = getUpperBound(settingTemp);
 
         String roomTemp = temperatureReader.getRoomTemperature();
-        Status s;
         if (wortTemp > upperBound) {
             cooling();
             actualDeltaTemp = DELTA_TEMP_WHEN_ACTIVE;
-            s = cold;
         } else if (wortTemp < lowerBound) {
             heating();
             actualDeltaTemp = DELTA_TEMP_WHEN_ACTIVE;
-            s = warm;
         } else { // temp in range
             stopHeatingOrCooling();
             actualDeltaTemp = configDeltaTemp;
-            s = ferm;
         }
 
         String connStatus = connCheck.isConnectionAvailable() ? "V" : "X";
-        lcd(s, wortTemp, roomTemp, getLowerBound(settingTemp), getUpperBound(settingTemp), connStatus);
+        lcd(gpioCtrl.getStatus(), wortTemp, roomTemp, getLowerBound(settingTemp), getUpperBound(settingTemp), connStatus);
     }
 
     private void lcd(Status cool, Double wortTemp, String roomTemp, double lowerBound, double upperBound, String connStatus) {
@@ -150,7 +147,7 @@ public class Controller implements Runnable{
 
     private void schedule() {
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        Runnable task = new Controller(temperatureReader, temperatureSettings, configDeltaTemp, actualDeltaTemp, gpioCtrl,lcd, connCheck);
+        Runnable task = new Controller(temperatureReader, temperatureSettingsPath, configDeltaTemp, actualDeltaTemp, gpioCtrl, lcd, connCheck);
         scheduler.schedule(task, 1, MINUTES);
         logger.info("controller in a minute: " + configDeltaTemp);
     }
@@ -165,9 +162,5 @@ public class Controller implements Runnable{
 
     private double getLowerBound(double settingTemp) {
         return settingTemp - actualDeltaTemp;
-    }
-
-    enum Status{
-        warm, cold, ferm;
     }
 }

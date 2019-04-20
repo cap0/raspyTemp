@@ -11,8 +11,9 @@ public class GPIOController implements IGPIOController{
     private final GpioController gpio;
     private final GpioPinDigitalOutput fridgePin;
     private final GpioPinDigitalOutput beltPin;
+    private Status status;
 
-    GPIOController(){
+    GPIOController() {
         gpio = GpioFactory.getInstance();
 
         fridgePin = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_04, "fridgePin", PinState.HIGH);
@@ -23,6 +24,7 @@ public class GPIOController implements IGPIOController{
         fridgePin.setShutdownOptions(true, PinState.HIGH);
         beltPin.setShutdownOptions(true, PinState.HIGH);
 
+        status = Status.ferm;
         shutdownHook();
     }
 
@@ -37,6 +39,7 @@ public class GPIOController implements IGPIOController{
             logger.info("setting fridge pin to low");
             fridgePin.low();
         }
+        status = Status.cold;
     }
 
     @Override
@@ -49,6 +52,7 @@ public class GPIOController implements IGPIOController{
             logger.info("setting fridge pin to high");
             fridgePin.high();
         }
+        status = Status.ferm;
     }
 
     @Override
@@ -62,6 +66,7 @@ public class GPIOController implements IGPIOController{
             logger.info("setting belt pin to low");
             beltPin.low();
         }
+        status = Status.warm;
     }
 
     @Override
@@ -74,12 +79,18 @@ public class GPIOController implements IGPIOController{
             logger.info("setting belt pin to high");
             beltPin.high();
         }
+        status = Status.ferm;
     }
 
     @Override
     public void stop() {
         stopBelt();
         stopFridge();
+    }
+
+    @Override
+    public Status getStatus(){
+        return status;
     }
 
     private void shutdownHook() {

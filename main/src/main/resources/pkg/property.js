@@ -9,8 +9,3 @@ window.onload = function () {
     document.getElementById('info_notes').innerText = '';
     document.getElementById('date_div_now').innerText = "Now: " +  new Date().toISOString();
 };
-
-opt =[{
-    'd': "2018-12-27T00:00",
-    'v': 18
-}];

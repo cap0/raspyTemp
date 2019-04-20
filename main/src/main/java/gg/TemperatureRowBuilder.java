@@ -12,10 +12,10 @@ class TemperatureRowBuilder {
 
 
     private LocalDateTime date;
-    private double chamberTemp;
+    private double roomTemp;
     private double wortTemp;
     private Double settingTemperature;
-
+    private int status;
 
     TemperatureRowBuilder date(String date, String datePattern){
         DateTimeFormatter formatter = StringUtils.isBlank(datePattern) ? DateTimeFormatter.ISO_LOCAL_DATE_TIME : DateTimeFormatter.ofPattern(datePattern);
@@ -28,11 +28,11 @@ class TemperatureRowBuilder {
         return this;
     }
 
-    TemperatureRowBuilder chamber(String chamberTemp){
+    TemperatureRowBuilder room(String roomTemp){
         try {
-            this.chamberTemp = Double.parseDouble(chamberTemp);
+            this.roomTemp = Double.parseDouble(roomTemp);
         } catch (NumberFormatException e) {
-            this.chamberTemp = Double.NaN;
+            this.roomTemp = Double.NaN;
         }
         return this;
     }
@@ -51,8 +51,13 @@ class TemperatureRowBuilder {
         return this;
     }
 
+    TemperatureRowBuilder status(int status) {
+        this.status = status;
+        return this;
+    }
+
     TemperatureRow build(){
-        return new TemperatureRow(date, chamberTemp, wortTemp, settingTemperature);
+        return new TemperatureRow(date, roomTemp, wortTemp, settingTemperature, status);
     }
 
 }

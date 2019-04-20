@@ -9,15 +9,17 @@ public class TemperatureRow {
     Double chamberTemp;
     Double wortTemp;
     Double settingTemperature;
+    int status;
 
     TemperatureRow(LocalDateTime date,
                    Double chamberTemp,
                    Double wortTemp,
-                   Double settingTemperature) {
+                   Double settingTemperature, int status) {
         this.date = date;
         this.chamberTemp = chamberTemp;
         this.wortTemp = wortTemp;
         this.settingTemperature = settingTemperature;
+        this.status = status;
     }
 
     TemperatureRow(TemperatureRow t){
@@ -25,10 +27,11 @@ public class TemperatureRow {
         this.chamberTemp = t.chamberTemp;
         this.wortTemp = t.wortTemp;
         this.settingTemperature = t.settingTemperature;
+        this.status = t.status;
     }
 
     @Override
-    public String toString() {
+    public String toString() { // TODO rimuovere?
         return "[ " + toJsDate(date) + "," + chamberTemp + "," + wortTemp + "," + settingTemperature + "]";
     }
 
@@ -36,8 +39,8 @@ public class TemperatureRow {
         return date != null && !chamberTemp.isNaN() && !wortTemp.isNaN();
     }
 
-    String toCsv(){
-        return date.toString() + "|" + chamberTemp + "|" + wortTemp+ "|" + settingTemperature;
+    String toCsv() {
+        return date.toString() + "|" + chamberTemp + "|" + wortTemp + "|" + settingTemperature + "|" + status;
     }
 
 

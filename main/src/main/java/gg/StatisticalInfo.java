@@ -25,7 +25,7 @@ public class StatisticalInfo {
                 "\n Replaced invalid values Chamber: " + invalidValuesChamber +
                 "\n Replaced invalid values Wort: " + invalidValuesWort +
                 "\n Skipped rows: " + skippedDates +
-                "\n Statistics chamber: " + chamberStats +
+                "\n Statistics room: " + chamberStats +
                 "\n Statistics wort: " + wortStats;
     }
 
