@@ -1,23 +1,30 @@
-var fileName="TEST.txt";
-google.charts.load('current', {'packages':['annotatedtimeline', 'gauge']});
-google.charts.setOnLoadCallback(drawChart);
+let fileName="TEST.txt";
 var chart;
+const unknown = 0;
+const fermenting = 1;
+const cooling = 2;
+const warming = 3;
+var lastDataForGauge = [0, 0];
+
+google.charts.load('current', {'packages':['annotationchart', 'gauge']});
+google.charts.setOnLoadCallback(drawChart);
+
+
 function drawChart() {
-    // TIME SERIES CHART
     var data = new google.visualization.DataTable();
     data.addColumn('date', 'Date');
     data.addColumn('number', 'Room');
     data.addColumn('number', 'Wort');
     data.addColumn('number', 'Set Temperature');
- //   data.addColumn('number', 'Set Temperature up');
- //   data.addColumn('number', 'Set Temperature low');
+    data.addColumn('string', 'Activation');
 
-    var d = processData(loadFile(fileName));
-    data.addRows(
-        d
-    );
+    //   data.addColumn('number', 'Set Temperature up');
+    //   data.addColumn('number', 'Set Temperature low');
 
-    chart = new google.visualization.AnnotatedTimeLine(document.getElementById('chart_div'));
+    var d = processData(loadFile(fileName)); // TODO global
+    data.addRows(d);
+
+    chart = new google.visualization.AnnotationChart(document.getElementById('chart_div'));
     chart.draw(data, {displayAnnotations: true, dateFormat : 'dd MM yyyy HH:mm:ss'});
     google.visualization.events.addListener(chart, 'rangechange', selectHandler);
 
@@ -94,8 +101,8 @@ function drawChart() {
 
     var gaugeData = google.visualization.arrayToDataTable([
         ['Label', 'Value'],
-        ['Room', lastTarr[1]],
-        ['Wort', lastTarr[2]]
+        ['Room', lastDataForGauge[0]],
+        ['Wort', lastDataForGauge[1]]
     ]);
 
     var options = {
@@ -159,47 +166,96 @@ function loadFile(filePath) {
     return result;
 }
 
-var lastTarr = [0, 0, 0];
 var firstDate = null;
 function processData(allText) {
     var allTextLines = allText.split(/\r\n|\n/);
     let dateLastUp = allTextLines[0];
     let dateLastAsDate = new Date(allTextLines[0]);
 
-    document.getElementById('date_div').innerText = "Last update: " +dateLastUp;
-    document.getElementById('date_div2').innerText = "Time since last update: "+ diff_data(dateLastAsDate);
-
-    if(date_minus_now(dateLastAsDate) < 10*60*1000) {
-        document.getElementById("dot").className = "greenDot";
-    }else{
-        document.getElementById("dot").className = "redDot";
-    }
+    lastUpdate(dateLastUp, dateLastAsDate);
+    greenRedDot(dateLastAsDate);
 
     var lines = [];
-
+    var previousActivationValue = 0;
     for (var i=1; i<allTextLines.length; i++) {
-
         var data = allTextLines[i].split('|');
-        if (data.length >=4) {
+        if (data.length >=4) { // date, room, wort, settings, activator
 
-            var tarr = [];
-            var d = new Date(data[0]);
-            tarr.push(d);
-            tarr.push(Number(data[1]));
-            tarr.push(Number(data[2]));
-            tarr.push(Number(data[3]));
+            var line = [];
 
-//          tarr.push(Number(get_settings(d) - 0.3));
-//          tarr.push(Number(get_settings(d) + 0.3));
+            let dv = new Date(data[0]);
+            line.push(dv); // data
 
-            lastTarr = tarr;
-            lines.push(tarr);
+            let wortValue = Number(data[1]);
+            line.push(wortValue); //wort
 
-            if(firstDate == null){
-                firstDate = d;
+            let roomValue = Number(data[2]);
+            line.push(roomValue); // room
+
+            line.push(Number(data[3])); // setting
+
+            previousActivationValue = annotations(data, previousActivationValue, line);
+
+//          line.push(Number(get_settings(d) - 0.3));
+//          line.push(Number(get_settings(d) + 0.3));
+
+            lastDataForGauge[0] = roomValue;
+            lastDataForGauge[1] = wortValue;
+            lines.push(line);
+
+            if(firstDate == null){ // spostare sopra ed eliminare variabile
+                firstDate = dv;
                 document.getElementById('info_age').innerText= "Brew Day "+ diff_data_days(firstDate);
             }
         }
     }
     return lines;
 }
+
+function lastUpdate(dateLastUp, dateLastAsDate) {
+    document.getElementById('date_div').innerText = "Last update: " + dateLastUp;
+    document.getElementById('date_div2').innerText = "Time since last update: " + diff_data(dateLastAsDate);
+}
+
+function greenRedDot(dateLastAsDate) {
+    if (date_minus_now(dateLastAsDate) < 10 * 60 * 1000) {
+        document.getElementById("dot").className = "greenDot";
+    } else {
+        document.getElementById("dot").className = "redDot";
+    }
+}
+
+function annotations(data, previousActivationValue, line) {
+    if (data.length === 5) {
+        let activator = data[4];
+        if (previousActivationValue !== activator) {
+            line.push(decode(previousActivationValue, activator)); // annotation
+            previousActivationValue = activator;
+        } else {
+            line.push(null);
+        }
+    } else {
+        line.push(null);
+    }
+    return previousActivationValue;
+}
+
+function decode(previous, current) {
+    if (current === unknown) {
+        return "unknown";
+    }
+    if (current === fermenting) {
+        if (previous === cooling) {
+            return "stop fridge";
+        } else {
+            return "stop warm belt";
+        }
+    }
+    if (current === cooling) {
+        return "start fridge";
+    }
+    if (current === warming) {
+        return "start warming";
+    }
+}
+

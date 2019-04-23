@@ -18,7 +18,7 @@ import java.util.Properties;
 
 import static gg.Constants.*;
 
-public class IotSender implements Runnable{
+public class IotSender implements Runnable{ //TODO bulk upload
     private static final Logger logger = LogManager.getLogger(Orchestrator.class);
     private final TemperatureReader temperatureReader;
     private final String writeKey;
