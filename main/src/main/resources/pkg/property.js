@@ -7,5 +7,4 @@ window.onload = function () {
     document.getElementById('info_stcTempDiff').innerText = '';
     document.getElementById('info_stcColdLag').innerText = '';
     document.getElementById('info_notes').innerText = '';
-    document.getElementById('date_div_now').innerText = "Now: " +  new Date().toISOString();
 };

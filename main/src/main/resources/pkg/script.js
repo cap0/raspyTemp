@@ -1,10 +1,10 @@
 let fileName="TEST.txt";
-var chart;
+let chart;
 const unknown = 0;
 const fermenting = 1;
 const cooling = 2;
 const warming = 3;
-var lastDataForGauge = [0, 0];
+let lastDataForGauge = [0, 0];
 
 google.charts.load('current', {'packages':['annotationchart', 'gauge']});
 google.charts.setOnLoadCallback(drawChart);
@@ -166,17 +166,17 @@ function loadFile(filePath) {
     return result;
 }
 
-var firstDate = null;
 function processData(allText) {
     var allTextLines = allText.split(/\r\n|\n/);
-    let dateLastUp = allTextLines[0];
     let dateLastAsDate = new Date(allTextLines[0]);
 
-    lastUpdate(dateLastUp, dateLastAsDate);
+    lastUpdate(dateLastAsDate);
     greenRedDot(dateLastAsDate);
+    brewDay(dateLastAsDate);
 
     var lines = [];
     var previousActivationValue = 0;
+
     for (var i=1; i<allTextLines.length; i++) {
         var data = allTextLines[i].split('|');
         if (data.length >=4) { // date, room, wort, settings, activator
@@ -202,19 +202,15 @@ function processData(allText) {
             lastDataForGauge[0] = roomValue;
             lastDataForGauge[1] = wortValue;
             lines.push(line);
-
-            if(firstDate == null){ // spostare sopra ed eliminare variabile
-                firstDate = dv;
-                document.getElementById('info_age').innerText= "Brew Day "+ diff_data_days(firstDate);
-            }
         }
     }
     return lines;
 }
 
-function lastUpdate(dateLastUp, dateLastAsDate) {
-    document.getElementById('date_div').innerText = "Last update: " + dateLastUp;
+function lastUpdate(dateLastAsDate) {
+    document.getElementById('date_div').innerText = "Last update: " + dateLastAsDate.toLocaleString();
     document.getElementById('date_div2').innerText = "Time since last update: " + diff_data(dateLastAsDate);
+    document.getElementById('date_div_now').innerText = "Now: " +  new Date().toLocaleString();
 }
 
 function greenRedDot(dateLastAsDate) {
@@ -225,9 +221,13 @@ function greenRedDot(dateLastAsDate) {
     }
 }
 
+function brewDay(dateLastAsDate) {
+    document.getElementById('info_age').innerText = "Brew Day " + diff_data_days(dateLastAsDate);
+}
+
 function annotations(data, previousActivationValue, line) {
     if (data.length === 5) {
-        let activator = data[4];
+        let activator = parseInt(data[4]);
         if (previousActivationValue !== activator) {
             line.push(decode(previousActivationValue, activator)); // annotation
             previousActivationValue = activator;
