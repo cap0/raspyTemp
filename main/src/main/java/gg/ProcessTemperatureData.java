@@ -24,7 +24,6 @@ public class ProcessTemperatureData implements Runnable{
 
     private static final Logger logger = LogManager.getLogger(ProcessTemperatureData.class);
 
-    private TemperatureSettings temperatureSettings;
     private DateRange dataRange;
     private Double minAllowedTemp;
     private Double maxAllowedTemp;
@@ -32,6 +31,7 @@ public class ProcessTemperatureData implements Runnable{
     private String sourceFilePath;
     private String temperatureProcessedOutputFile;
     private String datePattern;
+    private String temperatureSettingsPath;
 
     private ReentrantLock lock;
 
@@ -57,7 +57,7 @@ public class ProcessTemperatureData implements Runnable{
     }
 
     private void getProperties(Properties p){
-        temperatureSettings = readTemperatureSettings(p);
+        temperatureSettingsPath = getProperty(p, TEMPERATURE_SETTINGS_FILE_PATH);
         dataRange = buildDataRange(getProperty(p, START_DATE), getProperty(p, END_DATE));
         minAllowedTemp = Double.valueOf(getPropertyOrDefault(p, MIN_ALLOWED_TEMP, "0"));
         maxAllowedTemp = Double.valueOf(getPropertyOrDefault(p, MAX_ALLOWED_TEMP, "50"));
@@ -69,7 +69,7 @@ public class ProcessTemperatureData implements Runnable{
 
     private void processRawData() throws IOException {
         logger.debug("Start processing data");
-        StatisticalInfo statisticalInfo = processSourceFile(dataRange, sourceFilePath, temperatureSettings, minAllowedTemp, maxAllowedTemp, aggregationFactor);
+        StatisticalInfo statisticalInfo = processSourceFile(dataRange, sourceFilePath, new TemperatureSettings(temperatureSettingsPath), minAllowedTemp, maxAllowedTemp, aggregationFactor);
         writeProcessedData(temperatureProcessedOutputFile, statisticalInfo.temperatures);
     }
 

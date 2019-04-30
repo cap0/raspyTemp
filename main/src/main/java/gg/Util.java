@@ -60,10 +60,6 @@ class Util {
         return Double.NaN;
     }
 
-    static TemperatureSettings readTemperatureSettings(Properties p) {
-        return new TemperatureSettings(getProperty(p, TEMPERATURE_SETTINGS_FILE_PATH));
-    }
-
     private static NumberFormat nf =  new DecimalFormat("##.##");
     static String formatTemperature(double temperature) {
         return nf.format(temperature);

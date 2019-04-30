@@ -20,8 +20,8 @@ class TemperatureSettings {
     private List<Range<ChronoLocalDateTime<?>>> ranges = new ArrayList<>();
     private List<Double> values = new ArrayList<>();
 
-    TemperatureSettings(String tempSettingsFilePath){
-        try{
+    TemperatureSettings(String tempSettingsFilePath) {
+        try {
             long count = Files.lines(Paths.get(tempSettingsFilePath))
                     .filter(StringUtils::isNotBlank)
                     .map(l -> l.trim().split(";"))
@@ -29,8 +29,8 @@ class TemperatureSettings {
                     .peek(r -> values.add(Double.parseDouble(r[2])))
                     .count();
             logger.info("read " + count + " lines from temperature settings");
-    } catch (IOException e) {
-            logger.error("Error reading settings file",e);
+        } catch (IOException e) {
+            logger.error("Error reading settings file", e);
         }
     }
 
