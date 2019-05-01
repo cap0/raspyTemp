@@ -12,7 +12,8 @@ import java.util.concurrent.TimeUnit;
 
 import static gg.Constants.*;
 import static gg.Util.formatTemperature;
-import static java.util.concurrent.TimeUnit.MINUTES;
+import static gg.Util.toDouble;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public class Controller implements Runnable{
@@ -54,11 +55,14 @@ public class Controller implements Runnable{
 
 
     private void checkIfTempIsOnRange(LocalDateTime now) {
-        Optional<Double> wortTempOpt = getWortTemp();
+       /* Optional<Double> wortTempOpt = getWortTemp();
         if (!wortTempOpt.isPresent()) {
             return;
         }
         Double wortTemp = wortTempOpt.get();
+        */
+
+        Double wortTemp = toDouble(temperatureReader.getWorthTemperature());
 
         double settingTemp = temperatureSettings.getTemperatureSettingsValueForDate(now);
 
@@ -148,8 +152,7 @@ public class Controller implements Runnable{
     private void schedule() {
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         Runnable task = new Controller(temperatureReader, temperatureSettingsPath, configDeltaTemp, actualDeltaTemp, gpioCtrl, lcd, connCheck);
-        scheduler.schedule(task, 1, MINUTES);
-        logger.info("controller in a minute: " + configDeltaTemp);
+        scheduler.schedule(task, 10, SECONDS);
     }
 
     private static Double getDeltaTempFromProperties(Properties p) {
