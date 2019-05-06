@@ -87,10 +87,10 @@ public class FTPUploadFile implements Runnable{
                 logger.info("Start uploading " + remoteFileName + " in ftp://" + host+"/"+remoteTempFilePath);
                 boolean done = ftp.storeFile(remoteTempFilePath, fileToUpload);
                 if (done) {
-                    logger.info("Html page " + remoteFileName + " has been uploaded successfully.");
+                    logger.info("File " + remoteFileName + " has been uploaded successfully.");
                     rename(ftp, remoteTempFilePath);
                 } else {
-                    logger.warn("Html page " + remoteFileName + " not uploaded");
+                    logger.warn("File " + remoteFileName + " not uploaded");
                 }
             }
         } catch (IOException e) {

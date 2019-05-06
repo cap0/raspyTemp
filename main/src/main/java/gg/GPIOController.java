@@ -30,11 +30,11 @@ public class GPIOController implements IGPIOController{
 
     @Override
     public void startFridge() {
-        logger.info("request to start fridge");
+        logger.debug("request to start fridge");
         beltPin.high();
 
         if (fridgePin.isLow()) {
-            logger.info("fridge pin is low, nope");
+            logger.debug("fridge pin is low, nope");
         } else {
             logger.info("setting fridge pin to low");
             fridgePin.low();
@@ -44,10 +44,10 @@ public class GPIOController implements IGPIOController{
 
     @Override
     public void stopFridge() {
-        logger.info("request to stop fridge");
+        logger.debug("request to stop fridge");
 
         if (fridgePin.isHigh()) {
-            logger.info("fridge pin is high, nope");
+            logger.debug("fridge pin is high, nope");
         } else {
             logger.info("setting fridge pin to high");
             fridgePin.high();
@@ -57,11 +57,11 @@ public class GPIOController implements IGPIOController{
 
     @Override
     public void startBelt() {
-        logger.info("request to start belt");
+        logger.debug("request to start belt");
         fridgePin.high();
 
         if (beltPin.isLow()) {
-            logger.info("belt pin is low, nope");
+            logger.debug("belt pin is low, nope");
         } else {
             logger.info("setting belt pin to low");
             beltPin.low();
@@ -71,10 +71,10 @@ public class GPIOController implements IGPIOController{
 
     @Override
     public void stopBelt() {
-        logger.info("request to stop belt");
+        logger.debug("request to stop belt");
 
         if (beltPin.isHigh()) {
-            logger.info("belt pin is high, nope");
+            logger.debug("belt pin is high, nope");
         } else {
             logger.info("setting belt pin to high");
             beltPin.high();
