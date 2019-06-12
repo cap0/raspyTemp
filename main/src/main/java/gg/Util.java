@@ -60,7 +60,7 @@ class Util {
         return Double.NaN;
     }
 
-    private static NumberFormat nf =  new DecimalFormat("##.##");
+    private static NumberFormat nf =  new DecimalFormat("##.#");
     static String formatTemperature(double temperature) {
         return nf.format(temperature);
     }

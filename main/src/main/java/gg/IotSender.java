@@ -44,7 +44,7 @@ public class IotSender implements Runnable{ //TODO bulk upload
             if (statusCode < 200 || statusCode >= 300) {
                 logger.error("Error firing data: " + statusLine.getReasonPhrase());
             }
-            logger.debug("send");
+            logger.info("upload completed on IOT: Room: "+ roomTemperatureValue + " wort" + wortTemperatureValue);
         } catch (IOException e) {
             logger.error("Error firing data to IOT endpoint", e);
         }
