@@ -85,9 +85,9 @@ public class Controller implements Runnable{
         lcd(gpioCtrl.getStatus(), wortTemp, roomTemp, getLowerBound(settingTemp), getUpperBound(settingTemp), connStatus);
     }
 
-    private void lcd(Status cool, Double wortTemp, String roomTemp, double lowerBound, double upperBound, String connStatus) {
+    private void lcd(Status status, Double wortTemp, String roomTemp, double lowerBound, double upperBound, String connStatus) {
         String row0 = "R " + roomTemp + " W " + wortTemp;
-        String row1 = cool + " "+ formatTempRangeForLcd(lowerBound, upperBound) + " " +connStatus;
+        String row1 = status + " "+ formatTempRangeForLcd(lowerBound, upperBound) + " " +connStatus;
         lcd.print(row0, row1);
         logger.info(row0 + " " + row1);
     }

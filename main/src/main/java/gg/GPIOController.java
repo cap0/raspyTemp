@@ -11,7 +11,7 @@ public class GPIOController implements IGPIOController{
     private final GpioController gpio;
     private final GpioPinDigitalOutput fridgePin;
     private final GpioPinDigitalOutput beltPin;
-    private Status status;
+    private Status status; //TODO volatile?
 
     GPIOController() {
         gpio = GpioFactory.getInstance();

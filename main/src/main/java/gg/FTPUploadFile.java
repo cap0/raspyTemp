@@ -61,6 +61,8 @@ public class FTPUploadFile implements Runnable{
 
         if (lock.isLocked()) {
             logger.warn("lock is still taken. go anyway");
+        }else{
+            logger.info("lock released.");
         }
     }
 
@@ -68,7 +70,7 @@ public class FTPUploadFile implements Runnable{
         logger.info("Starting FTP Upload");
 
         FTPClient ftp = new FTPClient();
-        int timeout = 5 * 60 * 1000;
+        int timeout = 60 * 1000;
 
         ftp.setConnectTimeout(timeout);
         ftp.setDataTimeout(timeout);

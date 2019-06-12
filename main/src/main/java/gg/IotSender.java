@@ -56,7 +56,11 @@ public class IotSender implements Runnable{ //TODO bulk upload
     }
 
     private HttpClient getHttpClient() {
-        RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(30 * 1000).build();
+        int timeout = 30 * 1000;
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectTimeout(timeout)
+                .setSocketTimeout(timeout)
+                .build();
         return HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build();
     }
 
