@@ -19,6 +19,7 @@ public class Orchestrator {
     private static final Logger logger = LogManager.getLogger(Orchestrator.class);
 
     public static void main(String[] args) {
+        logger.debug("all starts here...");
         checkArguments(args);
         Properties p = mergePropertiesFile(args);
 
@@ -103,7 +104,7 @@ public class Orchestrator {
         logger.info("Schedule Controller");
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         Runnable controller = new Controller(properties, connCheck, lcd, gpioCtrl);
-        scheduler.schedule(controller, 20, SECONDS);
+        scheduler.scheduleAtFixedRate(controller, 10,10, SECONDS);
     }
 
     private static void checkArguments(String[] args) {

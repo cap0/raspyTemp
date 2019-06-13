@@ -14,7 +14,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 public class ConnectionChecker implements Runnable {
     private static final Logger logger = LogManager.getLogger(ConnectionChecker.class);
 
-    private Boolean connectionAvailable = false;
+    private volatile Boolean connectionAvailable = false;
     private LocalDateTime lastActive = null;
     private boolean logPrinted = false;
 

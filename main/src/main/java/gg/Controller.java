@@ -6,14 +6,11 @@ import org.apache.logging.log4j.Logger;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static gg.Constants.*;
 import static gg.Util.formatTemperature;
 import static gg.Util.toDouble;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public class Controller implements Runnable{
@@ -21,8 +18,9 @@ public class Controller implements Runnable{
     private static final Logger logger = LogManager.getLogger(Controller.class);
     private static final double DELTA_TEMP_WHEN_ACTIVE = 0.1;
 
+    private static volatile Double actualDeltaTemp = 1.0; //TODO check
+
     private final Double configDeltaTemp;
-    private Double actualDeltaTemp;
     private final String temperatureSettingsPath;
     private final IGPIOController gpioCtrl;
     private final LCD lcd;
@@ -37,17 +35,15 @@ public class Controller implements Runnable{
                         p.getProperty(ROOM_SENSOR)),
                 p.getProperty(TEMPERATURE_SETTINGS_FILE_PATH),
                 getDeltaTempFromProperties(p),
-                getDeltaTempFromProperties(p),
                 gpioCtrl, lcd, connCheck);
     }
 
     private Controller(IReadTemperature temperatureReader, String temperatureSettingsPath,
-                       Double configDeltaTemp, Double actualDeltaTemp, IGPIOController gpioCtrl, LCD lcd, ConnectionChecker connCheck) {
+                       Double configDeltaTemp, IGPIOController gpioCtrl, LCD lcd, ConnectionChecker connCheck) {
         this.temperatureReader = temperatureReader;
         this.temperatureSettingsPath = temperatureSettingsPath;
         this.temperatureSettings = new TemperatureSettings(temperatureSettingsPath);
         this.configDeltaTemp = configDeltaTemp;
-        this.actualDeltaTemp = actualDeltaTemp;
         this.gpioCtrl = gpioCtrl;
         this.lcd = lcd;
         this.connCheck = connCheck;
@@ -55,6 +51,7 @@ public class Controller implements Runnable{
 
 
     private void checkIfTempIsOnRange(LocalDateTime now) {
+        logger.debug("checking temperature " + now);
        /* Optional<Double> wortTempOpt = getWortTemp();
         if (!wortTempOpt.isPresent()) {
             return;
@@ -142,17 +139,9 @@ public class Controller implements Runnable{
     public void run() {
         try {
             checkIfTempIsOnRange(LocalDateTime.now());
-        } catch (Exception e) {
+        } catch (Throwable e) {
             logger.error(e);
-        } finally {
-            schedule();
         }
-    }
-
-    private void schedule() {
-        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        Runnable task = new Controller(temperatureReader, temperatureSettingsPath, configDeltaTemp, actualDeltaTemp, gpioCtrl, lcd, connCheck);
-        scheduler.schedule(task, 10, SECONDS);
     }
 
     private static Double getDeltaTempFromProperties(Properties p) {
