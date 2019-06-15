@@ -12,7 +12,7 @@ n=`date +%FT%T`
 echo $n
 echo $folderName
 
-mkdir $folderName
+mkdir ~/$folderName
 cd ~/raspyTemp/main
 git pull
 mvn clean install
@@ -22,19 +22,20 @@ cp ~/raspyTemp/main/src/main/resources/config/app.properties ~/$folderName
 cp ~/raspyTemp/main/src/main/resources/config/start.sh ~/$folderName
 cp ~/raspyTemp/main/src/main/resources/log4j2.xml ~/$folderName
 
-cd $folderName
+cd ~/$folderName
 
-sed s/XXX1/$n/g ~/$folderName/app.properties
-sed s/XXX2/$folderName/g ~/$folderName/app.properties
+sed -i s/XXX1/$n/ ~/$folderName/app.properties
+sed -i s/XXX2/$folderName/ ~/$folderName/app.properties
 
+dateNow=`date +%FT%T`
 nextMonth=`date +%FT%T --date='+1 month'`
 echo "$d;$nextMonth;17" >> ~/$folderName/temperatureSettings
 
 cp ~/ftp.properties ~/$folderName/ftp.properties
-sed s/XXX/$iotKey/g ~/$folderName/ftp.properties
+sed -i s/XXX/$iotKey/ ~/$folderName/ftp.properties
 
 chmod + x ~/$folderName/start.sh
 
-ln -s ~/$folderName ~/current
+ln -sf ~/$folderName ~/current
 
 echo start
