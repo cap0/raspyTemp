@@ -34,7 +34,7 @@ echo "$d;$nextMonth;17" >> ~/$folderName/temperatureSettings
 cp ~/ftp.properties ~/$folderName/ftp.properties
 sed -i s/XXX/$iotKey/ ~/$folderName/ftp.properties
 
-chmod + x ~/$folderName/start.sh
+chmod +x ~/$folderName/start.sh
 
 ln -sf ~/$folderName ~/current
 
