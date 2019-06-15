@@ -29,7 +29,7 @@ sed -i s/XXX2/$folderName/ ~/$folderName/app.properties
 
 dateNow=`date +%FT%T`
 nextMonth=`date +%FT%T --date='+1 month'`
-echo "$d;$nextMonth;17" >> ~/$folderName/temperatureSettings
+echo "$dateNow;$nextMonth;17" >> ~/$folderName/temperatureSettings
 
 cp ~/ftp.properties ~/$folderName/ftp.properties
 sed -i s/XXX/$iotKey/ ~/$folderName/ftp.properties
