@@ -107,10 +107,10 @@ function drawChart() {
 
     var options = {
         width: 600, height: 200,
-        redFrom: 25, redTo: 30,
-        yellowFrom:20, yellowTo: 25,
+        redFrom: 21, redTo: 25,
+        yellowFrom:19, yellowTo: 21,
         minorTicks: 5,
-        min: -5, max: 30
+        min: -5, max: 25
     };
 
     var gaugeChart = new google.visualization.Gauge(document.getElementById('gauge_div'));
@@ -169,10 +169,11 @@ function loadFile(filePath) {
 function processData(allText) {
     var allTextLines = allText.split(/\r\n|\n/);
     let dateLastAsDate = new Date(allTextLines[0]);
+    let dateFirstAsDate = new Date(allTextLines[1].split("|")[0]);
 
     lastUpdate(dateLastAsDate);
     greenRedDot(dateLastAsDate);
-    brewDay(dateLastAsDate);
+    brewDay(dateFirstAsDate);
 
     var lines = [];
     var previousActivationValue = 0;

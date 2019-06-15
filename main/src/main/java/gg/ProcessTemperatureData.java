@@ -36,7 +36,7 @@ public class ProcessTemperatureData implements Runnable{
     private ReentrantLock lock;
 
     ProcessTemperatureData(Properties p, ReentrantLock lock){
-        getProperties(p);
+        getProperties(p);//TODO make changeable on the run
         this.lock = lock;
     }
 
@@ -74,7 +74,7 @@ public class ProcessTemperatureData implements Runnable{
     }
 
     private void writeProcessedData(String temperatureProcessedOutputFile, List<TemperatureRow> temperatures) throws IOException {
-        writeNowDateInFile(temperatureProcessedOutputFile);
+        writeNowDateInFile(temperatureProcessedOutputFile); //TODO could write the beer name
 
         List<String> lines = temperatures.stream()
                 .map(TemperatureRow::toCsv)
