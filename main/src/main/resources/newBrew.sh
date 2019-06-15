@@ -2,8 +2,8 @@
 echo "Creating new brew"
 echo "Enter brew name (no spaces)"
 read name
-echo "Enter iot write key"
-read iotKey
+#echo "Enter iot write key"
+#read iotKey
 
 d=`date +%Y-%m`
 folderName="$d-$name"
@@ -32,10 +32,11 @@ nextMonth=`date +%FT%T --date='+1 month'`
 echo "$dateNow;$nextMonth;17" >> ~/$folderName/temperatureSettings
 
 cp ~/ftp.properties ~/$folderName/ftp.properties
-sed -i s/XXX/$iotKey/ ~/$folderName/ftp.properties
+#sed -i s/XXX/$iotKey/ ~/$folderName/ftp.properties
 
 chmod +x ~/$folderName/start.sh
 
 ln -sf ~/$folderName ~/current
 
 echo start
+#./start.sh & >/dev/null
