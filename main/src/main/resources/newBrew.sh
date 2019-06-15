@@ -14,8 +14,8 @@ echo $folderName
 
 mkdir $folderName
 cd ~/raspyTemp/main
-#git pull
-#mvn clean install
+git pull
+mvn clean install
 
 cp target/raspyTemp-1-jar-with-dependencies.jar  ~/$folderName
 cp ~/raspyTemp/main/src/main/resources/config/app.properties ~/$folderName
