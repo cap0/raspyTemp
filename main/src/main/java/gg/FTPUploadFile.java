@@ -75,6 +75,7 @@ public class FTPUploadFile implements Runnable{
         ftp.setConnectTimeout(timeout);
         ftp.setDataTimeout(timeout);
         ftp.setDefaultTimeout(timeout);
+        ftp.setControlKeepAliveTimeout(60);
         try {
             connect(ftp);
             ftp.setSoTimeout(timeout);

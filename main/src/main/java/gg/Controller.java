@@ -16,11 +16,10 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 public class Controller implements Runnable{
 
     private static final Logger logger = LogManager.getLogger(Controller.class);
-    private static final double DELTA_TEMP_WHEN_ACTIVE = 0.1;
+    private static volatile Double actualDeltaTemp;
+    private final Double deltaTempWhenFermenting;
+    private Double deltaTempWhenCoolingOrWarming;
 
-    private static volatile Double actualDeltaTemp = 1.0; //TODO check
-
-    private final Double configDeltaTemp;
     private final String temperatureSettingsPath;
     private final IGPIOController gpioCtrl;
     private final LCD lcd;
@@ -35,18 +34,21 @@ public class Controller implements Runnable{
                         p.getProperty(ROOM_SENSOR)),
                 p.getProperty(TEMPERATURE_SETTINGS_FILE_PATH),
                 getDeltaTempFromProperties(p),
+                getDeltaTempActiveFromProperties(p),
                 gpioCtrl, lcd, connCheck);
     }
 
     private Controller(IReadTemperature temperatureReader, String temperatureSettingsPath,
-                       Double configDeltaTemp, IGPIOController gpioCtrl, LCD lcd, ConnectionChecker connCheck) {
+                       Double configDeltaTemp, Double deltaTempWhenCoolingOrWarming, IGPIOController gpioCtrl, LCD lcd, ConnectionChecker connCheck) {
         this.temperatureReader = temperatureReader;
         this.temperatureSettingsPath = temperatureSettingsPath;
         this.temperatureSettings = new TemperatureSettings(temperatureSettingsPath);
-        this.configDeltaTemp = configDeltaTemp;
+        this.deltaTempWhenFermenting = configDeltaTemp;
+        this.deltaTempWhenCoolingOrWarming = deltaTempWhenCoolingOrWarming;
         this.gpioCtrl = gpioCtrl;
         this.lcd = lcd;
         this.connCheck = connCheck;
+        this.actualDeltaTemp = deltaTempWhenFermenting;
     }
 
 
@@ -69,13 +71,13 @@ public class Controller implements Runnable{
         String roomTemp = temperatureReader.getRoomTemperature();
         if (wortTemp > upperBound) {
             cooling();
-            actualDeltaTemp = DELTA_TEMP_WHEN_ACTIVE;
+            actualDeltaTemp = deltaTempWhenCoolingOrWarming;
         } else if (wortTemp < lowerBound) {
             heating();
-            actualDeltaTemp = DELTA_TEMP_WHEN_ACTIVE;
+            actualDeltaTemp = deltaTempWhenCoolingOrWarming;
         } else { // temp in range
             stopHeatingOrCooling();
-            actualDeltaTemp = configDeltaTemp;
+            actualDeltaTemp = deltaTempWhenFermenting;
         }
 
         String connStatus = connCheck.isConnectionAvailable() ? "V" : "X";
@@ -145,7 +147,11 @@ public class Controller implements Runnable{
     }
 
     private static Double getDeltaTempFromProperties(Properties p) {
-        return Double.valueOf(p.getProperty(CTRL_DELTA_TEMP, "0.5"));
+        return Double.valueOf(p.getProperty(CTRL_DELTA_TEMP, "0.5")); //TODO read changed file
+    }
+
+    private static Double getDeltaTempActiveFromProperties(Properties p) {
+        return Double.valueOf(p.getProperty(CTRL_DELTA_TEMP_ACTIVE, "0.1")); //TODO read changed file
     }
 
     private double getUpperBound(double settingTemp) {

@@ -37,4 +37,5 @@ class Constants {
     static final String MAIL_RECEIVER = "mail.receiver";
 
     static final String CTRL_DELTA_TEMP = "ctrl.delta.temp";
+    static final String CTRL_DELTA_TEMP_ACTIVE = "ctrl.delta.temp.active";
 }
