@@ -1,0 +1,2 @@
+sudo jstack -l 8147 > thread.dmp
+https://fastthread.io/index.jsp

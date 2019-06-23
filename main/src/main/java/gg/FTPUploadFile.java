@@ -45,7 +45,7 @@ public class FTPUploadFile implements Runnable{
         try {
             waitForDataProcessCompletion();
             uploadFile();
-        } catch (Exception t) {
+        } catch (Throwable t) {
             logger.fatal(t);
         }
     }
@@ -76,6 +76,7 @@ public class FTPUploadFile implements Runnable{
         ftp.setDataTimeout(timeout);
         ftp.setDefaultTimeout(timeout);
         ftp.setControlKeepAliveTimeout(60);
+        ftp.setControlKeepAliveReplyTimeout(1000);
         try {
             connect(ftp);
             ftp.setSoTimeout(timeout);
@@ -84,16 +85,22 @@ public class FTPUploadFile implements Runnable{
             logger.info("login");
             setOptions(ftp);
             String remoteTempFilePath = remoteFileName + "_tmp";
+            logger.info("reading file");
             File localFile = new File(dataFileToUpload);
 
-            try (InputStream fileToUpload = new FileInputStream(localFile)) {
-                logger.info("Start uploading " + remoteFileName + " in ftp://" + host+"/"+remoteTempFilePath);
-                boolean done = ftp.storeFile(remoteTempFilePath, fileToUpload);
-                if (done) {
-                    logger.info("File " + remoteFileName + " has been uploaded successfully.");
-                    rename(ftp, remoteTempFilePath);
+            try (InputStream fileToUpload = new FileInputStream(localFile)) { //TODO should I get the lock before?
+                logger.info("checking if available");
+                if (!ftp.isAvailable()) {
+                    logger.error("ftp not available");
                 } else {
-                    logger.warn("File " + remoteFileName + " not uploaded");
+                    logger.info("Start uploading " + remoteFileName + " in ftp://" + host + "/" + remoteTempFilePath);
+                    boolean done = ftp.storeFile(remoteTempFilePath, fileToUpload);
+                    if (done) {
+                        logger.info("File " + remoteFileName + " has been uploaded successfully.");
+                        rename(ftp, remoteTempFilePath);
+                    } else {
+                        logger.warn("File " + remoteFileName + " not uploaded");
+                    }
                 }
             }
         } catch (IOException e) {
@@ -107,6 +114,7 @@ public class FTPUploadFile implements Runnable{
         try {
             ftpClient.enterLocalPassiveMode();
             ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+            ftpClient.setFileTransferMode(FTP.COMPRESSED_TRANSFER_MODE);
         } catch (IOException e) {
             logger.error("Error on set options", e);
             throw e;

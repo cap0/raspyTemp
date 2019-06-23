@@ -23,7 +23,6 @@ public class Controller implements Runnable{
     private ConnectionChecker connCheck;
 
     private IReadTemperature temperatureReader;
-    private TemperatureSettings temperatureSettings;
 
     Controller(Properties p, ConnectionChecker connCheck, LCD lcd, GPIOController gpioCtrl) {
         this(new TemperatureReader(p.getProperty(SENSORS_FOLDER),
@@ -39,7 +38,6 @@ public class Controller implements Runnable{
                        Double configDeltaTemp, Double deltaTempWhenCoolingOrWarming, IGPIOController gpioCtrl, LCD lcd, ConnectionChecker connCheck) {
         this.temperatureReader = temperatureReader;
         this.temperatureSettingsPath = temperatureSettingsPath;
-        this.temperatureSettings = new TemperatureSettings(temperatureSettingsPath); //TODO Move away, it need a restart to work
         this.deltaTempWhenFermenting = configDeltaTemp;
         this.deltaTempWhenCoolingOrWarming = deltaTempWhenCoolingOrWarming;
         this.gpioCtrl = gpioCtrl;
@@ -54,6 +52,7 @@ public class Controller implements Runnable{
 
         Double wortTemp = toDouble(temperatureReader.getWorthTemperature());
 
+        TemperatureSettings temperatureSettings = new TemperatureSettings(temperatureSettingsPath);
         double settingTemp = temperatureSettings.getTemperatureSettingsValueForDate(now);
 
         double lowerBound = getLowerBound(settingTemp);
