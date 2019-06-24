@@ -187,11 +187,11 @@ function processData(allText) {
             let dv = new Date(data[0]);
             line.push(dv); // data
 
-            let wortValue = Number(data[1]);
-            line.push(wortValue); //wort
-
-            let roomValue = Number(data[2]);
+            let roomValue = Number(data[1]);
             line.push(roomValue); // room
+
+            let wortValue = Number(data[2]);
+            line.push(wortValue); //wort
 
             line.push(Number(data[3])); // setting
 
