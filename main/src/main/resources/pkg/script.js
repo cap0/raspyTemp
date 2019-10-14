@@ -158,7 +158,12 @@ function date_minus_now(d) {
 function loadFile(filePath) {
     var result = null;
     var xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("GET", filePath, false);
+    xmlhttp.open("GET", filePath +?"r=" + Math.random(), false);
+    xmlhttp.setRequestHeader('cache-control', 'no-cache, must-revalidate, post-check=0, pre-check=0');
+    xmlhttp.setRequestHeader('cache-control', 'max-age=0');
+    xmlhttp.setRequestHeader('expires', '0');
+    xmlhttp.setRequestHeader('expires', 'Tue, 01 Jan 1980 1:00:00 GMT');
+    xmlhttp.setRequestHeader('pragma', 'no-cache');
     xmlhttp.send();
     if (xmlhttp.status==200) {
         result = xmlhttp.responseText;
