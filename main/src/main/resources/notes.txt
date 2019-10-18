@@ -1,2 +1,5 @@
 sudo jstack -l 8147 > thread.dmp
 https://fastthread.io/index.jsp
+
+nuova cotta
+1) creare una nuova cartella su ftp
