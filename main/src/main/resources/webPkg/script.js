@@ -31,7 +31,7 @@ function drawChart() {
     data.addRows(d);
 
     chart = new google.visualization.AnnotationChart(document.getElementById('chart_div'));
-    chart.draw(data, {displayAnnotations: true, dateFormat : 'dd MM yyyy HH:mm:ss'});
+    chart.draw(data, {displayAnnotations: true, dateFormat : 'dd MM yyyy HH:mm:ss', allowHtml : true, displayAnnotationsFilter: true});
     google.visualization.events.addListener(chart, 'rangechange', selectHandler);
 
     function selectHandler(e) {
@@ -321,14 +321,14 @@ function decode(previous, current) {
         if (previous === cooling) {
             return "stop fridge";
         } else {
-            return "stop warm belt";
+            return "stop belt";
         }
     }
     if (current === cooling) {
-        return "start fridge";
+        return "<font color='#3366CC'>start fridge</font>";
     }
     if (current === warming) {
-        return "start warming";
+        return "<font color='#DC3912'>start belt</font>";
     }
 }
 
