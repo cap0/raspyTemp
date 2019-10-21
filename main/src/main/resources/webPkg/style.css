@@ -12,6 +12,12 @@
     border-radius: 50%;
     display: inline-block;
 }
+.bb{
+    color: #3366CC;
+}
+.br{
+    color: #DC3912;
+}
 body{
-    font-family: sans-serif;
+    font-family: Helvetica, Arial, sans-serif;
 }

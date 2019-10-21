@@ -19,6 +19,12 @@
         <div id='date_div2' style="float:left;"></div><span id="dot"></span><div style="clear:both"></div>
         <div id='date_div_now' style="float:left;"></div><div style="clear:both"></div>
         <div id='thingspeak' style="float:left;"></div><a href="https://thingspeak.com/channels/798869/private_show" target="_blank">ThingSpeak</a> <div style="clear:both"></div>
+        <div class="dataFrom">
+            <select id="dataFromSelect" onchange="drawChart()">
+                <option value="Local">Local</option>
+                <option value="ThingSpeak">ThingSpeak</option>
+            </select>
+        </div>
 
         <div id='chart_div' style='width: 1200px; height: 500px;'></div>
         <div id='details_div' style='width: 1200px;'>
@@ -26,13 +32,13 @@
             <div id='start_lbl_div' style="float:left">Start Date: </div><div id='start_div' style="float:left"></div><div style="clear:both"></div>
             <div id='end_lbl_div' style="float:left">End Date: </div><div id='end_div' style="float:left"></div><div style="clear:both"></div>
 
-            <div id='avg_chamber_lbl_div' style="float:left;color: blue;">AVG room:</div><div id='avg_chamber_div' style="float:left" >x</div><div style="clear:both"></div>
-            <div id='min_chamber_lbl_div' style="float:left;color: blue;">MIN room:</div><div id='min_chamber_div' style="float:left">x</div><div style="clear:both"></div>
-            <div id='max_chamber_lbl_div' style="float:left;color: blue;">MAX room:</div><div id='max_chamber_div' style="float:left">x</div><div style="clear:both"></div>
+            <div id='avg_chamber_lbl_div' class="bb" style="float:left;">AVG room:</div><div id='avg_chamber_div' style="float:left" >x</div><div style="clear:both"></div>
+            <div id='min_chamber_lbl_div' class="bb" style="float:left;">MIN room:</div><div id='min_chamber_div' style="float:left">x</div><div style="clear:both"></div>
+            <div id='max_chamber_lbl_div' class="bb" style="float:left;">MAX room:</div><div id='max_chamber_div' style="float:left">x</div><div style="clear:both"></div>
 
-            <div id='avg_wort_lbl_div' style="float:left;color: red;">AVG wort:</div><div id='avg_wort_div' style="float:left">x</div><div style="clear:both"></div>
-            <div id='min_wort_lbl_div' style="float:left;color: red;">MIN wort:</div><div id='min_wort_div'  style="float:left">x</div><div style="clear:both"></div>
-            <div id='max_wort_lbl_div' style="float:left;color: red;">MAX wort:</div><div id='max_wort_div'  style="float:left">x</div><div style="clear:both"></div>
+            <div id='avg_wort_lbl_div' class="br" style="float:left;">AVG wort:</div><div id='avg_wort_div' style="float:left">x</div><div style="clear:both"></div>
+            <div id='min_wort_lbl_div' class="br" style="float:left;">MIN wort:</div><div id='min_wort_div'  style="float:left">x</div><div style="clear:both"></div>
+            <div id='max_wort_lbl_div' class="br"style="float:left;">MAX wort:</div><div id='max_wort_div'  style="float:left">x</div><div style="clear:both"></div>
 
             <button onclick="hideChamber()">Hide Room</button>
             <button onclick="showChamber()">Show Room</button>

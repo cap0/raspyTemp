@@ -21,7 +21,13 @@ function drawChart() {
     //   data.addColumn('number', 'Set Temperature up');
     //   data.addColumn('number', 'Set Temperature low');
 
-    var d = processData(loadFile(fileName)); // TODO global
+    var dataFromSelect = document.getElementById("dataFromSelect");
+    var d;
+    if (dataFromSelect.value === "Local"){
+        d = processData(loadFile(fileName));
+    } else{
+        d = processData2(getIotData())
+    }
     data.addRows(d);
 
     chart = new google.visualization.AnnotationChart(document.getElementById('chart_div'));
@@ -158,12 +164,23 @@ function date_minus_now(d) {
 function loadFile(filePath) {
     var result = null;
     var xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("GET", filePath +?"r=" + Math.random(), false);
+    xmlhttp.open("GET", filePath +"?r=" + Math.random(), false);
     xmlhttp.setRequestHeader('cache-control', 'no-cache, must-revalidate, post-check=0, pre-check=0');
     xmlhttp.setRequestHeader('cache-control', 'max-age=0');
     xmlhttp.setRequestHeader('expires', '0');
     xmlhttp.setRequestHeader('expires', 'Tue, 01 Jan 1980 1:00:00 GMT');
     xmlhttp.setRequestHeader('pragma', 'no-cache');
+    xmlhttp.send();
+    if (xmlhttp.status==200) {
+        result = xmlhttp.responseText;
+    }
+    return result;
+}
+
+function getIotData() {
+    var result = null;
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.open("GET", "https://api.thingspeak.com/channels/798869/feeds.csv?api_key=20ZB1E6DWROCDPT7&results=8000", false);
     xmlhttp.send();
     if (xmlhttp.status==200) {
         result = xmlhttp.responseText;
@@ -210,6 +227,56 @@ function processData(allText) {
             lines.push(line);
         }
     }
+    //array : data, room, wort, settings
+    return lines;
+}
+
+function processData2(allText) {
+    var allTextLines = allText.split(/\r\n|\n/);
+    var dateLastAsDate = null;
+    var dateFirstAsDate = null;
+
+    var lines = [];
+    var previousActivationValue = 0;
+
+    for (var i=1; i<allTextLines.length; i++) {
+        var data = allTextLines[i].split(',');
+        if (data.length >=4) { // date, room, wort, settings, activator
+
+            var line = [];
+
+            let dv = new Date(data[0]);
+            if(dateFirstAsDate == null){
+                dateFirstAsDate = dv; //remember the first date
+            }
+            dateLastAsDate= dv; //remember the last date
+
+            line.push(dv); // data
+
+            let roomValue = Number(data[2]);
+            line.push(roomValue); // room
+
+            let wortValue = Number(data[3]);
+            line.push(wortValue); //wort
+
+            line.push(Number(2)); // setting
+            line.push(null);
+           ////// previousActivationValue = annotations(data, previousActivationValue, line);
+
+//          line.push(Number(get_settings(d) - 0.3));
+//          line.push(Number(get_settings(d) + 0.3));
+
+            lastDataForGauge[0] = roomValue;
+            lastDataForGauge[1] = wortValue;
+            lines.push(line);
+        }
+    }
+
+    lastUpdate(dateLastAsDate);
+    greenRedDot(dateLastAsDate);
+    brewDay(dateFirstAsDate);
+
+    //array : data, room, wort, settings
     return lines;
 }
 
