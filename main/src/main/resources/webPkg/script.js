@@ -295,7 +295,7 @@ function greenRedDot(dateLastAsDate) {
 }
 
 function brewDay(dateLastAsDate) {
-    document.getElementById('info_age').innerText = "Brew Day " + diff_data_days(dateLastAsDate);
+    document.getElementById('info_age').innerText = "Day " + diff_data_days(dateLastAsDate);
 }
 
 function annotations(data, previousActivationValue, line) {

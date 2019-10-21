@@ -12,18 +12,28 @@
     </head>
 
     <body>
-        <h1 id="info_brewName"></h1>
-        <h2 id="info_brewDayDate"></h2>
-        <h3 id="info_age"></h3>
+        <div style="width: 100%; overflow: hidden;">
+            <div style="float: left;margin-right:50px"><h2 id="info_brewName"></h2></div>
+            <div style="float: left;margin-right:50px"><h2 id="info_brewDayDate"></h2></div>
+            <div><h2 id="info_age"></h2></div>
+        </div>
+
         <div id='date_div' style="float:left;"></div><div style="clear:both"></div>
         <div id='date_div2' style="float:left;"></div><span id="dot"></span><div style="clear:both"></div>
         <div id='date_div_now' style="float:left;"></div><div style="clear:both"></div>
-        <div id='thingspeak' style="float:left;"></div><a href="https://thingspeak.com/channels/798869/private_show" target="_blank">ThingSpeak</a> <div style="clear:both"></div>
-        <div class="dataFrom">
-            <select id="dataFromSelect" onchange="drawChart()">
-                <option value="Local">Local</option>
-                <option value="ThingSpeak">ThingSpeak</option>
-            </select>
+        <div style="width: 100%; overflow: hidden; margin-bottom:5px">
+            <div style="float: left;margin-right:50px">
+                <div class="dataFrom">
+                    <select id="dataFromSelect" onchange="drawChart()">
+                        <option value="Local">Local</option>
+                        <option value="ThingSpeak">ThingSpeak</option>
+                    </select>
+                </div>
+            </div>
+            <div style="float: left;margin-right:50px">
+                <div id='thingspeak' style="float:left;"></div><a href="https://thingspeak.com/channels/798869/private_show" target="_blank">ThingSpeak</a> <div style="clear:both"></div>
+
+            </div>
         </div>
 
         <div id='chart_div' style='width: 1200px; height: 500px;'></div>
