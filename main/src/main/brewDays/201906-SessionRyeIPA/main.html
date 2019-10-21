@@ -1,0 +1,46 @@
+<html>
+    <head>
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <meta http-equiv="Expires" content="0" />
+
+        <script type='text/javascript' src='https://www.gstatic.com/charts/loader.js'></script>
+        <script type='text/javascript' src='script.js'></script>
+        <script src="property.js"></script>
+        <link rel="stylesheet" type="text/css" href="style.css">
+    </head>
+
+    <body>
+        <h1 id="info_brewName"></h1>
+        <h2 id="info_brewDayDate"></h2>
+        <h3 id="info_age"></h3>
+        <div id='date_div' style="float:left;"></div><div style="clear:both"></div>
+        <div id='date_div2' style="float:left;"></div><span id="dot"></span><div style="clear:both"></div>
+        <div id='date_div_now' style="float:left;"></div><div style="clear:both"></div>
+        <div id='thingspeak' style="float:left;"></div><a href="https://thingspeak.com/channels/798869/private_show" target="_blank">ThingSpeak</a> <div style="clear:both"></div>
+
+        <div id='chart_div' style='width: 1200px; height: 500px;'></div>
+        <div id='details_div' style='width: 1200px;'>
+
+            <div id='start_lbl_div' style="float:left">Start Date: </div><div id='start_div' style="float:left"></div><div style="clear:both"></div>
+            <div id='end_lbl_div' style="float:left">End Date: </div><div id='end_div' style="float:left"></div><div style="clear:both"></div>
+
+            <div id='avg_chamber_lbl_div' style="float:left;color: blue;">AVG room:</div><div id='avg_chamber_div' style="float:left" >x</div><div style="clear:both"></div>
+            <div id='min_chamber_lbl_div' style="float:left;color: blue;">MIN room:</div><div id='min_chamber_div' style="float:left">x</div><div style="clear:both"></div>
+            <div id='max_chamber_lbl_div' style="float:left;color: blue;">MAX room:</div><div id='max_chamber_div' style="float:left">x</div><div style="clear:both"></div>
+
+            <div id='avg_wort_lbl_div' style="float:left;color: red;">AVG wort:</div><div id='avg_wort_div' style="float:left">x</div><div style="clear:both"></div>
+            <div id='min_wort_lbl_div' style="float:left;color: red;">MIN wort:</div><div id='min_wort_div'  style="float:left">x</div><div style="clear:both"></div>
+            <div id='max_wort_lbl_div' style="float:left;color: red;">MAX wort:</div><div id='max_wort_div'  style="float:left">x</div><div style="clear:both"></div>
+
+            <button onclick="hideChamber()">Hide Room</button>
+            <button onclick="showChamber()">Show Room</button>
+            <button onclick="hideFermenter()">Hide Fermenter</button>
+            <button onclick="showFermenter()">Show Fermenter</button>
+            <button onclick="hideSettings()">Hide Settings</button>
+            <button onclick="showSettings()">Show Settings</button>
+        </div>
+        <div id="gauge_div" style="width: 400px; height: 120px;"></div>
+
+    </body>
+</html>
