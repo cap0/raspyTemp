@@ -1,5 +1,6 @@
 package gg;
 
+import gg.util.Util;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -12,7 +13,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Properties;
 
-import static gg.Constants.*;
+import static gg.util.Constants.*;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 

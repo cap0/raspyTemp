@@ -2,7 +2,7 @@ package gg;
 
 import java.time.LocalDateTime;
 
-import static gg.Util.toJsDate;
+import static gg.util.Util.toJsDate;
 
 public class TemperatureRow {
     LocalDateTime date;

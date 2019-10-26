@@ -1,5 +1,6 @@
 package gg;
 
+import gg.util.Util;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -9,8 +10,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static gg.Constants.*;
-import static gg.Util.getIntegerProperty;
+import static gg.util.Constants.*;
+import static gg.util.Util.getIntegerProperty;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 

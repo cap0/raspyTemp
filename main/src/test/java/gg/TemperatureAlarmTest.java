@@ -8,8 +8,8 @@ import org.junit.Test;
 import javax.mail.MessagingException;
 import java.util.Properties;
 
-import static gg.Constants.ROOM_SENSOR;
-import static gg.Constants.WORT_SENSOR;
+import static gg.util.Constants.ROOM_SENSOR;
+import static gg.util.Constants.WORT_SENSOR;
 
 
 public class TemperatureAlarmTest {

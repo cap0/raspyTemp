@@ -7,12 +7,13 @@ import java.io.InputStream;
 import java.util.Properties;
 import java.util.concurrent.locks.ReentrantLock;
 
+import gg.util.Util;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import static gg.Constants.*;
+import static gg.util.Constants.*;
 
 public class FTPUploadFile implements Runnable{
 

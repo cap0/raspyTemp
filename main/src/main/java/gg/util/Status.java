@@ -1,6 +1,6 @@
-package gg;
+package gg.util;
 
-enum Status{
+public enum Status{
     warm(3), cold(2), ferm(1), unkn(0);
 
     private int i;

@@ -16,7 +16,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Properties;
 
-import static gg.Constants.*;
+import static gg.util.Constants.*;
 
 public class IotSender implements Runnable{ //TODO bulk upload
     private static final Logger logger = LogManager.getLogger(Orchestrator.class);

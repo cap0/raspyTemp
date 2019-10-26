@@ -1,14 +1,15 @@
 package gg;
 
+import gg.util.Status;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.time.LocalDateTime;
 import java.util.Properties;
 
-import static gg.Constants.*;
-import static gg.Util.formatTemperature;
-import static gg.Util.toDouble;
+import static gg.util.Constants.*;
+import static gg.util.Util.formatTemperature;
+import static gg.util.Util.toDouble;
 
 public class Controller implements Runnable{
 

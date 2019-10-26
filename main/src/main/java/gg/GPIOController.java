@@ -1,6 +1,7 @@
 package gg;
 
 import com.pi4j.io.gpio.*;
+import gg.util.Status;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

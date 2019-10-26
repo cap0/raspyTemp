@@ -1,5 +1,8 @@
 package gg;
 
+import gg.util.DateRange;
+import gg.util.Status;
+import gg.util.Util;
 import org.apache.commons.collections4.queue.CircularFifoQueue;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -14,8 +17,8 @@ import java.util.Properties;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
-import static gg.Constants.*;
-import static gg.Util.*;
+import static gg.util.Constants.*;
+import static gg.util.Util.*;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 import static java.util.Collections.singletonList;

@@ -1,4 +1,4 @@
-package gg;
+package gg.util;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,12 +11,10 @@ import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.util.Properties;
 
-import static gg.Constants.TEMPERATURE_SETTINGS_FILE_PATH;
-
-class Util {
+public class Util {
     private static final Logger logger = LogManager.getLogger(Util.class);
 
-    static Properties getProperties(String arg) {
+    public static Properties getProperties(String arg) {
         Properties p = new Properties();
         try {
             p.load(new FileInputStream(arg));
@@ -29,20 +27,20 @@ class Util {
         return p;
     }
 
-    static String getProperty(Properties p, String key) {
+    public static String getProperty(Properties p, String key) {
         String value = p.getProperty(key);
         return value!=null?value.trim():null;
     }
 
-    static String getPropertyOrDefault(Properties p, String key, String def) {
+    public static String getPropertyOrDefault(Properties p, String key, String def) {
         String value = p.getProperty(key, def);
         return value.trim();
     }
 
-    static int getIntegerProperty(Properties properties, String key) {
+    public static int getIntegerProperty(Properties properties, String key) {
         return Integer.parseInt(properties.getProperty(key));
     }
-    static String toJsDate(LocalDateTime date) {
+    public static String toJsDate(LocalDateTime date) {
         int year  = date.getYear();
         int month = date.getMonthValue();
         int day   = date.getDayOfMonth();
@@ -53,7 +51,7 @@ class Util {
         return "new Date(" + year + ", " + (month - 1) + ", " + day + ", " + hour + ", " + minute + ", " + second + ", 0)";
     }
 
-    static Double toDouble(String tempValueAsString) {
+    public static Double toDouble(String tempValueAsString) {
         if(Strings.isNotBlank(tempValueAsString)){
             return Double.parseDouble(tempValueAsString);
         }
@@ -61,7 +59,7 @@ class Util {
     }
 
     private static NumberFormat nf =  new DecimalFormat("##.#");
-    static String formatTemperature(double temperature) {
+    public static String formatTemperature(double temperature) {
         return nf.format(temperature);
     }
 }

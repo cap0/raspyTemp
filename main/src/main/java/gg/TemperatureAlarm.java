@@ -1,5 +1,6 @@
 package gg;
 
+import gg.util.SensorType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -9,8 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static gg.Constants.*;
-import static gg.Util.toDouble;
+import static gg.util.Constants.*;
+import static gg.util.Util.toDouble;
 
 public class TemperatureAlarm implements Runnable {
     private static final Logger logger = LogManager.getLogger(TemperatureAlarm.class);
