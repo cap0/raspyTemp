@@ -39,6 +39,7 @@ public class PropertyUtil {
     public static final String MAIL_PASSWORD = "mail.password";
     public static final String MAIL_RECEIVER = "mail.receiver";
 
+    //CONTROLLER
     public static final String CTRL_DELTA_TEMP = "ctrl.delta.temp";
     public static final String CTRL_DELTA_TEMP_ACTIVE = "ctrl.delta.temp.active";
 
@@ -46,5 +47,15 @@ public class PropertyUtil {
     private static final String TEMPERATURE_SETTINGS_FILE_PATH = "temperatureSettingsFilePath";
     public static String getTemperatureSettingsPath(Properties p) {
         return getProperty(p, TEMPERATURE_SETTINGS_FILE_PATH);
+    }
+
+    private static final String TELEGRAM_BOT_API_KEY = "telegram.bot.api.key";
+    public static String getTelegramBotApiKey(Properties p) {
+        return getProperty(p, TELEGRAM_BOT_API_KEY);
+    }
+
+    private static final String TELEGRAM_CHANNEL_NAME = "telegram.channel.name";
+    public static String getTelegramChannelName(Properties p) {
+        return getProperty(p, TELEGRAM_CHANNEL_NAME);
     }
 }
