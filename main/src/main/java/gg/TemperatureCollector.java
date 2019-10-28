@@ -13,7 +13,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Properties;
 
-import static gg.util.Constants.*;
+import static gg.util.PropertyUtil.*;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 

@@ -1,6 +1,10 @@
 package gg.util;
 
-public class Constants {
+import java.util.Properties;
+
+import static gg.util.Util.getProperty;
+
+public class PropertyUtil {
     //Used to read temperature from file
     public static final String ROOM_SENSOR = "roomSensor";
     public static final String WORT_SENSOR = "wortSensor";
@@ -13,7 +17,6 @@ public class Constants {
     //Used to process data
     public static final String START_DATE = "startDate";
     public static final String END_DATE = "endDate";
-    public static final String TEMPERATURE_SETTINGS_FILE_PATH = "temperatureSettingsFilePath";
     public static final String MIN_ALLOWED_TEMP = "minAllowedTemp";
     public static final String MAX_ALLOWED_TEMP = "maxAllowedTemp";
     public static final String SERIES_AGGREGATION_FACTOR = "seriesAggregationFactor";
@@ -38,4 +41,10 @@ public class Constants {
 
     public static final String CTRL_DELTA_TEMP = "ctrl.delta.temp";
     public static final String CTRL_DELTA_TEMP_ACTIVE = "ctrl.delta.temp.active";
+
+
+    private static final String TEMPERATURE_SETTINGS_FILE_PATH = "temperatureSettingsFilePath";
+    public static String getTemperatureSettingsPath(Properties p) {
+        return getProperty(p, TEMPERATURE_SETTINGS_FILE_PATH);
+    }
 }

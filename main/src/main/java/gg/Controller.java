@@ -7,7 +7,7 @@ import org.apache.logging.log4j.Logger;
 import java.time.LocalDateTime;
 import java.util.Properties;
 
-import static gg.util.Constants.*;
+import static gg.util.PropertyUtil.*;
 import static gg.util.Util.formatTemperature;
 import static gg.util.Util.toDouble;
 
@@ -29,7 +29,7 @@ public class Controller implements Runnable{
         this(new TemperatureReader(p.getProperty(SENSORS_FOLDER),
                         p.getProperty(WORT_SENSOR),
                         p.getProperty(ROOM_SENSOR)),
-                p.getProperty(TEMPERATURE_SETTINGS_FILE_PATH),
+                getTemperatureSettingsPath(p),
                 getDeltaTempFromProperties(p),
                 getDeltaTempActiveFromProperties(p),
                 gpioCtrl, lcd, connCheck);
@@ -54,6 +54,7 @@ public class Controller implements Runnable{
         Double wortTemp = toDouble(temperatureReader.getWorthTemperature());
 
         TemperatureSettings temperatureSettings = new TemperatureSettings(temperatureSettingsPath);
+        temperatureSettings.initialize();
         double settingTemp = temperatureSettings.getTemperatureSettingsValueForDate(now);
 
         double lowerBound = getLowerBound(settingTemp);

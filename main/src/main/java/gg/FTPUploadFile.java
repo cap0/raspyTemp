@@ -13,7 +13,7 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import static gg.util.Constants.*;
+import static gg.util.PropertyUtil.*;
 
 public class FTPUploadFile implements Runnable{
 

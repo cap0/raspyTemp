@@ -11,7 +11,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.util.Properties;
 
-import static gg.util.Constants.*;
+import static gg.util.PropertyUtil.*;
 
 class GMailSender implements  IGMailSender{
 

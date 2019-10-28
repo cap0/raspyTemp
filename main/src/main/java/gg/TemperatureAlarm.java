@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static gg.util.Constants.*;
+import static gg.util.PropertyUtil.*;
 import static gg.util.Util.toDouble;
 
 public class TemperatureAlarm implements Runnable {

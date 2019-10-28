@@ -17,7 +17,7 @@ import java.util.Properties;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
-import static gg.util.Constants.*;
+import static gg.util.PropertyUtil.*;
 import static gg.util.Util.*;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
@@ -60,7 +60,7 @@ public class ProcessTemperatureData implements Runnable{
     }
 
     private void getProperties(Properties p){
-        temperatureSettingsPath = getProperty(p, TEMPERATURE_SETTINGS_FILE_PATH);
+        temperatureSettingsPath = getTemperatureSettingsPath(p);
         dataRange = buildDataRange(getProperty(p, START_DATE), getProperty(p, END_DATE));
         minAllowedTemp = Double.valueOf(getPropertyOrDefault(p, MIN_ALLOWED_TEMP, "0"));
         maxAllowedTemp = Double.valueOf(getPropertyOrDefault(p, MAX_ALLOWED_TEMP, "50"));
@@ -72,7 +72,9 @@ public class ProcessTemperatureData implements Runnable{
 
     private void processRawData() throws IOException {
         logger.debug("Start processing data");
-        StatisticalInfo statisticalInfo = processSourceFile(dataRange, sourceFilePath, new TemperatureSettings(temperatureSettingsPath), minAllowedTemp, maxAllowedTemp, aggregationFactor);
+        TemperatureSettings settingsTemperature = new TemperatureSettings(temperatureSettingsPath);
+        settingsTemperature.initialize();
+        StatisticalInfo statisticalInfo = processSourceFile(dataRange, sourceFilePath, settingsTemperature, minAllowedTemp, maxAllowedTemp, aggregationFactor);
         writeProcessedData(temperatureProcessedOutputFile, statisticalInfo.temperatures);
     }
 

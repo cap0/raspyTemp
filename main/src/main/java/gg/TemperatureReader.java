@@ -10,7 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Optional;
 
-import static gg.util.Constants.TEMPERATURE_FILE;
+import static gg.util.PropertyUtil.TEMPERATURE_FILE;
 import static gg.util.Util.formatTemperature;
 import static java.lang.Double.parseDouble;
 
