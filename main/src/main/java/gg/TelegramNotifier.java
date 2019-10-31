@@ -40,6 +40,8 @@ public class TelegramNotifier {
         try {
             URL url = new URL(telegramUri+message);
             con = (HttpURLConnection) url.openConnection();
+            con.setConnectTimeout(1000);
+            con.setReadTimeout(1000);
             con.setRequestMethod("GET");
             con.setDoOutput(true);
             String responseMessage = con.getResponseMessage();

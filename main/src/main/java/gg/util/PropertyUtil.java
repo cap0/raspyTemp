@@ -58,4 +58,14 @@ public class PropertyUtil {
     public static String getTelegramChannelName(Properties p) {
         return getProperty(p, TELEGRAM_CHANNEL_NAME);
     }
+
+    private static final String USERNAME = "credential.username";
+    public static String getUsername(Properties p) {
+        return getProperty(p, USERNAME);
+    }
+
+    private static final String PASSWD = "credential.password";
+    public static String getPassword(Properties p) {
+        return getProperty(p, PASSWD);
+    }
 }

@@ -39,6 +39,13 @@ public class Orchestrator {
         ConnectionChecker connCheck = scheduleConnectionChecker();
 
         scheduleController(p, connCheck, lcd, gpioCtrl);
+
+        startHttpServer(p);
+    }
+
+    private static void startHttpServer(Properties p) {
+        MyHttpServer myHttpServer = new MyHttpServer(p);
+        myHttpServer.startHttpServer();
     }
 
     private static ConnectionChecker scheduleConnectionChecker() {
