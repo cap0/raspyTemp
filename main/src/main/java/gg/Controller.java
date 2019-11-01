@@ -1,5 +1,7 @@
 package gg;
 
+import gg.TemperatureSetting.TemperatureSettings;
+import gg.TemperatureSetting.TemperatureSettingsFileHandler;
 import gg.util.Status;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -53,7 +55,7 @@ public class Controller implements Runnable{
 
         Double wortTemp = toDouble(temperatureReader.getWorthTemperature());
 
-        TemperatureSettings temperatureSettings = new TemperatureSettings(temperatureSettingsPath);
+        TemperatureSettings temperatureSettings = new TemperatureSettings(new TemperatureSettingsFileHandler(temperatureSettingsPath));
         temperatureSettings.initialize();
         double settingTemp = temperatureSettings.getTemperatureSettingsValueForDate(now);
 

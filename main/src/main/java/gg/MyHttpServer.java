@@ -1,9 +1,8 @@
 package gg;
 
-import com.sun.net.httpserver.BasicAuthenticator;
-import com.sun.net.httpserver.HttpContext;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.*;
+import gg.TemperatureSetting.TemperatureSettings;
+import gg.TemperatureSetting.TemperatureSettingsFileHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -11,6 +10,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -25,21 +25,21 @@ public class MyHttpServer {
     private String password;
     private TelegramNotifier telegramNotifier;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         MyHttpServer myHttpServer = new MyHttpServer(args[0], args[1], args[2]);
         myHttpServer.startHttpServer();
     }
 
     public MyHttpServer(Properties p) {
         String temperatureSettingsPath = getTemperatureSettingsPath(p);
-        temperatureSettings = new TemperatureSettings(temperatureSettingsPath);
+        temperatureSettings = new TemperatureSettings(new TemperatureSettingsFileHandler(temperatureSettingsPath));
         username = getUsername(p);
         password = getPassword(p);
         telegramNotifier = new TelegramNotifier(p);
     }
 
     private MyHttpServer(String temperatureSettingsPath, String username, String password) {
-        temperatureSettings = new TemperatureSettings(temperatureSettingsPath);
+        temperatureSettings = new TemperatureSettings(new TemperatureSettingsFileHandler(temperatureSettingsPath));
         this.username = username;
         this.password = password;
     }
@@ -54,31 +54,38 @@ public class MyHttpServer {
             return;
         }
 
-        HttpContext context = server.createContext(API, (exchange -> {
+        HttpContext context = server.createContext(API, getHttpHandler());
+        context.setAuthenticator(getBasicAuthenticator());
+
+        server.setExecutor(null); // creates a default executor
+        server.start();
+    }
+
+    private HttpHandler getHttpHandler() {
+        return exchange -> {
             URI requestURI = exchange.getRequestURI();
             String param = requestURI.toString().substring(API.length());
-            String message = "got request: '{}'";
-            logger.info(message, param);
+            String message = "got request: " + param;
+            logger.info(message);
             telegramNotifier.sendNotify(message);
 
             Optional<Double> aDouble = isDouble(param);
             if (aDouble.isPresent()) {
-                boolean successful = temperatureSettings.set(aDouble.get());
+                boolean successful = temperatureSettings.set(aDouble.get(), LocalDateTime.now());
                 respond(exchange, aDouble.get().toString(), successful ? "set:" : "rejected:", successful ? 200 : 500);
             } else {
                 respond(exchange, param, "invalid:", 500);
             }
-        }));
+        };
+    }
 
-        context.setAuthenticator(new BasicAuthenticator("myrealm") {
+    private BasicAuthenticator getBasicAuthenticator() {
+        return new BasicAuthenticator("myrealm") {
             @Override
             public boolean checkCredentials(String user, String pwd) {
                 return user.equals(username) && pwd.equals(password);
             }
-        });
-
-        server.setExecutor(null); // creates a default executor
-        server.start();
+        };
     }
 
     private void respond(HttpExchange exchange, String setting, String message, int httpStatus) throws IOException {

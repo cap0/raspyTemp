@@ -1,5 +1,7 @@
 package gg;
 
+import gg.TemperatureSetting.TemperatureSettings;
+import gg.TemperatureSetting.TemperatureSettingsFileHandler;
 import gg.util.DateRange;
 import gg.util.Status;
 import gg.util.Util;
@@ -72,7 +74,7 @@ public class ProcessTemperatureData implements Runnable{
 
     private void processRawData() throws IOException {
         logger.debug("Start processing data");
-        TemperatureSettings settingsTemperature = new TemperatureSettings(temperatureSettingsPath);
+        TemperatureSettings settingsTemperature = new TemperatureSettings(new TemperatureSettingsFileHandler(temperatureSettingsPath));
         settingsTemperature.initialize();
         StatisticalInfo statisticalInfo = processSourceFile(dataRange, sourceFilePath, settingsTemperature, minAllowedTemp, maxAllowedTemp, aggregationFactor);
         writeProcessedData(temperatureProcessedOutputFile, statisticalInfo.temperatures);

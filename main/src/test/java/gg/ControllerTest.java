@@ -1,14 +1,8 @@
 package gg;
 
-import org.apache.commons.lang3.Range;
-import org.jmock.Expectations;
+import gg.TemperatureSetting.TemperatureSettings;
 import org.jmock.Mockery;
 import org.junit.Before;
-import org.junit.Test;
-
-import java.time.LocalDateTime;
-import java.time.chrono.ChronoLocalDateTime;
-import java.util.LinkedHashMap;
 
 public class ControllerTest {
     Mockery context = new Mockery();
