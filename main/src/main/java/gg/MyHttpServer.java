@@ -65,12 +65,13 @@ public class MyHttpServer {
         return exchange -> {
             URI requestURI = exchange.getRequestURI();
             String param = requestURI.toString().substring(API.length());
-            String message = "got request: " + param;
+            String message = "Temperature setting: " + param;
             logger.info(message);
             telegramNotifier.sendNotify(message);
 
             Optional<Double> aDouble = isDouble(param);
             if (aDouble.isPresent()) {
+                temperatureSettings.initialize();
                 boolean successful = temperatureSettings.set(aDouble.get(), LocalDateTime.now());
                 respond(exchange, aDouble.get().toString(), successful ? "set:" : "rejected:", successful ? 200 : 500);
             } else {
