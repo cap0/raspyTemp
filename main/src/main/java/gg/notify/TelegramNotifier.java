@@ -1,4 +1,4 @@
-package gg;
+package gg.notify;
 
 import gg.util.PropertyUtil;
 import org.apache.logging.log4j.LogManager;
@@ -10,13 +10,13 @@ import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Properties;
 
-public class TelegramNotifier {
+public class TelegramNotifier implements INotifier {
     private static final Logger logger = LogManager.getLogger(TelegramNotifier.class);
 
     private static String TELEGRAM_URI_TEMPLATE = "https://api.telegram.org/bot{0}/sendMessage?chat_id=@{1}&text=";
     private final String telegramUri;
 
-    public TelegramNotifier(Properties p){ //TODO connect with HttpServer
+    public TelegramNotifier(Properties p){
         String telegramBotApiKey = PropertyUtil.getTelegramBotApiKey(p);
         String telegramChannelName = PropertyUtil.getTelegramChannelName(p);
         telegramUri = buildUri(telegramBotApiKey, telegramChannelName);
@@ -35,6 +35,7 @@ public class TelegramNotifier {
         return MessageFormat.format(TELEGRAM_URI_TEMPLATE, telegramBotApiKey, telegramChannelName);
     }
 
+    @Override
     public void sendNotify(String message){
         HttpURLConnection con = null;
         try {
@@ -46,7 +47,6 @@ public class TelegramNotifier {
             con.setDoOutput(true);
             String responseMessage = con.getResponseMessage();
             logger.info(responseMessage);
-            //TODO timeouts, print response
         } catch (IOException e) {
             logger.error(e);
         } finally {

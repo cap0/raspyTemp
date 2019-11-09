@@ -6,10 +6,6 @@ import org.apache.logging.log4j.Logger;
 import java.net.URL;
 import java.net.URLConnection;
 import java.time.LocalDateTime;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class ConnectionChecker implements Runnable {
     private static final Logger logger = LogManager.getLogger(ConnectionChecker.class);
@@ -44,14 +40,5 @@ public class ConnectionChecker implements Runnable {
 
     boolean isConnectionAvailable(){
         return connectionAvailable;
-    }
-
-    public static void main(String[] a){
-        logger.info("Schedule Connection checker");
-        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        ConnectionChecker task = new ConnectionChecker();
-
-        logger.info("Connection Checker Process. initialDelay= " + 0 + " periodicDelay= " + 1 + " period= " + SECONDS);
-        scheduler.scheduleAtFixedRate(task, 0, 1, SECONDS);
     }
 }

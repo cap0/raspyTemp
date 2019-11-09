@@ -1,6 +1,7 @@
 package gg;
 
 import com.sun.net.httpserver.*;
+import gg.notify.TelegramNotifier;
 import gg.TemperatureSetting.TemperatureSettings;
 import gg.TemperatureSetting.TemperatureSettingsFileHandler;
 import org.apache.logging.log4j.LogManager;
