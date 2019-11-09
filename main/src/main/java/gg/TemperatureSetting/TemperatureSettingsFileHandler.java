@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -25,15 +26,13 @@ public class TemperatureSettingsFileHandler implements ITemperatureSettingsSourc
     }
 
     @Override
-    public Stream<String> readLineStream() {
-        Stream<String> lines;
-        try {
-            lines = Files.lines(Paths.get(filePath));
+    public List<String> readLineSettings() {
+        try (Stream<String> lines = Files.lines(Paths.get(filePath))) {
+            return lines.collect(toList());
         } catch (IOException e) {
             logger.fatal(e);
             throw new RuntimeException(e);
         }
-        return lines;
     }
 
     @Override
@@ -41,7 +40,7 @@ public class TemperatureSettingsFileHandler implements ITemperatureSettingsSourc
         Path destination = Paths.get(filePath + "." + System.currentTimeMillis() + ".bkp");
         Path source = Paths.get(filePath);
         Files.move(source, destination, StandardCopyOption.ATOMIC_MOVE);
-        Files.write(source, buildRows(v), CREATE);
+        Files.write(Paths.get(filePath), buildRows(v), CREATE);
     }
 
     private List<String> buildRows(Set<TemperatureRangeSetting> v) {

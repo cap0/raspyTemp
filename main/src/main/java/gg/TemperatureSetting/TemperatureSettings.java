@@ -27,7 +27,7 @@ public class TemperatureSettings {
     }
 
     public void initialize() {
-        settings = fileHandler.readLineStream()
+        settings = fileHandler.readLineSettings().stream()
                 .filter(StringUtils::isNotBlank)
                 .map(l -> l.trim().split(";"))
                 .map(r -> new TemperatureRangeSetting(Range.between(toDate(r[0]), toDate(r[1])), Double.parseDouble(r[2])))

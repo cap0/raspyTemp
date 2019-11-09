@@ -31,8 +31,8 @@ public class TemperatureSettingsTest {
         l.add("2019-03-06T20:00:00;2019-03-08T20:00:00;18");
         l.add("");
         context.checking(new Expectations() {{
-            oneOf(sourceHandler).readLineStream();
-            will(returnValue(l.stream()));
+            oneOf(sourceHandler).readLineSettings();
+            will(returnValue(l));
         }});
 
         temperatureSettings.initialize();

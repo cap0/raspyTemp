@@ -1,10 +1,10 @@
 package gg.TemperatureSetting;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 
 public interface ITemperatureSettingsSourceHandler {
-    Stream<String> readLineStream();
+    List<String> readLineSettings();
     void backupAndWriteFile(Set<TemperatureRangeSetting> v) throws IOException;
 }
