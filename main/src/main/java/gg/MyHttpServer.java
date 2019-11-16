@@ -20,7 +20,8 @@ import static gg.util.PropertyUtil.*;
 public class MyHttpServer {
     private static final Logger logger = LogManager.getLogger(MyHttpServer.class);
 
-    private static final String API = "/api/set/";
+    private static final String API_SET = "/api/set/";
+    private static final String API_GET = "/api/get/";
     private final TemperatureSettings temperatureSettings;
     private String username;
     private String password;
@@ -34,6 +35,7 @@ public class MyHttpServer {
     public MyHttpServer(Properties p) {
         String temperatureSettingsPath = getTemperatureSettingsPath(p);
         temperatureSettings = new TemperatureSettings(new TemperatureSettingsFileHandler(temperatureSettingsPath));
+        temperatureSettings.initialize();
         username = getUsername(p);
         password = getPassword(p);
         telegramNotifier = new TelegramNotifier(p);
@@ -41,6 +43,7 @@ public class MyHttpServer {
 
     private MyHttpServer(String temperatureSettingsPath, String username, String password) {
         temperatureSettings = new TemperatureSettings(new TemperatureSettingsFileHandler(temperatureSettingsPath));
+        temperatureSettings.initialize();
         this.username = username;
         this.password = password;
     }
@@ -55,8 +58,11 @@ public class MyHttpServer {
             return;
         }
 
-        HttpContext context = server.createContext(API, getHttpHandler());
+        HttpContext context = server.createContext(API_SET, getHttpHandler());
         context.setAuthenticator(getBasicAuthenticator());
+
+        HttpContext context1 = server.createContext(API_GET, getHttpHandler());
+        context1.setAuthenticator(getBasicAuthenticator());
 
         server.setExecutor(null); // creates a default executor
         server.start();
@@ -65,20 +71,36 @@ public class MyHttpServer {
     private HttpHandler getHttpHandler() {
         return exchange -> {
             URI requestURI = exchange.getRequestURI();
-            String param = requestURI.toString().substring(API.length());
-            String message = "Temperature setting: " + param;
-            logger.info(message);
-            telegramNotifier.sendNotify(message);
-
-            Optional<Double> aDouble = isDouble(param);
-            if (aDouble.isPresent()) {
-                temperatureSettings.initialize();
-                boolean successful = temperatureSettings.set(aDouble.get(), LocalDateTime.now());
-                respond(exchange, aDouble.get().toString(), successful ? "set:" : "rejected:", successful ? 200 : 500);
-            } else {
-                respond(exchange, param, "invalid:", 500);
+            String uri = requestURI.toString();
+            if (uri.contains(API_SET)) {
+                executeSet(exchange, uri);
+            }
+            if (uri.contains(API_GET)) {
+                executeGet(exchange, uri);
             }
         };
+    }
+
+    private void executeSet(HttpExchange exchange, String uri) throws IOException {
+        String param = uri.substring(API_SET.length());
+        String message = "Temperature setting: " + param;
+        logger.info(message);
+        telegramNotifier.sendNotify(message);
+
+        Optional<Double> aDouble = isDouble(param);
+        if (aDouble.isPresent()) {
+            temperatureSettings.initialize();
+            boolean successful = temperatureSettings.set(aDouble.get(), LocalDateTime.now());
+            respond(exchange, aDouble.get().toString(), successful ? "set:" : "rejected:", successful ? 200 : 500);
+        } else {
+            respond(exchange, param, "invalid:", 500);
+        }
+    }
+
+    private void executeGet(HttpExchange exchange, String uri) throws IOException {
+        String json = temperatureSettings.toJSON();
+        exchange.sendResponseHeaders(200, json.getBytes().length);
+        writeResponse(exchange, json);
     }
 
     private BasicAuthenticator getBasicAuthenticator() {

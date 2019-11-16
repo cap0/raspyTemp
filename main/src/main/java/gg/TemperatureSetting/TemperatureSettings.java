@@ -1,5 +1,6 @@
 package gg.TemperatureSetting;
 
+import com.google.gson.Gson;
 import org.apache.commons.lang3.Range;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -64,7 +65,7 @@ public class TemperatureSettings {
     }
 
     private Range<ChronoLocalDateTime<?>> getNewRange(LocalDateTime now) {
-        LocalDateTime endDate = now.plusDays(30);;
+        LocalDateTime endDate = now.plusDays(30);
         return Range.between(now, endDate);
     }
 
@@ -87,6 +88,13 @@ public class TemperatureSettings {
 
         logger.debug("temperature settings not found for " + actualDateTime + " using default: 18");
        return 18D;
+    }
+
+    public String toJSON(){
+        List<TemperatureRangeSetting.JsonValue> l = new ArrayList<>();
+        settings.forEach(s -> l.add(s.formatForJSONFile()));
+        Gson gson = new Gson();
+        return  gson.toJson(l);
     }
 
 }

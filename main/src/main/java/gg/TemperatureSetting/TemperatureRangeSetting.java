@@ -37,8 +37,12 @@ public class TemperatureRangeSetting implements Comparable {
         return range.getMaximum();
     }
 
-    public String formatForFile(){
+    public String formatForCSVFile(){
         return range.getMinimum().format(ISO_LOCAL_DATE_TIME)+";"+range.getMaximum().format(ISO_LOCAL_DATE_TIME)+";"+tempValue;
+    }
+
+    public JsonValue formatForJSONFile(){
+        return new JsonValue();
     }
 
     @Override
@@ -61,6 +65,18 @@ public class TemperatureRangeSetting implements Comparable {
 
     @Override
     public String toString() {
-        return formatForFile();
+        return formatForCSVFile();
+    }
+
+    class JsonValue {
+        String from;
+        String to;
+        Number value;
+
+        public JsonValue(){
+            from = range.getMinimum().format(ISO_LOCAL_DATE_TIME);
+            to = range.getMaximum().format(ISO_LOCAL_DATE_TIME);
+            value = tempValue;
+        }
     }
 }
