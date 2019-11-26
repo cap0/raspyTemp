@@ -48,6 +48,7 @@ public class TemperatureSettingsFileHandler implements ITemperatureSettingsSourc
 
     @Override
     public void init() throws IOException {
+        logger.info("Creation of a default temperature settings file");
         Set<TemperatureRangeSetting> v = new TreeSet<>();
         LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
         LocalDateTime endFirstRange = now.plusDays(5);

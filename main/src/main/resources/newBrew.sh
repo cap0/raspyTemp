@@ -27,12 +27,14 @@ cp target/raspyTemp-1-jar-with-dependencies.jar  ~/$folderName
 cp ~/raspyTemp/main/src/main/resources/config/app.properties ~/$folderName
 cp ~/raspyTemp/main/src/main/resources/config/start.sh ~/$folderName
 cp ~/raspyTemp/main/src/main/resources/log4j2.xml ~/$folderName
+cp -R ~/raspyTemp/main/src/main/resources/webPkg ~/$folderName
 
 cd ~/$folderName
 
 #configuring properties with forlder name
 sed -i s/XXX1/$n/ ~/$folderName/app.properties
 sed -i s/XXX2/$folderName/ ~/$folderName/app.properties
+sed -i s/XXX/$name/ ~/$folderName/webPkg/script.js
 
 #dateNow=`date +%FT%T`
 #nextMonth=`date +%FT%T --date='+1 month'`
