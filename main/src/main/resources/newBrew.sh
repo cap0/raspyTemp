@@ -34,7 +34,7 @@ cd ~/$folderName
 #configuring properties with forlder name
 sed -i s/XXX1/$n/ ~/$folderName/app.properties
 sed -i s/XXX2/$folderName/ ~/$folderName/app.properties
-sed -i s/XXX/$name/ ~/$folderName/webPkg/script.js
+sed -i s/XXX/$folderName/ ~/$folderName/webPkg/script.js
 
 #dateNow=`date +%FT%T`
 #nextMonth=`date +%FT%T --date='+1 month'`

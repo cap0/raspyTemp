@@ -1,4 +1,4 @@
-let fileName="XXX";
+let fileName="XXX.txt";
 let chart;
 const unknown = 0;
 const fermenting = 1;
