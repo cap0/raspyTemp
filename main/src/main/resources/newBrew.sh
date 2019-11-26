@@ -46,7 +46,7 @@ cp ~/ftp.properties ~/$folderName/ftp.properties
 chmod +x ~/$folderName/start.sh
 
 # sym link for folder name in current
-ln -sf ~/$folderName ~/current
+ln -sfrn ~/$folderName ~/current
 
 echo please start using "sudo ./start.sh & >/dev/null"
 #./start.sh & >/dev/null
