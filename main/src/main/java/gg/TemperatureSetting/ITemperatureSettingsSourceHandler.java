@@ -7,4 +7,5 @@ import java.util.Set;
 public interface ITemperatureSettingsSourceHandler {
     List<String> readLineSettings();
     void backupAndWriteFile(Set<TemperatureRangeSetting> v) throws IOException;
+    void init() throws IOException;
 }

@@ -18,8 +18,9 @@ if [ "$_IP" ]; then
 fi
 
 printf "starting raspy temp\n"
-cd /home/pi/set_2019_RIPA/
-sudo ./start.sh &> /home/pi/log.log &
+cd /home/pi/current/
+su pi -c './start.sh >> /dev/null 2>&1 &'
+#sudo ./start.sh &> /home/pi/log.log &
 
 #cd /home/pi/current/
 #su pi -c './start.sh >> /dev/null 2>&1 &'

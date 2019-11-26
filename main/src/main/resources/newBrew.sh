@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 echo "Creating new brew"
-echo "Enter brew name (no spaces)"
+echo "Enter brew name (no spaces) e.g SIPA"
 read name
 #echo "Enter iot write key"
 #read iotKey
@@ -34,9 +34,9 @@ cd ~/$folderName
 sed -i s/XXX1/$n/ ~/$folderName/app.properties
 sed -i s/XXX2/$folderName/ ~/$folderName/app.properties
 
-dateNow=`date +%FT%T`
-nextMonth=`date +%FT%T --date='+1 month'`
-echo "$dateNow;$nextMonth;17" >> ~/$folderName/temperatureSettings
+#dateNow=`date +%FT%T`
+#nextMonth=`date +%FT%T --date='+1 month'`
+#echo "$dateNow;$nextMonth;17" >> ~/$folderName/temperatureSettings
 
 cp ~/ftp.properties ~/$folderName/ftp.properties
 #sed -i s/XXX/$iotKey/ ~/$folderName/ftp.properties
@@ -47,4 +47,4 @@ chmod +x ~/$folderName/start.sh
 ln -sf ~/$folderName ~/current
 
 echo start
-#./start.sh & >/dev/null
+./start.sh & >/dev/null

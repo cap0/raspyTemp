@@ -1,16 +1,16 @@
 package gg;
 
 import com.sun.net.httpserver.*;
-import gg.notify.TelegramNotifier;
 import gg.TemperatureSetting.TemperatureSettings;
 import gg.TemperatureSetting.TemperatureSettingsFileHandler;
+import gg.notify.INotifier;
+import gg.notify.TelegramNotifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Properties;
@@ -25,14 +25,14 @@ public class MyHttpServer {
     private final TemperatureSettings temperatureSettings;
     private String username;
     private String password;
-    private TelegramNotifier telegramNotifier;
+    private INotifier telegramNotifier;
 
     public static void main(String[] args) {
-        MyHttpServer myHttpServer = new MyHttpServer(args[0], args[1], args[2]);
+        MyHttpServer myHttpServer = new MyHttpServer(args[0], args[1], args[2], logger::info);
         myHttpServer.startHttpServer();
     }
 
-    public MyHttpServer(Properties p) {
+    MyHttpServer(Properties p) {
         String temperatureSettingsPath = getTemperatureSettingsPath(p);
         temperatureSettings = new TemperatureSettings(new TemperatureSettingsFileHandler(temperatureSettingsPath));
         temperatureSettings.initialize();
@@ -41,14 +41,15 @@ public class MyHttpServer {
         telegramNotifier = new TelegramNotifier(p);
     }
 
-    private MyHttpServer(String temperatureSettingsPath, String username, String password) {
+    private MyHttpServer(String temperatureSettingsPath, String username, String password, INotifier notifier) {
         temperatureSettings = new TemperatureSettings(new TemperatureSettingsFileHandler(temperatureSettingsPath));
         temperatureSettings.initialize();
         this.username = username;
         this.password = password;
+        this.telegramNotifier = notifier;
     }
 
-    public void startHttpServer() {
+    void startHttpServer() {
         logger.info("Starting Http Server");
         HttpServer server;
         try {
@@ -58,27 +59,22 @@ public class MyHttpServer {
             return;
         }
 
-        HttpContext context = server.createContext(API_SET, getHttpHandler());
+        HttpContext context = server.createContext(API_SET, getHttpHandlerSet());
         context.setAuthenticator(getBasicAuthenticator());
 
-        HttpContext context1 = server.createContext(API_GET, getHttpHandler());
+        HttpContext context1 = server.createContext(API_GET, getHttpHandlerGet());
         context1.setAuthenticator(getBasicAuthenticator());
 
         server.setExecutor(null); // creates a default executor
         server.start();
     }
 
-    private HttpHandler getHttpHandler() {
-        return exchange -> {
-            URI requestURI = exchange.getRequestURI();
-            String uri = requestURI.toString();
-            if (uri.contains(API_SET)) {
-                executeSet(exchange, uri);
-            }
-            if (uri.contains(API_GET)) {
-                executeGet(exchange, uri);
-            }
-        };
+    private HttpHandler getHttpHandlerSet() {
+        return exchange -> executeSet(exchange, exchange.getRequestURI().toString());
+    }
+
+    private HttpHandler getHttpHandlerGet() {
+        return exchange -> executeGet(exchange, exchange.getRequestURI().toString());
     }
 
     private void executeSet(HttpExchange exchange, String uri) throws IOException {
