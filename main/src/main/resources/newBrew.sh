@@ -46,5 +46,5 @@ chmod +x ~/$folderName/start.sh
 # sym link for folder name in current
 ln -sf ~/$folderName ~/current
 
-echo start
-./start.sh & >/dev/null
+echo please start using "sudo ./start.sh & >/dev/null"
+#./start.sh & >/dev/null

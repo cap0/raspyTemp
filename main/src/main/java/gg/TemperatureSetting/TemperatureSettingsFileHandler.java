@@ -62,7 +62,7 @@ public class TemperatureSettingsFileHandler implements ITemperatureSettingsSourc
         LocalDateTime endForthRange = endThirdRange.plusDays(1);
         v.add(new TemperatureRangeSetting(Range.between(endThirdRange, endForthRange), 20D));
 
-        v.add(new TemperatureRangeSetting(Range.between(endThirdRange, endForthRange.plusDays(1)), 21D));
+        v.add(new TemperatureRangeSetting(Range.between(endForthRange, endForthRange.plusDays(1)), 21D));
 
         write(v);
     }
