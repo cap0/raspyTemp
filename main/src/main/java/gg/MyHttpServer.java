@@ -94,6 +94,7 @@ public class MyHttpServer {
     }
 
     private void executeGet(HttpExchange exchange, String uri) throws IOException {
+        temperatureSettings.initialize();
         String json = temperatureSettings.toJSON();
         exchange.sendResponseHeaders(200, json.getBytes().length);
         writeResponse(exchange, json);
