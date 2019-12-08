@@ -27,7 +27,7 @@ public class TemperatureAlarmTest {
         temperatureAlarm.temperatureReader = context.mock(IReadTemperature.class);
 
         context.checking(new Expectations() {{
-            oneOf(temperatureAlarm.temperatureReader).getWorthTemperature();
+            oneOf(temperatureAlarm.temperatureReader).getWortTemperature();
                 will(returnValue("18"));
 
             oneOf(temperatureAlarm.temperatureReader).getRoomTemperature();
@@ -56,13 +56,13 @@ public class TemperatureAlarmTest {
         context.checking(new Expectations() {{
             allowing(temperatureAlarm.temperatureReader).getRoomTemperature();
 
-            oneOf(temperatureAlarm.temperatureReader).getWorthTemperature();
+            oneOf(temperatureAlarm.temperatureReader).getWortTemperature();
             will(returnValue("-1"));
 
-            oneOf(temperatureAlarm.temperatureReader).getWorthTemperature();
+            oneOf(temperatureAlarm.temperatureReader).getWortTemperature();
             will(returnValue("-2"));
 
-            oneOf(temperatureAlarm.temperatureReader).getWorthTemperature();
+            oneOf(temperatureAlarm.temperatureReader).getWortTemperature();
             will(returnValue("-3"));
 
             never(temperatureAlarm.mailSender).sendAlarm(with(any(String.class)), with(any(String.class)));

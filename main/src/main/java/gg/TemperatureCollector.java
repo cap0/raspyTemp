@@ -63,7 +63,7 @@ public class TemperatureCollector extends Thread{
         }
 
         String roomTemperatureValue = temperatureReader.getRoomTemperature();
-        String wortTemperatureValue = temperatureReader.getWorthTemperature();
+        String wortTemperatureValue = temperatureReader.getWortTemperature();
 
         String line = now() + "|" + roomTemperatureValue + "|" + wortTemperatureValue + "|" + gpioCtrl.getStatus().encode();
 

@@ -9,8 +9,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.Properties;
 
-import static gg.util.PropertyUtil.TEMPERATURE_FILE;
+import static gg.util.PropertyUtil.*;
+import static gg.util.PropertyUtil.ROOM_SENSOR;
 import static gg.util.Util.formatTemperature;
 import static java.lang.Double.parseDouble;
 
@@ -21,6 +23,10 @@ class TemperatureReader implements IReadTemperature{
     private final String sensorsFolder;
     private final String wortSensorName;
     private final String roomSensorName;
+
+    TemperatureReader(Properties p) {
+      this(p.getProperty(SENSORS_FOLDER), p.getProperty(WORT_SENSOR), p.getProperty(ROOM_SENSOR));
+    }
 
     TemperatureReader(String sensorsFolder, String wortSensorName, String roomSensorName) {
         this.sensorsFolder = sensorsFolder;
@@ -34,7 +40,7 @@ class TemperatureReader implements IReadTemperature{
     }
 
     @Override
-    public String getWorthTemperature() {
+    public String getWortTemperature() {
         return readTemperatureForSensor(wortSensorName);
     }
 
@@ -80,4 +86,10 @@ class TemperatureReader implements IReadTemperature{
     private String buildSensorPath(String sensorId) {
         return sensorsFolder + File.separator + sensorId + File.separator  + TEMPERATURE_FILE;
     }
+
+    @Override
+    public TemperatureRaw getTemperatureRaw(){
+        return new TemperatureRaw(getWortTemperature(), getRoomTemperature());
+    }
+
 }

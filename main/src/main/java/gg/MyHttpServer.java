@@ -21,32 +21,33 @@ public class MyHttpServer {
     private static final Logger logger = LogManager.getLogger(MyHttpServer.class);
 
     private static final String API_SET = "/api/set/";
-    private static final String API_GET = "/api/get/";
+    private static final String API_GET_SETTINGS = "/api/get/";
+    private static final String API_GET_TEMPERATURE = "/api/temperature/";
+
     private final TemperatureSettings temperatureSettings;
+    IReadTemperature temperatureReader;
     private String username;
     private String password;
     private INotifier telegramNotifier;
 
     public static void main(String[] args) {
-        MyHttpServer myHttpServer = new MyHttpServer(args[0], args[1], args[2], logger::info);
+        MyHttpServer myHttpServer = new MyHttpServer(args[1], args[2], null, null, new TemperatureSettings(new TemperatureSettingsFileHandler(args[0])));
         myHttpServer.startHttpServer();
     }
 
     MyHttpServer(Properties p) {
-        String temperatureSettingsPath = getTemperatureSettingsPath(p);
-        temperatureSettings = new TemperatureSettings(new TemperatureSettingsFileHandler(temperatureSettingsPath));
-        temperatureSettings.initialize();
-        username = getUsername(p);
-        password = getPassword(p);
-        telegramNotifier = new TelegramNotifier(p);
+        this(getUsername(p), getPassword(p),
+                new TelegramNotifier(p),
+                new TemperatureReader(p),
+                new TemperatureSettings(new TemperatureSettingsFileHandler(getTemperatureSettingsPath(p))));
     }
 
-    private MyHttpServer(String temperatureSettingsPath, String username, String password, INotifier notifier) {
-        temperatureSettings = new TemperatureSettings(new TemperatureSettingsFileHandler(temperatureSettingsPath));
-        temperatureSettings.initialize();
+     MyHttpServer(String username, String password, INotifier notifier, IReadTemperature reader, TemperatureSettings temperatureSettings) {
+        this.temperatureSettings = temperatureSettings;
         this.username = username;
         this.password = password;
         this.telegramNotifier = notifier;
+        this.temperatureReader = reader;
     }
 
     void startHttpServer() {
@@ -59,22 +60,31 @@ public class MyHttpServer {
             return;
         }
 
-        HttpContext context = server.createContext(API_SET, getHttpHandlerSet());
-        context.setAuthenticator(getBasicAuthenticator());
+        BasicAuthenticator basicAuthenticator = getBasicAuthenticator();
 
-        HttpContext context1 = server.createContext(API_GET, getHttpHandlerGet());
-        context1.setAuthenticator(getBasicAuthenticator());
+        HttpContext setCxt = server.createContext(API_SET, handlerSetTempPoint());
+        setCxt.setAuthenticator(basicAuthenticator);
+
+        HttpContext getSettingsCtx = server.createContext(API_GET_SETTINGS, handlerGetSettings());
+        getSettingsCtx.setAuthenticator(basicAuthenticator);
+
+        HttpContext getTemperatureCtx = server.createContext(API_GET_TEMPERATURE, handlerGetTemp());
+        getTemperatureCtx.setAuthenticator(basicAuthenticator);
 
         server.setExecutor(null); // creates a default executor
         server.start();
     }
 
-    private HttpHandler getHttpHandlerSet() {
+    private HttpHandler handlerSetTempPoint() {
         return exchange -> executeSet(exchange, exchange.getRequestURI().toString());
     }
 
-    private HttpHandler getHttpHandlerGet() {
+    private HttpHandler handlerGetSettings() {
         return exchange -> executeGet(exchange, exchange.getRequestURI().toString());
+    }
+
+    private HttpHandler handlerGetTemp() {
+        return exchange -> executeGetTemp(exchange, exchange.getRequestURI().toString());
     }
 
     private void executeSet(HttpExchange exchange, String uri) throws IOException {
@@ -98,6 +108,12 @@ public class MyHttpServer {
         String json = temperatureSettings.toJSON();
         exchange.sendResponseHeaders(200, json.getBytes().length);
         writeResponse(exchange, json);
+    }
+
+    private void executeGetTemp(HttpExchange exchange, String uri) throws IOException {
+        TemperatureRaw t = temperatureReader.getTemperatureRaw();
+        exchange.sendResponseHeaders(200, t.toJSON().getBytes().length);
+        writeResponse(exchange, t.toJSON());
     }
 
     private BasicAuthenticator getBasicAuthenticator() {

@@ -3,5 +3,7 @@ package gg;
 public interface IReadTemperature {
     String getRoomTemperature();
 
-    String getWorthTemperature();
+    String getWortTemperature();
+
+    TemperatureRaw getTemperatureRaw();
 }

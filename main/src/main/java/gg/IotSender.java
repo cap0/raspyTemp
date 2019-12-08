@@ -31,7 +31,7 @@ public class IotSender implements Runnable{ //TODO bulk upload
 
     private void send() throws URISyntaxException {
         String roomTemperatureValue = temperatureReader.getRoomTemperature();
-        String wortTemperatureValue = temperatureReader.getWorthTemperature();
+        String wortTemperatureValue = temperatureReader.getWortTemperature();
 
         HttpUriRequest httpGet = buildURL(roomTemperatureValue, wortTemperatureValue);
         HttpClient httpClient = getHttpClient();

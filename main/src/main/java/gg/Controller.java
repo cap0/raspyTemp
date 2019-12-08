@@ -53,7 +53,7 @@ public class Controller implements Runnable{
     private void checkIfTempIsOnRange(LocalDateTime now) {
         logger.debug("checking temperature " + now);
 
-        Double wortTemp = toDouble(temperatureReader.getWorthTemperature());
+        Double wortTemp = toDouble(temperatureReader.getWortTemperature());
 
         TemperatureSettings temperatureSettings = new TemperatureSettings(new TemperatureSettingsFileHandler(temperatureSettingsPath));
         temperatureSettings.initialize();

@@ -47,7 +47,7 @@ public class TemperatureAlarm implements Runnable {
 
     private void checkWortTempForAlarm() {
         try {
-            String wortTemperatureValue = temperatureReader.getWorthTemperature();
+            String wortTemperatureValue = temperatureReader.getWortTemperature();
             checkViolationAndSendAlarm(wortTemperatureValue, SensorType.wort);
         } catch (Exception e) {
             logger.error("Error during check for wort temperature", e);
