@@ -1,8 +1,6 @@
 package gg;
 
-import gg.TemperatureSetting.TemperatureRangeSetting;
 import gg.TemperatureSetting.TemperatureSettingsFileHandler;
-import gg.util.PropertyUtil;
 import gg.util.Util;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,8 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Properties;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
@@ -32,7 +28,7 @@ public class Orchestrator {
         checkArguments(args);
         Properties p = mergePropertiesFile(args);
 
-        eventuallyCreateSettingsFile(p);
+        createSettingsFileIfMissing(p);
 
         LCD lcd = new LCD();
         lcd.print("starting...","");
@@ -53,7 +49,7 @@ public class Orchestrator {
         startHttpServer(p);
     }
 
-    private static void eventuallyCreateSettingsFile(Properties p) {
+    private static void createSettingsFileIfMissing(Properties p) {
         String temperatureSettingsPath = getTemperatureSettingsPath(p);
         if (!Files.exists(Paths.get(temperatureSettingsPath))) {
             logger.info("Temperature Settings File not detected in: " + temperatureSettingsPath);

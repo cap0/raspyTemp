@@ -1,6 +1,5 @@
 package gg.TemperatureSetting;
 
-import org.apache.commons.lang3.Range;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -18,6 +17,7 @@ import java.util.stream.Stream;
 
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.Range.*;
 
 public class TemperatureSettingsFileHandler implements ITemperatureSettingsSourceHandler{
     private static final Logger logger = LogManager.getLogger(TemperatureSettingsFileHandler.class);
@@ -49,23 +49,74 @@ public class TemperatureSettingsFileHandler implements ITemperatureSettingsSourc
     @Override
     public void init() throws IOException {
         logger.info("Creation of a default temperature settings file");
+        Set<TemperatureRangeSetting> v = generateAleTemperatureSettingsFile();
+        write(v);
+    }
+
+    public static void main(String ... args) throws IOException {
+
+        String path = args[0];
+        TemperatureSettingsFileHandler t = new TemperatureSettingsFileHandler(path);
+        LocalDateTime d = LocalDateTime.of(2020, 1, 3, 23, 15);
+        Set<TemperatureRangeSetting> r = t.generateLagerTemperatureSettingsFile(d);
+        t.write(r);
+
+    }
+
+    public Set<TemperatureRangeSetting> generateLagerTemperatureSettingsFile(LocalDateTime startDate) {
+        //FAST LAGER: http://brulosophy.com/methods/lager-method/
+        //http://www.rovidbeer.it/metodo-fast-lager/
+        Set<TemperatureRangeSetting> v = new TreeSet<>();
+
+        //first fermentation days 5-8
+        LocalDateTime s = startDate.truncatedTo(ChronoUnit.MINUTES);
+        LocalDateTime currentDate = s.plusDays(7); // this is an estimation 5-8
+        double currentTemp = 10D;
+        v.add(new TemperatureRangeSetting(between(s, currentDate), currentTemp)); // low temp fermentation
+
+        //+2° in 12h = +0.5 in 3h to reach 18°
+        while (currentTemp<18D) {
+            currentTemp += 0.5;
+            LocalDateTime newEnd = currentDate.plusHours(3);
+            v.add(new TemperatureRangeSetting(between(currentDate, newEnd), currentTemp));
+            currentDate = newEnd;
+        }
+
+        //5 days @ 18°
+        LocalDateTime diacetilRestEnd = currentDate.plusDays(5);
+        currentTemp = 18D;
+        v.add(new TemperatureRangeSetting(between(currentDate, diacetilRestEnd), currentTemp));
+        currentDate = diacetilRestEnd;
+
+        // -4° in 12h 1° each 3h to reach 2
+        while (currentTemp>2D) {
+            currentTemp -= 1;
+            LocalDateTime newEnd = currentDate.plusHours(3);
+            v.add(new TemperatureRangeSetting(between(currentDate, newEnd), currentTemp));
+            currentDate = newEnd;
+        }
+
+        v.add(new TemperatureRangeSetting(between(currentDate, currentDate.plusDays(10)), 2D));
+        return v;
+    }
+
+    private Set<TemperatureRangeSetting> generateAleTemperatureSettingsFile() {
         Set<TemperatureRangeSetting> v = new TreeSet<>();
         LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
         LocalDateTime endFirstRange = now.plusDays(5);
-        v.add(new TemperatureRangeSetting(Range.between(now, endFirstRange), 17D));
+        v.add(new TemperatureRangeSetting(between(now, endFirstRange), 17D));
 
         LocalDateTime endSecondRange = endFirstRange.plusDays(1);
-        v.add(new TemperatureRangeSetting(Range.between(endFirstRange, endSecondRange), 18D));
+        v.add(new TemperatureRangeSetting(between(endFirstRange, endSecondRange), 18D));
 
         LocalDateTime endThirdRange = endSecondRange.plusDays(1);
-        v.add(new TemperatureRangeSetting(Range.between(endSecondRange, endThirdRange), 19D));
+        v.add(new TemperatureRangeSetting(between(endSecondRange, endThirdRange), 19D));
 
         LocalDateTime endForthRange = endThirdRange.plusDays(1);
-        v.add(new TemperatureRangeSetting(Range.between(endThirdRange, endForthRange), 20D));
+        v.add(new TemperatureRangeSetting(between(endThirdRange, endForthRange), 20D));
 
-        v.add(new TemperatureRangeSetting(Range.between(endForthRange, endForthRange.plusDays(1)), 21D));
-
-        write(v);
+        v.add(new TemperatureRangeSetting(between(endForthRange, endForthRange.plusDays(1)), 21D));
+        return v;
     }
 
     private Path write(Set<TemperatureRangeSetting> v) throws IOException {
