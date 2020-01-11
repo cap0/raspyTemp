@@ -9,14 +9,14 @@ let lastDataForGauge = [0, 0];
 google.charts.load('current', {'packages':['annotationchart', 'gauge']});
 google.charts.setOnLoadCallback(drawChart);
 
-
 function drawChart() {
     var data = new google.visualization.DataTable();
     data.addColumn('date', 'Date');
     data.addColumn('number', 'Room');
     data.addColumn('number', 'Wort');
-    data.addColumn('number', 'Set Temperature');
     data.addColumn('string', 'Activation');
+    data.addColumn('number', 'Set Temperature');
+    data.addColumn('number', 'Error');
 
     //   data.addColumn('number', 'Set Temperature up');
     //   data.addColumn('number', 'Set Temperature low');
@@ -130,19 +130,23 @@ function hideChamber() {
 function showChamber() {
     chart.showDataColumns(0);
 }
-
 function hideFermenter() {
     chart.hideDataColumns(1);
 }
 function showFermenter() {
     chart.showDataColumns(1);
 }
-
 function hideSettings() {
     chart.hideDataColumns(2);
 }
 function showSettings() {
     chart.showDataColumns(2);
+}
+function hideErrors() {
+    chart.hideDataColumns(3);
+}
+function showErrors() {
+    chart.showDataColumns(3);
 }
 
 function diff_data(d) {
@@ -215,9 +219,12 @@ function processData(allText) {
             let wortValue = Number(data[2]);
             line.push(wortValue); //wort
 
-            line.push(Number(data[3])); // setting
-
             previousActivationValue = annotations(data, previousActivationValue, line);
+
+            let setPoint = Number(data[3]);
+
+            line.push(setPoint); // setting
+            line.push(Math.abs(Number(wortValue - setPoint))); // error
 
 //          line.push(Number(get_settings(d) - 0.3));
 //          line.push(Number(get_settings(d) + 0.3));
@@ -258,9 +265,11 @@ function processData2(allText) {
 
             let wortValue = Number(data[3]);
             line.push(wortValue); //wort
+            line.push(null);
 
             line.push(Number(2)); // setting
             line.push(null);
+
            ////// previousActivationValue = annotations(data, previousActivationValue, line);
 
 //          line.push(Number(get_settings(d) - 0.3));
