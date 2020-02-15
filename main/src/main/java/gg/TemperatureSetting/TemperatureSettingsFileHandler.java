@@ -21,6 +21,7 @@ import static org.apache.commons.lang3.Range.*;
 
 public class TemperatureSettingsFileHandler implements ITemperatureSettingsSourceHandler{
     private static final Logger logger = LogManager.getLogger(TemperatureSettingsFileHandler.class);
+    public static final double DIACETIL_REST = 20D;
 
     private String filePath;
 
@@ -74,8 +75,8 @@ public class TemperatureSettingsFileHandler implements ITemperatureSettingsSourc
         double currentTemp = 10D;
         v.add(new TemperatureRangeSetting(between(s, currentDate), currentTemp)); // low temp fermentation
 
-        //+2° in 12h = +0.5 in 3h to reach 18°
-        while (currentTemp<18D) {
+        //+2° in 12h = +0.5 in 3h to reach 20°
+        while (currentTemp< DIACETIL_REST) {
             currentTemp += 0.5;
             LocalDateTime newEnd = currentDate.plusHours(3);
             v.add(new TemperatureRangeSetting(between(currentDate, newEnd), currentTemp));
@@ -84,10 +85,16 @@ public class TemperatureSettingsFileHandler implements ITemperatureSettingsSourc
 
         //5 days @ 18°
         LocalDateTime diacetilRestEnd = currentDate.plusDays(5);
-        currentTemp = 18D;
+        currentTemp = DIACETIL_REST;
         v.add(new TemperatureRangeSetting(between(currentDate, diacetilRestEnd), currentTemp));
         currentDate = diacetilRestEnd;
+        currentDate = rampDown(v, currentDate, currentTemp);
 
+        v.add(new TemperatureRangeSetting(between(currentDate, currentDate.plusDays(10)), 2D));
+        return v;
+    }
+
+    public LocalDateTime rampDown(Set<TemperatureRangeSetting> v, LocalDateTime currentDate, double currentTemp) {
         // -4° in 12h 1° each 3h to reach 2
         while (currentTemp>2D) {
             currentTemp -= 1;
@@ -95,9 +102,7 @@ public class TemperatureSettingsFileHandler implements ITemperatureSettingsSourc
             v.add(new TemperatureRangeSetting(between(currentDate, newEnd), currentTemp));
             currentDate = newEnd;
         }
-
-        v.add(new TemperatureRangeSetting(between(currentDate, currentDate.plusDays(10)), 2D));
-        return v;
+        return currentDate;
     }
 
     private Set<TemperatureRangeSetting> generateAleTemperatureSettingsFile() {
@@ -119,7 +124,7 @@ public class TemperatureSettingsFileHandler implements ITemperatureSettingsSourc
         return v;
     }
 
-    private Path write(Set<TemperatureRangeSetting> v) throws IOException {
+    public Path write(Set<TemperatureRangeSetting> v) throws IOException {
         return Files.write(Paths.get(filePath), buildRows(v), CREATE);
     }
 
