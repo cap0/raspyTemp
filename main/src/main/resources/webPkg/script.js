@@ -14,8 +14,9 @@ function drawChart() {
     data.addColumn('date', 'Date');
     data.addColumn('number', 'Room');
     data.addColumn('number', 'Wort');
-    data.addColumn('string', 'Activation');
     data.addColumn('number', 'Set Temperature');
+    data.addColumn('string', 'Activation');
+
     data.addColumn('number', 'Error');
 
     //   data.addColumn('number', 'Set Temperature up');
@@ -211,20 +212,21 @@ function processData(allText) {
             var line = [];
 
             let dv = new Date(data[0]);
-            line.push(dv); // data
+            line.push(dv); // 1- data
 
             let roomValue = Number(data[1]);
-            line.push(roomValue); // room
+            line.push(roomValue); // 2- room
+
 
             let wortValue = Number(data[2]);
-            line.push(wortValue); //wort
-
-            previousActivationValue = annotations(data, previousActivationValue, line);
+            line.push(wortValue); //3- wort
 
             let setPoint = Number(data[3]);
 
-            line.push(setPoint); // setting
-            line.push(Math.abs(Number(wortValue - setPoint))); // error
+            line.push(setPoint); //4-  setting
+            previousActivationValue = annotations(data, previousActivationValue, line);
+
+            line.push(Math.abs(Number(wortValue - setPoint))); //6- error
 
 //          line.push(Number(get_settings(d) - 0.3));
 //          line.push(Number(get_settings(d) + 0.3));
@@ -258,20 +260,19 @@ function processData2(allText) {
             }
             dateLastAsDate= dv; //remember the last date
 
-            line.push(dv); // data
+            line.push(dv); // 1- data
 
             let roomValue = Number(data[2]);
-            line.push(roomValue); // room
+            line.push(roomValue); // 2- room
 
             let wortValue = Number(data[3]);
-            line.push(wortValue); //wort
-            line.push(null);
+            line.push(wortValue); //3- wort
 
-            line.push(Number(2)); // setting
-            line.push(null);
+            line.push(Number(2)); // 4- setting
+            line.push(null); //5- annotation
 
            ////// previousActivationValue = annotations(data, previousActivationValue, line);
-
+            line.push(null); // 6- error
 //          line.push(Number(get_settings(d) - 0.3));
 //          line.push(Number(get_settings(d) + 0.3));
 
