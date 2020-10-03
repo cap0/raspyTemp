@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+echo "hold your seat, we are starting a new journey"
+
+w=$(whoami)
+if [ "$w" = "root" ]; then
+    echo "DO NOT RUN AS ROOT"
+    exit 1
+fi
+
 echo "Creating new brew"
 echo "Enter brew name (no spaces) e.g SIPA"
 read name
@@ -6,10 +14,10 @@ read name
 #read iotKey
 
 #now date in format yyyy-mm
-d=`date +%Y-%m`
+d=$(date +%Y-%m)
 folderName="$d-$name"
 #now date in format yyyy-MM-ddTHH:mm:ss
-n=`date +%FT%T`
+n=$(date +%FT%T)
 
 echo $n
 echo $folderName
@@ -17,10 +25,14 @@ echo $folderName
 # create folder name
 mkdir ~/$folderName
 
-#udpdate and build
-cd ~/raspyTemp/main
-git pull
-mvn clean install
+read -r -p "do you want to build the app? [y/N] " response
+case "$response" in [yY][eE][sS]|[yY])
+        echo "update and build"
+        cd ~/raspyTemp/main
+        git pull
+        mvn clean install
+        ;;
+esac
 
 #copy jar and config file
 cp target/raspyTemp-1-jar-with-dependencies.jar  ~/$folderName
@@ -47,6 +59,18 @@ chmod +x ~/$folderName/start.sh
 
 # sym link for folder name in current
 ln -sfrn ~/$folderName ~/current
+
+#ftp
+sed -i s/XXX/$folderName/ ~/$folderName/webPkg/script.js
+
+HOST=$(cat ~/ftp.properties | grep "ftp.host" | cut -d'=' -f2)
+USER=$(cat ~/ftp.properties | grep "ftp.user" | cut -d'=' -f2)
+PASSWD=$(cat ~/ftp.properties | grep "ftp.pass" | cut -d'=' -f2)
+
+curl -T ~/$folderName/webPkg/main.html -u $USER:$PASSWD $HOST
+curl -T ~/$folderName/webPkg/property.js -u $USER:$PASSWD $HOST
+curl -T ~/$folderName/webPkg/script.js -u $USER:$PASSWD $HOST
+curl -T ~/$folderName/webPkg/style.css -u $USER:$PASSWD $HOST
 
 echo please start using "sudo ./start.sh & >/dev/null"
 #./start.sh & >/dev/null
