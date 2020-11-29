@@ -15,8 +15,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+import static org.apache.commons.lang3.Range.between;
 
-//TODO singleton?
 public class TemperatureSettings {
     private static final Logger logger = LogManager.getLogger(TemperatureSettings.class);
 
@@ -35,27 +35,17 @@ public class TemperatureSettings {
                 .collect(Collectors.toCollection(TreeSet::new));
     }
 
-    public boolean set(Double newSettingPoint, LocalDateTime time) {
-        if (!isSettingsAllowed(newSettingPoint)) {
+    public boolean setTemperaturePoint(Double newTempSettingPoint, LocalDateTime time) {
+        if (!isTemperatureSettingPointAllowed(newTempSettingPoint)) {
             return false;
         }
 
+        LocalDateTime setPointDate = time.truncatedTo(ChronoUnit.MINUTES);
+
+        settings = reduceSettingsToDate(setPointDate, settings);
+        settings.add(new TemperatureRangeSetting(getNewRange(setPointDate), newTempSettingPoint));
+
         try {
-            LocalDateTime now = time.truncatedTo(ChronoUnit.MINUTES);
-
-            Set<TemperatureRangeSetting> newRange = new TreeSet<>();
-            for (TemperatureRangeSetting t : settings) {
-                if (t.isBefore(now)) {
-                    newRange.add(t);
-                } else if (t.contains(now)){
-                    newRange.add(new TemperatureRangeSetting(Range.between(t.getMinimum(), now), t.getValue()));
-                }
-            }
-
-            newRange.add(new TemperatureRangeSetting(getNewRange(now), newSettingPoint));
-
-            settings = newRange;
-
             fileHandler.backupAndWriteFile(settings);
         } catch (InvalidPathException | IOException e) {
             logger.error(e);
@@ -69,7 +59,7 @@ public class TemperatureSettings {
         return Range.between(now, endDate);
     }
 
-    private boolean isSettingsAllowed(Double newSettingPoint) {
+    private boolean isTemperatureSettingPointAllowed(Double newSettingPoint) {
         return newSettingPoint != null && newSettingPoint >= 2 && newSettingPoint <= 22;
     }
 

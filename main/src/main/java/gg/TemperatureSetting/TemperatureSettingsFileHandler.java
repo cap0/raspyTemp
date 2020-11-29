@@ -50,7 +50,7 @@ public class TemperatureSettingsFileHandler implements ITemperatureSettingsSourc
     @Override
     public void init() throws IOException {
         logger.info("Creation of a default temperature settings file");
-        Set<TemperatureRangeSetting> v = generateAleTemperatureSettingsFile();
+        Set<TemperatureRangeSetting> v = generateAleTemperatureSettingsFile(LocalDateTime.now());
         write(v);
     }
 
@@ -64,7 +64,10 @@ public class TemperatureSettingsFileHandler implements ITemperatureSettingsSourc
 
     }
 
-    public Set<TemperatureRangeSetting> generateLagerTemperatureSettingsFile(LocalDateTime startDate) {
+    /**
+     * Generate (Fast) Lager temperature profile
+     */
+    public Set<TemperatureRangeSetting> generateLagerTemperatureSettingsFile(LocalDateTime startDate) { //TODO MOVE THIS IN THE TemperatureSettings
         //FAST LAGER: http://brulosophy.com/methods/lager-method/
         //http://www.rovidbeer.it/metodo-fast-lager/
         Set<TemperatureRangeSetting> v = new TreeSet<>();
@@ -88,15 +91,17 @@ public class TemperatureSettingsFileHandler implements ITemperatureSettingsSourc
         currentTemp = DIACETIL_REST;
         v.add(new TemperatureRangeSetting(between(currentDate, diacetilRestEnd), currentTemp));
         currentDate = diacetilRestEnd;
-        currentDate = rampDown(v, currentDate, currentTemp);
+        currentDate = decreaseTemperatureToTarget(v, currentDate, currentTemp, 2D);
 
         v.add(new TemperatureRangeSetting(between(currentDate, currentDate.plusDays(10)), 2D));
         return v;
     }
 
-    public LocalDateTime rampDown(Set<TemperatureRangeSetting> v, LocalDateTime currentDate, double currentTemp) {
-        // -4° in 12h 1° each 3h to reach 2
-        while (currentTemp>2D) {
+    /**
+     *  -4° in 12h 1° each 3h to reach target temperature
+     */
+    LocalDateTime decreaseTemperatureToTarget(Set<TemperatureRangeSetting> v, LocalDateTime currentDate, double currentTemp, double targetTemperature) {
+        while (currentTemp> targetTemperature) {
             currentTemp -= 1;
             LocalDateTime newEnd = currentDate.plusHours(3);
             v.add(new TemperatureRangeSetting(between(currentDate, newEnd), currentTemp));
@@ -105,9 +110,12 @@ public class TemperatureSettingsFileHandler implements ITemperatureSettingsSourc
         return currentDate;
     }
 
-    private Set<TemperatureRangeSetting> generateAleTemperatureSettingsFile() {
+    /**
+     * Generate Ale profile temperature
+     */
+    private Set<TemperatureRangeSetting> generateAleTemperatureSettingsFile(LocalDateTime startDate) {
         Set<TemperatureRangeSetting> v = new TreeSet<>();
-        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
+        LocalDateTime now = startDate.truncatedTo(ChronoUnit.MINUTES);
         LocalDateTime endFirstRange = now.plusDays(5);
         v.add(new TemperatureRangeSetting(between(now, endFirstRange), 17D));
 

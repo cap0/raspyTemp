@@ -96,7 +96,7 @@ public class MyHttpServer {
         Optional<Double> aDouble = isDouble(param);
         if (aDouble.isPresent()) {
             temperatureSettings.initialize();
-            boolean successful = temperatureSettings.set(aDouble.get(), LocalDateTime.now());
+            boolean successful = temperatureSettings.setTemperaturePoint(aDouble.get(), LocalDateTime.now());
             respond(exchange, aDouble.get().toString(), successful ? "set:" : "rejected:", successful ? 200 : 500);
         } else {
             respond(exchange, param, "invalid:", 500);
