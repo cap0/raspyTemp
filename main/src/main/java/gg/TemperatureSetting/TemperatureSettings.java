@@ -54,6 +54,43 @@ public class TemperatureSettings {
         return true;
     }
 
+    /**
+     * Create a ramp of steps of decreasing temperature ( 1 degree each 3 hour )
+     * @param targetTemp temperature to reach
+     * @param setPointDate date to start the ramp
+     */
+    public void applyRampDown(double targetTemp, LocalDateTime setPointDate) {
+        settings = reduceSettingsToDate(setPointDate, settings);
+        Set<TemperatureRangeSetting> ramp = generateRampDown(getTemperatureSettingsValueForDate(setPointDate), targetTemp, setPointDate);
+        settings.addAll(ramp);
+    }
+
+    public Set<TemperatureRangeSetting> reduceSettingsToDate(LocalDateTime setPointDate, Set<TemperatureRangeSetting> alreadyPresentSettings) {
+        Set<TemperatureRangeSetting> newRange = new TreeSet<>();
+        for (TemperatureRangeSetting t : alreadyPresentSettings) {
+            if (t.isBefore(setPointDate)) {
+                newRange.add(t);
+            } else if (t.contains(setPointDate)) {
+                newRange.add(new TemperatureRangeSetting(Range.between(t.getMinimum(), setPointDate), t.getValue()));
+            }
+        }
+
+        return newRange;
+    }
+
+    public Set<TemperatureRangeSetting> generateRampDown(double currentTemp, double targetTemperature, LocalDateTime startDate) {
+        Set<TemperatureRangeSetting> v = new TreeSet<>();
+        LocalDateTime currentDate = startDate.truncatedTo(ChronoUnit.MINUTES);
+        while (currentTemp > targetTemperature) {
+            currentTemp -= 1;
+            LocalDateTime newEnd = currentDate.plusHours(3);
+            v.add(new TemperatureRangeSetting(between(currentDate, newEnd), currentTemp));
+            currentDate = newEnd;
+        }
+
+        return v;
+    }
+
     private Range<ChronoLocalDateTime<?>> getNewRange(LocalDateTime now) {
         LocalDateTime endDate = now.plusDays(30);
         return Range.between(now, endDate);

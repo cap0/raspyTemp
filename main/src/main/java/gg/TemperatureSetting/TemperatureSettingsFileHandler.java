@@ -23,7 +23,7 @@ public class TemperatureSettingsFileHandler implements ITemperatureSettingsSourc
     private static final Logger logger = LogManager.getLogger(TemperatureSettingsFileHandler.class);
     public static final double DIACETIL_REST = 20D;
 
-    private String filePath;
+    private final String filePath;
 
     public TemperatureSettingsFileHandler(String filePath) {
         this.filePath = filePath;

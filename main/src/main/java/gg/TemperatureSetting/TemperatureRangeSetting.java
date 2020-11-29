@@ -9,8 +9,8 @@ import java.util.Objects;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
 public class TemperatureRangeSetting implements Comparable {
-    private Range<ChronoLocalDateTime<?>> range;
-    private Double tempValue;
+    private final Range<ChronoLocalDateTime<?>> range;
+    private final Double tempValue;
 
     public TemperatureRangeSetting(Range<ChronoLocalDateTime<?>> range, Double tempValue) {
         this.range = range;
@@ -45,6 +45,7 @@ public class TemperatureRangeSetting implements Comparable {
         return new JsonValue();
     }
 
+    //THIS IS SUPER UGLY the value is not part of the equals/compare
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
