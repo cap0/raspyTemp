@@ -36,6 +36,7 @@ public class Orchestrator {
 
         scheduleTemperatureCollector(p, gpioCtrl);
         scheduleIOTSender(p);
+        scheduleBrewfatherConnector(p);
         scheduleTemperatureAlarm(p);
 
         ReentrantLock lock = new ReentrantLock();
@@ -104,6 +105,15 @@ public class Orchestrator {
 
         logger.info("IOT sender Process. initialDelay= " + 0 + " periodicDelay= " + periodicDelay + " period= " + SECONDS);
         scheduler.scheduleAtFixedRate(task, 0, periodicDelay, SECONDS);
+    }
+
+    private static void scheduleBrewfatherConnector(Properties properties) {
+        logger.info("Schedule Brewfather connector");
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+        Runnable task = new BrewfatherConnector(properties);
+
+        logger.info("Brewfather connector Process. initialDelay= " + 0 + " periodicDelay= " + 16 + " period= " + MINUTES);
+        scheduler.scheduleAtFixedRate(task, 0, 16, MINUTES);
     }
 
     private static void scheduleDataProcess(Properties properties, ReentrantLock lock) {

@@ -1,5 +1,11 @@
 package gg.util;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.util.Strings;
@@ -61,5 +67,29 @@ public class Util {
     private static NumberFormat nf =  new DecimalFormat("##.#");
     public static String formatTemperature(double temperature) {
         return nf.format(temperature);
+    }
+
+
+    public static HttpClient getHttpClient() {
+        int timeout = 30 * 1000;
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectTimeout(timeout)
+                .setSocketTimeout(timeout)
+                .build();
+        return HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build();
+    }
+
+    public static void executeHttpRequest(HttpUriRequest request, HttpClient httpClient) {
+        try {
+            logger.debug("Sending data " + request);
+            HttpResponse execute = httpClient.execute(request);
+            StatusLine statusLine = execute.getStatusLine();
+            int statusCode = statusLine.getStatusCode();
+            if (statusCode < 200 || statusCode >= 300) {
+                logger.error("Error firing data: " + statusLine.getReasonPhrase());
+            }
+        } catch (IOException e) {
+            logger.error("Error firing data to IOT endpoint", e);
+        }
     }
 }

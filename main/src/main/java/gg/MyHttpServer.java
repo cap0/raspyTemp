@@ -26,9 +26,9 @@ public class MyHttpServer {
 
     private final TemperatureSettings temperatureSettings;
     IReadTemperature temperatureReader;
-    private String username;
-    private String password;
-    private INotifier telegramNotifier;
+    private final String username;
+    private final String password;
+    private final INotifier telegramNotifier;
 
     public static void main(String[] args) {
         MyHttpServer myHttpServer = new MyHttpServer(args[1], args[2], null, null, new TemperatureSettings(new TemperatureSettingsFileHandler(args[0])));

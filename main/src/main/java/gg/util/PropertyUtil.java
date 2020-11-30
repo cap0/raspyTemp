@@ -31,6 +31,10 @@ public class PropertyUtil {
     //IOT
     public static final String IOT_WRITE_KEY = "iot.writeKey";
 
+    //BREWFATHER
+    public static final String BREWFATHER_ID = "brewfather.id";
+    public static final String BREWFATHER_URL = "brewfather.url";
+
     //TIMER DELAYS
     public static final String PROCESSES_PERIODIC_DELAY = "process.periodicDelay";
 

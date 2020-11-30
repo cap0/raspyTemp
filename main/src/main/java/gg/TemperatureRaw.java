@@ -3,8 +3,8 @@ package gg;
 import com.google.gson.Gson;
 
 public class TemperatureRaw {
-    private String wort;
-    private String room;
+    private final String wort;
+    private final String room;
 
     protected TemperatureRaw(String wort, String room) {
         this.wort = wort;
