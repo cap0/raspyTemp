@@ -36,10 +36,6 @@ public class TemperatureSettings {
     }
 
     public boolean setTemperaturePoint(Double newTempSettingPoint, LocalDateTime time) {
-        if (!isTemperatureSettingPointAllowed(newTempSettingPoint)) {
-            return false;
-        }
-
         LocalDateTime setPointDate = time.truncatedTo(ChronoUnit.MINUTES);
 
         settings = reduceSettingsToDate(setPointDate, settings);
@@ -94,10 +90,6 @@ public class TemperatureSettings {
     private Range<ChronoLocalDateTime<?>> getNewRange(LocalDateTime now) {
         LocalDateTime endDate = now.plusDays(30);
         return Range.between(now, endDate);
-    }
-
-    private boolean isTemperatureSettingPointAllowed(Double newSettingPoint) {
-        return newSettingPoint != null && newSettingPoint >= 2 && newSettingPoint <= 22;
     }
 
     private LocalDateTime toDate(String text) {
