@@ -24,7 +24,7 @@ public class Orchestrator {
     private static final Logger logger = LogManager.getLogger(Orchestrator.class);
 
     public static void main(String[] args) {
-        logger.debug("all starts here...");
+        logger.info("all starts here...");
         checkArguments(args);
         Properties p = mergePropertiesFile(args);
 
