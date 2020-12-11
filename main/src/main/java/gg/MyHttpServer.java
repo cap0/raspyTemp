@@ -21,6 +21,7 @@ public class MyHttpServer {
     private static final Logger logger = LogManager.getLogger(MyHttpServer.class);
 
     private static final String API_SET = "/api/set/";
+    private static final String API_RAMP_DOWN = "/api/ramp-down/";
     private static final String API_GET_SETTINGS = "/api/get/";
     private static final String API_GET_TEMPERATURE = "/api/temperature/";
 
@@ -65,10 +66,13 @@ public class MyHttpServer {
         HttpContext setCxt = server.createContext(API_SET, handlerSetTempPoint());
         setCxt.setAuthenticator(basicAuthenticator);
 
-        HttpContext getSettingsCtx = server.createContext(API_GET_SETTINGS, handlerGetSettings());
+        HttpContext rampDown = server.createContext(API_RAMP_DOWN, handlerRampDown());
+        rampDown.setAuthenticator(basicAuthenticator);
+
+        HttpContext getSettingsCtx = server.createContext(API_GET_SETTINGS, this::executeGet);
         getSettingsCtx.setAuthenticator(basicAuthenticator);
 
-        HttpContext getTemperatureCtx = server.createContext(API_GET_TEMPERATURE, handlerGetTemp());
+        HttpContext getTemperatureCtx = server.createContext(API_GET_TEMPERATURE, this::executeGetTemp);
         getTemperatureCtx.setAuthenticator(basicAuthenticator);
 
         server.setExecutor(null); // creates a default executor
@@ -79,12 +83,8 @@ public class MyHttpServer {
         return exchange -> executeSet(exchange, exchange.getRequestURI().toString());
     }
 
-    private HttpHandler handlerGetSettings() {
-        return exchange -> executeGet(exchange, exchange.getRequestURI().toString());
-    }
-
-    private HttpHandler handlerGetTemp() {
-        return exchange -> executeGetTemp(exchange, exchange.getRequestURI().toString());
+    private HttpHandler handlerRampDown() {
+        return exchange -> executeRampDown(exchange, exchange.getRequestURI().toString());
     }
 
     private void executeSet(HttpExchange exchange, String uri) throws IOException {
@@ -103,14 +103,30 @@ public class MyHttpServer {
         }
     }
 
-    private void executeGet(HttpExchange exchange, String uri) throws IOException {
+    private void executeRampDown(HttpExchange exchange, String uri) throws IOException {
+        String param = uri.substring(API_RAMP_DOWN.length());
+        String message = "Temperature ramp down: " + param;
+        logger.info(message);
+        telegramNotifier.sendNotify(message);
+
+        Optional<Double> aDouble = isDouble(param);
+        if (aDouble.isPresent()) {
+            temperatureSettings.initialize();
+            boolean successful = temperatureSettings.applyRampDown(aDouble.get(), LocalDateTime.now());
+            respond(exchange, aDouble.get().toString(), successful ? "set:" : "rejected:", successful ? 200 : 500);
+        } else {
+            respond(exchange, param, "invalid:", 500);
+        }
+    }
+
+    private void executeGet(HttpExchange exchange) throws IOException {
         temperatureSettings.initialize();
         String json = temperatureSettings.toJSON();
         exchange.sendResponseHeaders(200, json.getBytes().length);
         writeResponse(exchange, json);
     }
 
-    private void executeGetTemp(HttpExchange exchange, String uri) throws IOException {
+    private void executeGetTemp(HttpExchange exchange) throws IOException {
         TemperatureRaw t = temperatureReader.getTemperatureRaw();
         exchange.sendResponseHeaders(200, t.toJSON().getBytes().length);
         writeResponse(exchange, t.toJSON());
