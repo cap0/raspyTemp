@@ -21,9 +21,9 @@ public class TemperatureSettingsFileHandlerTest {
     public void rampDown() throws IOException {
         String path = "temp.set";
         TemperatureSettingsFileHandler t = new TemperatureSettingsFileHandler(path);
-        LocalDateTime d = LocalDateTime.now().truncatedTo(ChronoUnit.HOURS);
+        LocalDateTime d = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
         TreeSet<TemperatureRangeSetting> v = new TreeSet<>();
-        LocalDateTime currentDate = t.decreaseTemperatureToTarget(v, d, 21, 1D);
+        LocalDateTime currentDate = t.decreaseTemperatureToTarget(v, d, 22, 1D);
 
         v.add(new TemperatureRangeSetting(between(currentDate, currentDate.plusDays(10)), 1D));
         t.write(v);

@@ -6,8 +6,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.IOException;
-import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -21,7 +19,7 @@ public class TemperatureSettings {
     private static final Logger logger = LogManager.getLogger(TemperatureSettings.class);
 
     final ITemperatureSettingsSourceHandler fileHandler;
-    Set<TemperatureRangeSetting> settings = new TreeSet<>();
+    TreeSet<TemperatureRangeSetting> settings = new TreeSet<>();
 
     public TemperatureSettings(ITemperatureSettingsSourceHandler sourceHandler) {
         this.fileHandler = sourceHandler;
@@ -36,18 +34,16 @@ public class TemperatureSettings {
     }
 
     public boolean setTemperaturePoint(Double newTempSettingPoint, LocalDateTime time) {
+        if (newTempSettingPoint==null || time ==null) {
+            logger.error("null parameters");
+            return false;
+        }
         LocalDateTime setPointDate = time.truncatedTo(ChronoUnit.MINUTES);
 
         settings = reduceSettingsToDate(setPointDate, settings);
         settings.add(new TemperatureRangeSetting(getNewRange(setPointDate), newTempSettingPoint));
 
-        try {
-            fileHandler.backupAndWriteFile(settings);
-        } catch (InvalidPathException | IOException e) {
-            logger.error(e);
-            return false;
-        }
-        return true;
+        return persistSettings();
     }
 
     /**
@@ -55,14 +51,19 @@ public class TemperatureSettings {
      * @param targetTemp temperature to reach
      * @param setPointDate date to start the ramp
      */
-    public void applyRampDown(double targetTemp, LocalDateTime setPointDate) {
+    public boolean applyRampDown(double targetTemp, LocalDateTime setPointDate) {
         settings = reduceSettingsToDate(setPointDate, settings);
         Set<TemperatureRangeSetting> ramp = generateRampDown(getTemperatureSettingsValueForDate(setPointDate), targetTemp, setPointDate);
         settings.addAll(ramp);
+
+        TemperatureRangeSetting rs = settings.last();
+        settings.add(new TemperatureRangeSetting(Range.between(rs.getMaximum(), rs.getMaximum().plus(1,ChronoUnit.MONTHS)), rs.getValue()));
+
+        return persistSettings();
     }
 
-    public Set<TemperatureRangeSetting> reduceSettingsToDate(LocalDateTime setPointDate, Set<TemperatureRangeSetting> alreadyPresentSettings) {
-        Set<TemperatureRangeSetting> newRange = new TreeSet<>();
+    TreeSet<TemperatureRangeSetting> reduceSettingsToDate(LocalDateTime setPointDate, TreeSet<TemperatureRangeSetting> alreadyPresentSettings) {
+        TreeSet<TemperatureRangeSetting> newRange = new TreeSet<>();
         for (TemperatureRangeSetting t : alreadyPresentSettings) {
             if (t.isBefore(setPointDate)) {
                 newRange.add(t);
@@ -74,7 +75,7 @@ public class TemperatureSettings {
         return newRange;
     }
 
-    public Set<TemperatureRangeSetting> generateRampDown(double currentTemp, double targetTemperature, LocalDateTime startDate) {
+     Set<TemperatureRangeSetting> generateRampDown(double currentTemp, double targetTemperature, LocalDateTime startDate) {
         Set<TemperatureRangeSetting> v = new TreeSet<>();
         LocalDateTime currentDate = startDate.truncatedTo(ChronoUnit.MINUTES);
         while (currentTemp > targetTemperature) {
@@ -115,5 +116,16 @@ public class TemperatureSettings {
         Gson gson = new Gson();
         return  gson.toJson(l);
     }
+
+    private boolean persistSettings() {
+        try {
+            fileHandler.backupAndWriteFile(settings);
+        } catch (Exception e) {
+            logger.error(e);
+            return false;
+        }
+        return true;
+    }
+
 
 }

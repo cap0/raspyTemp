@@ -59,13 +59,6 @@ public class TemperatureSettingsTest {
     }
 
     @Test
-    public void setOutOfRange() {
-        ITemperatureSettingsSourceHandler sourceHandler = context.mock(ITemperatureSettingsSourceHandler.class);
-        TemperatureSettings temperatureSettings = new TemperatureSettings(sourceHandler);
-        assertFalse(temperatureSettings.setTemperaturePoint(50D, LocalDateTime.now()));
-    }
-
-    @Test
     public void setAcceptedWhenEmpty() throws IOException {
         ITemperatureSettingsSourceHandler sourceHandler = context.mock(ITemperatureSettingsSourceHandler.class);
         TemperatureSettings temperatureSettings = new TemperatureSettings(sourceHandler);
@@ -87,7 +80,7 @@ public class TemperatureSettingsTest {
         ITemperatureSettingsSourceHandler sourceHandler = context.mock(ITemperatureSettingsSourceHandler.class);
         TemperatureSettings temperatureSettings = new TemperatureSettings(sourceHandler);
 
-        Set<TemperatureRangeSetting> testValues = new TreeSet<>();
+        TreeSet<TemperatureRangeSetting> testValues = new TreeSet<>();
         TemperatureRangeSetting trs0 = new TemperatureRangeSetting(Range.between(
                 LocalDateTime.of(2000, 1, 1, 13, 10),
                 LocalDateTime.of(2000, 1, 5, 17, 10)), 5D);
@@ -124,7 +117,7 @@ public class TemperatureSettingsTest {
         ITemperatureSettingsSourceHandler sourceHandler = context.mock(ITemperatureSettingsSourceHandler.class);
         TemperatureSettings temperatureSettings = new TemperatureSettings(sourceHandler);
 
-        Set<TemperatureRangeSetting> testValues = new TreeSet<>();
+        TreeSet<TemperatureRangeSetting> testValues = new TreeSet<>();
         TemperatureRangeSetting trs0 = new TemperatureRangeSetting(Range.between(
                 LocalDateTime.of(2000, 1, 1, 13, 10),
                 LocalDateTime.of(2000, 1, 5, 17, 10)), 5D);
@@ -186,7 +179,7 @@ public class TemperatureSettingsTest {
 
         LocalDateTime date = LocalDateTime.of(2000, 1, 6, 22, 0, 0);
 
-        Set<TemperatureRangeSetting> testValues = new TreeSet<>();
+        TreeSet<TemperatureRangeSetting> testValues = new TreeSet<>();
         TemperatureRangeSetting trs0 = new TemperatureRangeSetting(Range.between(
                 LocalDateTime.of(2000, 1, 1, 13, 10),
                 LocalDateTime.of(2000, 1, 5, 17, 10)), 5D);
@@ -216,11 +209,12 @@ public class TemperatureSettingsTest {
     }
 
     @Test
-    public void applyRampDown() {
+    public void applyRampDown() throws IOException {
         ITemperatureSettingsSourceHandler sourceHandler = context.mock(ITemperatureSettingsSourceHandler.class);
+
         TemperatureSettings temperatureSettings = new TemperatureSettings(sourceHandler);
 
-        Set<TemperatureRangeSetting> testValues = new TreeSet<>();
+        TreeSet<TemperatureRangeSetting> testValues = new TreeSet<>();
         TemperatureRangeSetting trs0 = new TemperatureRangeSetting(Range.between(
                 LocalDateTime.of(2000, 1, 1, 13, 10),
                 LocalDateTime.of(2000, 1, 5, 17, 10)), 5D);
@@ -235,13 +229,17 @@ public class TemperatureSettingsTest {
 
         LocalDateTime date = LocalDateTime.of(2000, 1, 7, 17, 15, 0);
 
-        temperatureSettings.applyRampDown(2D, date);
+        context.checking(new Expectations() {{
+            oneOf(sourceHandler).backupAndWriteFile(with(any(Set.class)));
+        }});
 
-        assertEquals(10, temperatureSettings.settings.size());
+        temperatureSettings.applyRampDown(2D, date); //XXX
+
+        assertEquals(11, temperatureSettings.settings.size());
         Iterator<TemperatureRangeSetting> it = temperatureSettings.settings.iterator();
         assertEquals(trs0, it.next());
         assertEquals(new TemperatureRangeSetting(Range.between(startSecondRange, date), null), it.next());
-        ;
+
         assertEquals(new TemperatureRangeSetting(Range.between(date, date.plusHours(3)), null), it.next());
         assertEquals(new TemperatureRangeSetting(Range.between(date.plusHours(3), date.plusHours(6)), null), it.next());
         assertEquals(new TemperatureRangeSetting(Range.between(date.plusHours(6), date.plusHours(9)), null), it.next());
@@ -251,8 +249,10 @@ public class TemperatureSettingsTest {
         assertEquals(new TemperatureRangeSetting(Range.between(date.plusHours(18), date.plusHours(21)), null), it.next());
         assertEquals(new TemperatureRangeSetting(Range.between(date.plusHours(21), date.plusHours(24)), null), it.next());
 
+        assertEquals(new TemperatureRangeSetting(Range.between(date.plusHours(24), date.plusHours(24).plusMonths(1)), 2D), it.next());
+
         List<Double> values = temperatureSettings.settings.stream().map(TemperatureRangeSetting::getValue).collect(Collectors.toList());
-        assertEquals(Arrays.asList(5.0, 10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0), values);
+        assertEquals(Arrays.asList(5.0, 10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0,2.0), values);
     }
 
 }
