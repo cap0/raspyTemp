@@ -1,5 +1,11 @@
 package gg;
 
+import gg.GPIO.GPIOController;
+import gg.GPIO.GPIOControllerMock;
+import gg.GPIO.IGPIOController;
+import gg.LCD.ILCD;
+import gg.LCD.LCD;
+import gg.LCD.LCDMock;
 import gg.TemperatureSetting.TemperatureSettingsFileHandler;
 import gg.util.Util;
 import org.apache.logging.log4j.LogManager;
@@ -24,15 +30,21 @@ public class Orchestrator {
     private static final Logger logger = LogManager.getLogger(Orchestrator.class);
 
     public static void main(String[] args) {
+        Orchestrator o = new Orchestrator();
+        o.init(args);
+    }
+
+    public void init(String[] args) {
         logger.info("all starts here...");
         checkArguments(args);
         Properties p = mergePropertiesFile(args);
 
         createSettingsFileIfMissing(p);
+        boolean isMock = isMock(p);
 
-        LCD lcd = new LCD();
+        ILCD lcd = createLCD(isMock);
         lcd.print("starting...","");
-        GPIOController gpioCtrl = new GPIOController();
+        IGPIOController gpioCtrl = createGPIOController(isMock);
 
         scheduleTemperatureCollector(p, gpioCtrl);
         scheduleIOTSender(p);
@@ -48,6 +60,18 @@ public class Orchestrator {
         scheduleController(p, connCheck, lcd, gpioCtrl);
 
         startHttpServer(p);
+    }
+
+    private static boolean isMock(Properties p) {
+        return Boolean.parseBoolean(p.getProperty("mock", "false"));
+    }
+
+    private static ILCD createLCD(boolean isMock) {
+        return isMock ? new LCDMock() : new LCD();
+    }
+
+    private static IGPIOController createGPIOController(boolean isMock) {
+        return isMock ? new GPIOControllerMock() : new GPIOController();
     }
 
     private static void createSettingsFileIfMissing(Properties p) {
@@ -87,7 +111,7 @@ public class Orchestrator {
         scheduler.scheduleAtFixedRate(task, 0, 60, SECONDS);
     }
 
-    private static void scheduleTemperatureCollector(Properties properties, GPIOController gpioCtrl) {
+    private static void scheduleTemperatureCollector(Properties properties, IGPIOController gpioCtrl) {
         logger.info("Schedule temperature collector Process");
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         Runnable task = TemperatureCollector.build(properties, gpioCtrl);
@@ -137,7 +161,7 @@ public class Orchestrator {
         scheduler.scheduleAtFixedRate(ftpUploadTask, initialDelay, periodicDelay, MINUTES);
     }
 
-    private static void scheduleController(Properties properties, ConnectionChecker connCheck, LCD lcd, GPIOController gpioCtrl) {
+    private static void scheduleController(Properties properties, ConnectionChecker connCheck, ILCD lcd, IGPIOController gpioCtrl) {
         logger.info("Schedule Controller");
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         Runnable controller = new Controller(properties, connCheck, lcd, gpioCtrl);

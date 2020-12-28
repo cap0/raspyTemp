@@ -1,5 +1,7 @@
 package gg;
 
+import gg.GPIO.IGPIOController;
+import gg.LCD.ILCD;
 import gg.TemperatureSetting.TemperatureSettings;
 import gg.TemperatureSetting.TemperatureSettingsFileHandler;
 import gg.util.Status;
@@ -22,12 +24,12 @@ public class Controller implements Runnable{
 
     private final String temperatureSettingsPath;
     private final IGPIOController gpioCtrl;
-    private final LCD lcd;
+    private final ILCD lcd;
     private ConnectionChecker connCheck;
 
     private IReadTemperature temperatureReader;
 
-    Controller(Properties p, ConnectionChecker connCheck, LCD lcd, GPIOController gpioCtrl) {
+    Controller(Properties p, ConnectionChecker connCheck, ILCD lcd, IGPIOController gpioCtrl) {
         this(new TemperatureReader(p.getProperty(SENSORS_FOLDER),
                         p.getProperty(WORT_SENSOR),
                         p.getProperty(ROOM_SENSOR)),
@@ -38,7 +40,7 @@ public class Controller implements Runnable{
     }
 
     private Controller(IReadTemperature temperatureReader, String temperatureSettingsPath,
-                       Double configDeltaTemp, Double deltaTempWhenCoolingOrWarming, IGPIOController gpioCtrl, LCD lcd, ConnectionChecker connCheck) {
+                       Double configDeltaTemp, Double deltaTempWhenCoolingOrWarming, IGPIOController gpioCtrl, ILCD lcd, ConnectionChecker connCheck) {
         this.temperatureReader = temperatureReader;
         this.temperatureSettingsPath = temperatureSettingsPath;
         this.deltaTempWhenFermenting = configDeltaTemp;

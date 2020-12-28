@@ -1,5 +1,7 @@
 package gg;
 
+import gg.GPIO.GPIOController;
+import gg.GPIO.IGPIOController;
 import gg.util.Util;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,16 +25,16 @@ public class TemperatureCollector extends Thread{
     private static final Logger logger = LogManager.getLogger(TemperatureCollector.class);
 
     private final String outputFilePath;
-    private GPIOController gpioCtrl;
+    private final IGPIOController gpioCtrl;
     private final TemperatureReader temperatureReader;
 
-    private TemperatureCollector(String roomSensorName, String wortSensorName, String sensorsFolder, String outputFilePath, GPIOController gpioCtrl) {
+    private TemperatureCollector(String roomSensorName, String wortSensorName, String sensorsFolder, String outputFilePath, IGPIOController gpioCtrl) {
         this.outputFilePath = outputFilePath;
         this.gpioCtrl = gpioCtrl;
         this.temperatureReader = new TemperatureReader(sensorsFolder, wortSensorName, roomSensorName);
     }
 
-    static TemperatureCollector build(Properties p, GPIOController gpioCtrl) {
+    static TemperatureCollector build(Properties p, IGPIOController gpioCtrl) {
         String roomSensorName = p.getProperty(ROOM_SENSOR);
         String wortSensorName = p.getProperty(WORT_SENSOR);
         String outputFilePath = p.getProperty(TEMPERATURE_OUTPUT_FILE);

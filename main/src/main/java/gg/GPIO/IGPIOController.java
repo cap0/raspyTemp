@@ -1,4 +1,4 @@
-package gg;
+package gg.GPIO;
 
 import gg.util.Status;
 

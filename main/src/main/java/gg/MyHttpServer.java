@@ -5,6 +5,7 @@ import gg.TemperatureSetting.TemperatureSettings;
 import gg.TemperatureSetting.TemperatureSettingsFileHandler;
 import gg.notify.INotifier;
 import gg.notify.TelegramNotifier;
+import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -22,8 +23,8 @@ public class MyHttpServer {
 
     private static final String API_SET = "/api/set/";
     private static final String API_RAMP_DOWN = "/api/ramp-down/";
-    private static final String API_GET_SETTINGS = "/api/get/";
-    private static final String API_GET_TEMPERATURE = "/api/temperature/";
+    public static final String API_GET_SETTINGS = "/api/get/";
+    public static final String API_GET_TEMPERATURE = "/api/temperature/";
 
     private final TemperatureSettings temperatureSettings;
     IReadTemperature temperatureReader;
@@ -77,6 +78,7 @@ public class MyHttpServer {
 
         server.setExecutor(null); // creates a default executor
         server.start();
+        logger.info("started");
     }
 
     private HttpHandler handlerSetTempPoint() {
@@ -119,17 +121,19 @@ public class MyHttpServer {
         }
     }
 
-    private void executeGet(HttpExchange exchange) throws IOException {
+    private void executeGet(HttpExchange e) throws IOException {
         temperatureSettings.initialize();
         String json = temperatureSettings.toJSON();
-        exchange.sendResponseHeaders(200, json.getBytes().length);
-        writeResponse(exchange, json);
+        e.getResponseHeaders().add("Content-Type", ContentType.APPLICATION_JSON.getMimeType());
+        e.sendResponseHeaders(200, json.getBytes().length);
+        writeResponse(e, json);
     }
 
-    private void executeGetTemp(HttpExchange exchange) throws IOException {
+    private void executeGetTemp(HttpExchange e) throws IOException {
         TemperatureRaw t = temperatureReader.getTemperatureRaw();
-        exchange.sendResponseHeaders(200, t.toJSON().getBytes().length);
-        writeResponse(exchange, t.toJSON());
+        e.getResponseHeaders().add("Content-Type", ContentType.APPLICATION_JSON.getMimeType());
+        e.sendResponseHeaders(200, t.toJSON().getBytes().length);
+        writeResponse(e, t.toJSON());
     }
 
     private BasicAuthenticator getBasicAuthenticator() {

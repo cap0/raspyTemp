@@ -1,6 +1,7 @@
-package gg;
+package gg.GPIO;
 
 import com.pi4j.io.gpio.*;
+import gg.Controller;
 import gg.util.Status;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,7 +15,7 @@ public class GPIOController implements IGPIOController{
     private final GpioPinDigitalOutput beltPin;
     private Status status; //TODO volatile?
 
-    GPIOController() {
+    public GPIOController() {
         gpio = GpioFactory.getInstance();
 
         fridgePin = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_04, "fridgePin", PinState.HIGH);
