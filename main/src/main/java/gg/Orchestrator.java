@@ -30,8 +30,7 @@ public class Orchestrator {
     private static final Logger logger = LogManager.getLogger(Orchestrator.class);
 
     public static void main(String[] args) {
-        Orchestrator o = new Orchestrator();
-        o.init(args);
+        new Orchestrator().init(args);
     }
 
     public void init(String[] args) {

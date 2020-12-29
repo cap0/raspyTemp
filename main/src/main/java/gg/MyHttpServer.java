@@ -25,6 +25,7 @@ public class MyHttpServer {
     private static final String API_RAMP_DOWN = "/api/ramp-down/";
     public static final String API_GET_SETTINGS = "/api/get/";
     public static final String API_GET_TEMPERATURE = "/api/temperature/";
+    public static final String API_SHUTDOWN = "/api/shutdown/";
 
     private final TemperatureSettings temperatureSettings;
     IReadTemperature temperatureReader;
@@ -75,6 +76,9 @@ public class MyHttpServer {
 
         HttpContext getTemperatureCtx = server.createContext(API_GET_TEMPERATURE, this::executeGetTemp);
         getTemperatureCtx.setAuthenticator(basicAuthenticator);
+
+        HttpContext shutDownCtx = server.createContext(API_SHUTDOWN, this::executeShutdown);
+        shutDownCtx.setAuthenticator(basicAuthenticator);
 
         server.setExecutor(null); // creates a default executor
         server.start();
@@ -134,6 +138,23 @@ public class MyHttpServer {
         e.getResponseHeaders().add("Content-Type", ContentType.APPLICATION_JSON.getMimeType());
         e.sendResponseHeaders(200, t.toJSON().getBytes().length);
         writeResponse(e, t.toJSON());
+    }
+
+    private void executeShutdown(HttpExchange e) throws IOException {
+        e.getResponseHeaders().add("Content-Type", ContentType.APPLICATION_JSON.getMimeType());
+        e.sendResponseHeaders(200, "byebye".getBytes().length);
+        writeResponse(e, "byebye");
+        shutdown();
+    }
+
+    private void shutdown() {
+        logger.info("shutting down server");
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ie) {
+            logger.error(ie);
+        }
+        System.exit(0);
     }
 
     private BasicAuthenticator getBasicAuthenticator() {

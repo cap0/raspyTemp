@@ -9,8 +9,7 @@ import org.junit.Test;
 import java.util.List;
 import java.util.Map;
 
-import static gg.MyHttpServer.API_GET_SETTINGS;
-import static gg.MyHttpServer.API_GET_TEMPERATURE;
+import static gg.MyHttpServer.*;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
@@ -66,5 +65,25 @@ public class HttpServerIntegrationTest {
         assertEquals("2019-03-06T20:00:00", list.get(1).get("from"));
         assertEquals("2019-03-08T20:00:00", list.get(1).get("to"));
         assertEquals(new Float(18.0), list.get(1).get("value"));
+    }
+
+    @Test
+    public void api_shutdown() {
+        getClass().getClassLoader().getResource("test/ftp.properties");
+        String[] parameters = {
+                getClass().getClassLoader().getResource("test/ftp.properties").getFile(),
+                getClass().getClassLoader().getResource("test/test.properties").getFile()
+        };
+        Orchestrator o = new Orchestrator();
+        o.init(parameters);
+
+        given().auth().basic("test", "test").
+                when().
+                get("http://localhost:8000" + API_SHUTDOWN).
+                then().
+                log().body().
+                statusCode(200).
+                body(is("byebye"))
+                ;
     }
 }
