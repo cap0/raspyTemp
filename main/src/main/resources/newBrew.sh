@@ -30,7 +30,7 @@ case "$response" in [yY][eE][sS]|[yY])
         echo "update and build"
         cd ~/raspyTemp/main
         git pull
-        mvn clean install
+        mvn clean install -DskipTests
         ;;
 esac
 
